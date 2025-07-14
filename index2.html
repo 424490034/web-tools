@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="initial-scale=1.0, user-scalable=no, width=device-width"
+    />
+    <title>轨迹回放与录制</title>
+    <link
+      rel="stylesheet"
+      href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"
+    />
+    <style>
+      html,
+      body,
+      #container {
+        height: 100%;
+        width: 100%;
+      }
+
+      .input-card .btn {
+        margin-right: 1.2rem;
+        width: 9rem;
+      }
+
+      .input-card .btn:last-child {
+        margin-right: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <div class="input-card">
+      <h4>轨迹控制</h4>
+      <div class="input-item">
+        <input
+          type="button"
+          class="btn"
+          value="开始动画"
+          onclick="startAnimation()"
+        />
+        <input
+          type="button"
+          class="btn"
+          value="暂停动画"
+          onclick="pauseAnimation()"
+        />
+      </div>
+      <div class="input-item">
+        <input
+          type="button"
+          class="btn"
+          value="继续动画"
+          onclick="resumeAnimation()"
+        />
+        <input
+          type="button"
+          class="btn"
+          value="停止动画"
+          onclick="stopAnimation()"
+        />
+      </div>
+    </div>
+    <script
+      type="text/javascript"
+      src="https://webapi.amap.com/maps?v=2.0&key=03437a6ddeb44bd6ef16e80b1bf10bcf"
+    ></script>
+    <script>
+      let mediaRecorder = null
+      let recordedChunks = []
+      let isRecording = false
+      let animationInProgress = false
+      let timer = null
+      async function startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { mediaSource: 'screen' },
+            audio: false,
+            selfBrowserSurface: 'include', // 包含当前标签页
+            preferCurrentTab: true,
+          })
+
+          mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=h264',
+            bitsPerSecond: 5000000,
+          })
+
+          mediaRecorder.ondataavailable = function (event) {
+            if (event.data.size > 0) {
+              recordedChunks.push(event.data)
+            }
+          }
+
+          mediaRecorder.onstop = function () {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = 'recording.webm'
+            a.click()
+            URL.revokeObjectURL(url)
+            recordedChunks = []
+          }
+
+          mediaRecorder.start()
+          isRecording = true
+
+          // 当用户停止屏幕共享时自动停止录制
+          stream.getVideoTracks()[0].onended = () => {
+            stopRecording()
+          }
+        } catch (err) {
+          console.error('Error starting recording:', err)
+          alert('屏幕录制已取消或发生错误')
+        }
+      }
+
+      function stopRecording() {
+        if (mediaRecorder && isRecording) {
+          mediaRecorder.stop()
+          isRecording = false
+
+          // 关闭媒体流
+          if (mediaRecorder.stream) {
+            mediaRecorder.stream.getTracks().forEach((track) => track.stop())
+          }
+        }
+      }
+
+      AMap.plugin('AMap.MoveAnimation', function () {
+        var infoWindow = new AMap.InfoWindow({
+          offset: new AMap.Pixel(0, -40),
+          closeButton: false,
+        })
+
+        var marker,
+          lineArr = [
+            [116.478935, 39.997761],
+            [116.478939, 39.997825],
+            [116.478912, 39.998549],
+            [116.478912, 39.998549],
+            [116.478998, 39.998555],
+            [116.478998, 39.998555],
+            [116.479282, 39.99856],
+            [116.479658, 39.998528],
+            [116.480151, 39.998453],
+            [116.480784, 39.998302],
+            [116.480784, 39.998302],
+            [116.481149, 39.998184],
+            [116.481573, 39.997997],
+            [116.481863, 39.997846],
+            [116.482072, 39.997718],
+            [116.482362, 39.997718],
+            [116.483633, 39.998935],
+            [116.48367, 39.998968],
+            [116.484648, 39.999861],
+          ]
+
+        var map = new AMap.Map('container', {
+          resizeEnable: true,
+          center: [116.397428, 39.90923],
+          zoom: 17,
+        })
+
+        marker = new AMap.Marker({
+          map: map,
+          position: [116.478935, 39.997761],
+          icon: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+          offset: new AMap.Pixel(-13, -26),
+        })
+
+        infoWindow.open(map, marker.getPosition())
+
+        var polyline = new AMap.Polyline({
+          map: map,
+          path: lineArr,
+          showDir: true,
+          strokeColor: '#28F',
+          strokeWeight: 6,
+        })
+
+        var passedPolyline = new AMap.Polyline({
+          map: map,
+          strokeColor: '#AF5',
+          strokeWeight: 6,
+        })
+
+        marker.on('moving', function (e) {
+          if (timer) {
+            clearTimeout(timer)
+            timer = null
+          }
+          passedPolyline.setPath(e.passedPath)
+          map.setCenter(e.target.getPosition(), true)
+
+          var position = e.target.getPosition()
+          var content = `经度: ${position.lng.toFixed(
+            6
+          )}<br>纬度: ${position.lat.toFixed(6)}`
+          infoWindow.setContent(content)
+          infoWindow.open(map, position)
+          // 创建新的计时器（2秒后执行停止录制）
+          timer = setTimeout(() => {
+            stopRecording()
+          }, 2000)
+        })
+
+        map.setFitView()
+
+        window.startAnimation = async function () {
+          const isConfirmed = confirm('需要授权屏幕录制,请点击允许')
+          if (!isConfirmed) {
+            return
+          }
+          if (!animationInProgress) {
+            await startRecording()
+            document.querySelector('.input-card').style.display = 'none'
+            animationInProgress = true
+            marker.moveAlong(
+              lineArr,
+              {
+                duration: 500,
+                autoRotation: true,
+              },
+              () => {
+                animationInProgress = false
+              }
+            )
+          }
+        }
+
+        window.pauseAnimation = function () {
+          marker.pauseMove()
+        }
+
+        window.resumeAnimation = function () {
+          marker.resumeMove()
+        }
+
+        window.stopAnimation = function () {
+          stopRecording()
+          document.querySelector('.input-card').style.display = undefined
+          marker.stopMove()
+          infoWindow.close()
+          animationInProgress = false
+        }
+      })
+    </script>
+  </body>
+</html>
