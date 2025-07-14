@@ -68,7 +68,7 @@
     <script src="./ffmpeg.min.js"></script>
     <script
       type="text/javascript"
-      src="https://webapi.amap.com/maps?v=2.0&key=03437a6ddeb44bd6ef16e80b1bf10bcf"
+      src="https://webapi.amap.com/maps?v=2.0&key=03437a6ddeb44bd6ef16e80b1bf10bcf&plugin=AMap.PlaceSearch,AMap.Scale,AMap.OverView,AMap.ToolBar,AMap.MapType,AMap.Geolocation,AMap.Geocoder,AMap.MoveAnimation,AMap.Driving,AMap.AutoComplete,AMap.MoveAnimation,AMap.TileLayer.Traffic,AMap.ToolBar"
     ></script>
 
     <script>
@@ -192,7 +192,14 @@
         var map = new AMap.Map('container', {
           resizeEnable: true,
           center: [116.397428, 39.90923],
-          zoom: 17,
+          zoom: 20,
+        })
+
+        var satelliteLayer = new AMap.TileLayer.Satellite({
+          zIndex: 12,
+          autoRefresh: true,
+          opacity: 1,
+          map,
         })
 
         marker = new AMap.Marker({
