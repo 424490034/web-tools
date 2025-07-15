@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>屏幕录制工具</title>
+  <script src="./RecordRTC.js"></script>
+  <!-- 添加ffmpeg.js -->
+  <script src="./ffmpeg.min.js"></script>
+  <style>
+    /* 保持原始样式不变，仅添加新元素的样式 */
+    .recordings-panel {
+      display: none;
+      margin-top: 25px;
+    }
+
+    .recordings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .clear-btn {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background: rgba(var(--btn-bg-rgb), 0.1);
+    }
+
+    .recordings-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    .recording-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      background: rgba(var(--border-color-rgb), 0.1);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+
+    .recording-item:hover {
+      background: rgba(var(--btn-bg-rgb), 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .recording-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recording-title {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .recording-meta {
+      display: flex;
+      font-size: 13px;
+      color: #777;
+    }
+
+    .recording-meta span {
+      margin-right: 15px;
+    }
+
+    .recording-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .recording-btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .play-btn {
+      background: #4a6cf7;
+      color: white;
+    }
+
+    .download-btn {
+      background: #34a853;
+      color: white;
+    }
+
+    .download-mp4-btn {
+      background: #FF9800;
+      color: white;
+    }
+
+    .delete-btn {
+      background: #ea4335;
+      color: white;
+    }
+
+    .recording-btn i {
+      margin-right: 5px;
+      font-size: 14px;
+    }
+
+    .no-recordings {
+      text-align: center;
+      padding: 30px;
+      color: #777;
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+    }
+
+    /* 视频弹框样式 */
+    .video-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-modal-content {
+      position: relative;
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      max-width: 90%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .modal-title {
+      font-weight: 600;
+      font-size: 20px;
+      color: var(--text-primary);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .close-modal:hover {
+      background-color: rgba(var(--btn-bg-rgb), 0.1);
+    }
+
+    .modal-video-container {
+      position: relative;
+      width: 800px;
+      max-width: 80vw;
+      height: 0;
+      padding-bottom: 56.25%;
+      /* 16:9 aspect ratio */
+    }
+
+    .modal-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
+
+    .modal-info {
+      margin-top: 15px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    /* 加载指示器 */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-size: 18px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #fff;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* 定义原始CSS变量 */
+    :root {
+      --bg-primary: #f0f2f5;
+      --text-primary: #333;
+      --btn-bg: #4a6cf7;
+      --btn-hover-bg: #3951c4;
+      --btn-text: white;
+      --border-color: #ddd;
+      --card-bg: #ffffff;
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --btn-bg-rgb: 74, 108, 247;
+      --border-color-rgb: 221, 221, 221;
+    }
+
+    .dark-theme {
+      --bg-primary: #1e1f2e;
+      --text-primary: #e1e3e6;
+      --btn-bg: #6b8cff;
+      --btn-hover-bg: #5a6ecc;
+      --border-color: #444;
+      --card-bg: #2a2b3d;
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --border-color-rgb: 68, 68, 68;
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+      line-height: 1.5;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .theme-toggle {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--btn-hover-bg);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: var(--card-shadow);
+      transition: box-shadow 0.3s, background 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .card-title i {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    #videoPreview {
+      width: 100%;
+      background: #000;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--btn-hover-bg);
+      transform: translateY(-2px);
+    }
+
+    .btn i {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #recordedVideo {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+      display: none;
+      margin-top: 20px;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      background: rgba(var(--btn-bg-rgb), 0.1);
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+    }
+
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .col {
+      flex: 1;
+    }
+
+    .recorded-video-container {
+      display: none;
+    }
+
+    .preview-container {
+      position: relative;
+    }
+
+    .recording-indicator {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #ff5c5c;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background-size: contain;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .record-icon {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 极 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z'/%3E%3Ccircle cx='12' cy='12' r='5' fill='red'/%3E%3C/svg%3E");
+    }
+
+    .stop-icon {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Crect x='6' y='6' width='12' height='12' rx='1' fill='white'/%3E%3C/svg%3E");
+    }
+
+    .download-icon {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'/%3极%3C/svg%3E");
+    }
+
+    .play-icon {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>屏幕录制工具</h1>
+    <button id="themeToggle" class="theme-toggle">深色模式</button>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card preview-container">
+        <div class="card-title"><i>🔴</i> 预览与录制</div>
+        <div class="recording-indicator">录制中...</div>
+        <video id="videoPreview" controls autoplay playsinline></video>
+
+        <div class="controls">
+          <button id="startBtn" class="btn">
+              <span class="icon record-icon"></span>开始录制
+            </button>
+          <button id="stopBtn" class="btn" disabled>
+              <span class="icon stop-icon"></span>停止录制
+            </button>
+        </div>
+
+        <div id="status" class="status">准备录制屏幕内容...</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card recorded-video-container" id="recordedContainer">
+        <div class="card-title"><i>🎬</i> 已录制的视频</div>
+        <video id="recordedVideo" controls></video>
+
+        <div class="controls">
+          <button id="playBtn" class="btn">
+              <span class="icon play-icon"></span>播放视频
+            </button>
+          <button id="downloadWebmBtn" class="btn">
+              <span class="icon download-icon"></span>下载WebM
+            </button>
+          <!-- 添加下载为MP4的按钮 -->
+          <button id="downloadMp4Btn" class="btn download-mp4-btn">
+              <span class="icon download-icon"></span>下载MP4
+            </button>
+        </div>
+
+        <div id="infoText" class="status" style="margin-top: 15px">
+          录制已完成，可以播放或下载视频文件
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加录制记录面板 -->
+  <div class="recordings-panel" id="recordingsPanel">
+    <div class="recordings-header">
+      <div class="card-title"><i>📼</i> 录制记录</div>
+      <button id="clearBtn" class="clear-btn">清除所有记录</button>
+    </div>
+
+    <div class="recordings-list" id="recordingsList">
+      <div class="no-recordings">暂无录制记录</极>
+      </div>
+    </div>
+
+    <!-- 视频播放弹框 -->
+    <div class="video-modal" id="videoModal">
+      <div class="video-modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalVideoTitle">播放录制视频</h3>
+          <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-video-container">
+          <video class="modal-video" id="modalVideo" controls></video>
+        </div>
+        <div class="modal-info" id="modalVideoInfo"></div>
+      </div>
+    </div>
+
+    <!-- 加载覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div id="loadingText">处理中，请稍候...</div>
+    </div>
+
+    <script>
+      // 页面元素
+      const videoPreview = document.getElementById('videoPreview');
+      const recordedVideo = document.getElementById('recordedVideo');
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const playBtn = document.getElementById('playBtn');
+      const downloadWebmBtn = document.getElementById('downloadWebmBtn');
+      const downloadMp4Btn = document.getElementById('downloadMp4Btn');
+      const themeToggle = document.getElementById('themeToggle');
+      const statusDisplay = document.getElementById('status');
+      const recordingIndicator = document.querySelector('.recording-indicator');
+      const recordedContainer = document.getElementById('recordedContainer');
+      const infoText = document.getElementById('infoText');
+      const recordingsPanel = document.getElementById('recordingsPanel');
+      const recordingsList = document.getElementById('recordingsList');
+      const clearBtn = document.getElementById('clearBtn');
+      const videoModal = document.getElementById('videoModal');
+      const modalVideo = document.getElementById('modalVideo');
+      const modalVideoTitle = document.getElementById('modalVideoTitle');
+      const modalVideoInfo = document.getElementById('modalVideoInfo');
+      const closeModal = document.getElementById('closeModal');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const loadingText = document.getElementById('loadingText');
+      
+      // 状态变量
+      let recorder;
+      let recordedBlob;
+      let stream;
+      let currentRecordedUrl;
+      let isDarkMode = false;
+      let recordings = JSON.parse(localStorage.getItem('screenRecordings') || '[]');
+      let ffmpeg = null; // 添加ffmpeg实例
+      const { createFFmpeg, fetchFile } = FFmpeg
+
+      async function toBlobURL(url, mimeType) {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return URL.createObjectURL(blob);
+        }
+      // 初始化FFmpeg
+      async function initFFmpeg() {
+        if (!ffmpeg) {
+          loadingText.textContent = '正在加载FFmpeg，请稍候...';
+          try {
+            showLoading(true);
+
+            ffmpeg = createFFmpeg({ log: true,
+                wasmURL: await toBlobURL('./ffmpeg-core.wasm', 'application/wasm')
+             });
+            await ffmpeg.load();
+
+            return ffmpeg
+          } catch (error) {
+            console.error('FFmpeg加载失败:', error);
+            statusDisplay.textContent = 'FFmpeg加载失败: ' + error.message;
+          } finally {
+            showLoading(false);
+          }
+        }
+      }
+
+      // 显示/隐藏加载层
+      function showLoading(show) {
+        loadingOverlay.style.display = show ? 'flex' : 'none';
+      }
+      
+      // 初始化记录显示
+      updateRecordingsList();
+      
+      // 主题切换功能
+      themeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('dark-theme', isDarkMode);
+        themeToggle.textContent = isDarkMode ? '浅色模式' : '深色模式';
+      });
+      
+      // 清除所有记录
+      clearBtn.addEventListener('click', () => {
+        if (confirm('确定要清除所有录制记录吗？该操作不可撤销！')) {
+          // 释放所有Blob URL
+          recordings.forEach(recording => {
+            URL.revokeObjectURL(recording.url);
+          });
+          
+          recordings = [];
+          localStorage.removeItem('screenRecordings');
+          updateRecordingsList();
+          showPanel(false);
+        }
+      });
+      
+      // 关闭弹框
+      closeModal.addEventListener('click', () => {
+        closeVideoModal();
+      });
+      
+      // 点击弹框外部区域关闭
+      videoModal.addEventListener('click', (e) => {
+        if (e.target === videoModal) {
+          closeVideoModal();
+        }
+      });
+      
+      // 开始录制
+      startBtn.addEventListener('click', async () => {
+        try {
+          statusDisplay.textContent = '正在获取屏幕权限...';
+          
+          // 获取屏幕流
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              cursor: 'motion',
+              frameRate: 25,
+            },
+            audio: true,
+          });
+          
+          // 显示预览和录制指示器
+          videoPreview.style.display = 'block';
+          recordingIndicator.style.display = 'block';
+          videoPreview.srcObject = stream;
+          
+          // 隐藏已录制视频区域
+          recordedContainer.style.display = 'none';
+          
+          // 初始化录制器
+          recorder = RecordRTC(stream, {
+            type: 'video',
+            mimeType: 'video/webm;codecs=vp9',
+            bitsPerSecond: 2000000, // 2 Mbps
+          });
+          
+          recorder.startRecording();
+          
+          // 更新UI状态
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+          statusDisplay.textContent = '正在录制...可以随时停止';
+          
+          // 流停止监听
+          stream.getTracks().forEach((track) => {
+            track.onended = () => {
+              stopRecording();
+            };
+          });
+        } catch (err) {
+          console.error('录制错误:', err);
+          statusDisplay.textContent = `错误: ${err.message}`;
+          resetControls();
+        }
+      });
+      
+      // 停止录制
+      stopBtn.addEventListener('click', stopRecording);
+      
+      function stopRecording() {
+        if (!recorder) return;
+        
+        recorder.stopRecording(() => {
+          // 隐藏录制指示器
+          recordingIndicator.style.display = 'none';
+          
+          // 获取录制的Blob
+          recordedBlob = recorder.getBlob();
+          
+          // 创建视频URL并设置给播放元素
+          currentRecordedUrl = URL.createObjectURL(recordedBlob);
+          recordedVideo.src = currentRecordedUrl;
+          
+          // 更新UI状态
+          recordedContainer.style.display = 'block';
+          infoText.textContent = `录制已完成，视频大小: ${formatFileSize(
+            recordedBlob.size
+          )}`;
+          statusDisplay.textContent = '录制完成!';
+          
+          // 添加录制记录
+          addRecording({
+            blob: recordedBlob,
+            size: recordedBlob.size,
+            timestamp: new Date()
+          });
+          
+          // 重置预览
+          if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+          }
+          videoPreview.srcObject = null;
+          videoPreview.style.display = 'none';
+          
+          // 重置控制按钮状态
+          resetControls();
+          
+          // 显示录制历史面板
+          showPanel(true);
+        });
+      }
+      
+      // 格式化文件大小
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      
+      // 添加录制记录
+      function addRecording(recordingData) {
+        // 生成唯一ID用于管理记录
+        const id = Date.now();
+        
+        // 创建Blob URL
+        recordingData.url = URL.createObjectURL(recordingData.blob);
+        recordingData.id = id;
+        recordingData.title = `录制_${new Date(id).toLocaleString().replace(/[:]/g, '-')}`;
+        
+        // 添加到记录数组
+        recordings.unshift(recordingData);
+        
+        // 保存到localStorage（最大保存10个）
+        if (recordings.length > 10) {
+          // 释放最旧记录的Blob URL
+          URL.revokeObjectURL(recordings[recordings.length-1].url);
+          recordings.pop(); // 删除最旧的记录
+        }
+        localStorage.setItem('screenRecordings', JSON.stringify(recordings));
+        
+        // 更新UI
+        updateRecordingsList();
+      }
+      
+      // 更新记录列表
+      function updateRecordingsList() {
+        if (recordings.length === 0) {
+          recordingsList.innerHTML = `<div class="no-recordings">暂无录制记录</div>`;
+          return;
+        }
+        
+        recordingsList.innerHTML = '';
+        
+        recordings.forEach(recording => {
+          const formattedDate = new Date(recording.id).toLocaleString();
+          const formattedSize = formatFileSize(recording.size);
+          
+          const recordingEl = document.createElement('div');
+          recordingEl.className = 'recording-item';
+          recordingEl.dataset.id = recording.id;
+          
+          recordingEl.innerHTML = `
+            <div class="recording-info">
+              <div class="recording-title">${recording.title}</div>
+              <div class="recording-meta">
+                <span>${formattedSize}</span>
+                <span>${formattedDate}</span>
+              </div>
+            </div>
+            <div class="recording-controls">
+              <button class="recording-btn play-btn">
+                <i class="play-icon"></i>播放
+              </button>
+              <button class="recording-btn download-btn">
+                <i class="download-icon"></i>WebM
+              </button>
+              <button class="recording-btn download-mp4-btn">
+                <i class="download-icon"></i>MP4
+              </button>
+              <button class="recording-btn delete-btn">
+                <i class="delete-icon">×</i>删除
+              </button>
+            </div>
+          `;
+          
+          // 添加播放事件 - 在弹框中播放
+          recordingEl.querySelector('.play-btn').addEventListener('click', () => {
+            playRecordingInModal(recording.id);
+          });
+          
+          // 添加webm下载事件
+          recordingEl.querySelector('.download-btn').addEventListener('click', () => {
+            downloadWebm(recording.id);
+          });
+          
+          // 添加mp4下载事件
+          recordingEl.querySelector('.download-mp4-btn').addEventListener('click', async () => {
+            await downloadRecordingAsMp4(recording.id);
+          });
+          
+          // 添加删除事件
+          recordingEl.querySelector('.delete-btn').addEventListener('click', () => {
+            deleteRecording(recording.id);
+          });
+          
+          recordingsList.appendChild(recordingEl);
+        });
+      }
+      
+      // 在弹框中播放记录
+      function playRecordingInModal(id) {
+        const recording = recordings.find(r => r.id == id);
+        if (!recording) return;
+        
+        // 设置弹框内容
+        modalVideoTitle.textContent = recording.title;
+        modalVideoInfo.textContent = `文件大小: ${formatFileSize(recording.size)} | 录制时间: ${new Date(recording.id).toLocaleString()}`;
+        modalVideo.src = recording.url;
+        
+        // 打开弹框
+        openVideoModal();
+      }
+      
+      // 打开视频弹框
+      function openVideoModal() {
+        videoModal.style.display = 'flex';
+        // 开始播放
+        setTimeout(() => {
+          modalVideo.play().catch(e => console.error('播放失败:', e));
+        }, 300);
+      }
+      
+      // 关闭视频弹框
+      function closeVideoModal() {
+        modalVideo.pause();
+        videoModal.style.display = 'none';
+        modalVideo.src = '';
+      }
+      
+      // 下载指定记录为webm
+      function downloadWebm(id) {
+        const recording = recordings.find(r => r.id == id);
+
+        if (!recording) return;
+        
+        const a = document.createElement('a');
+        a.href = recording.url;
+        a.download = `${recording.title}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      
+      // 下载指定记录为mp4
+      async function downloadRecordingAsMp4(id) {
+        const recording = recordings.find(r => r.id == id);
+        if (!recording) return;
+        
+
+        try {
+          loadingText.textContent = '正在转换格式，请稍候...';
+          showLoading(true);
+          
+          await initFFmpeg()
+          
+        const { createFFmpeg, fetchFile } = FFmpeg
+          // 将Blob写入FFmpeg的文件系统
+          ffmpeg.FS('writeFile', 'input.webm', await fetchFile(recording.blob));
+          
+          // 运行FFmpeg转换命令
+          await ffmpeg.run(
+            '-i', 'input.webm',
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            'output.mp4'
+          );
+          
+          // 读取转换结果
+          const data = ffmpeg.FS('readFile', 'output.mp4');
+          const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+          const mp4Url = URL.createObjectURL(mp4Blob);
+          
+          // 创建下载链接
+          const a = document.createElement('a');
+          a.href = mp4Url;
+          a.download = `${recording.title}.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          
+          // 清理资源
+          setTimeout(() => {
+            URL.revokeObjectURL(mp4Url);
+            // 清理FFmpeg文件系统
+            ffmpeg.FS('unlink', 'input.webm');
+            ffmpeg.FS('unlink', 'output.mp4');
+          }, 3000);
+          
+          statusDisplay.textContent = 'MP4格式转换完成，文件开始下载';
+        } catch (error) {
+          console.error('转换失败:', error);
+          statusDisplay.textContent = `转换失败: ${error.message}`;
+        } finally {
+          showLoading(false);
+        }
+      }
+      
+      // 下载最新录制为MP4
+      downloadMp4Btn.addEventListener('click', async () => {
+        if (!recordedBlob) return;
+        
+        try {
+          loadingText.textContent = '正在转换格式，请稍候...';
+          showLoading(true);
+          const { createFFmpeg, fetchFile } = FFmpeg
+
+          await initFFmpeg()
+          
+
+          // 将Blob写入FFmpeg的文件系统
+          ffmpeg.FS('writeFile', 'input.webm', await fetchFile(recordedBlob));
+          
+          // 运行FFmpeg转换命令
+          await ffmpeg.run(
+            '-i', 'input.webm',
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            'output.mp4'
+          );
+          
+          // 读取转换结果
+          const data = ffmpeg.FS('readFile', 'output.mp4');
+          const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+          const mp4Url = URL.createObjectURL(mp4Blob);
+          const fileName = `录制_${new Date().toISOString().replace(/[:.]/g, '-')}.mp4`;
+          
+          // 创建下载链接
+          const a = document.createElement('a');
+          a.href = mp4Url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          
+          infoText.textContent = 'MP4格式转换完成，文件开始下载...';
+          
+          // 清理资源
+          setTimeout(() => {
+            URL.revokeObjectURL(mp4Url);
+            // 清理FFmpeg文件系统
+            ffmpeg.FS('unlink', 'input.webm');
+            ffmpeg.FS('unlink', 'output.mp4');
+            infoText.textContent = `下载完成! MP4文件大小: ${formatFileSize(mp4Blob.size)}`;
+          }, 3000);
+        } catch (error) {
+          console.error('转换失败:', error);
+          statusDisplay.textContent = `转换失败: ${error.message}`;
+        } finally {
+          showLoading(false);
+        }
+      });
+      
+      // 下载最新录制为WebM
+      downloadWebmBtn.addEventListener('click', () => {
+        if (!recordedBlob) return;
+        
+        const fileName = `录制_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+        const url = URL.createObjectURL(recordedBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        infoText.textContent = '文件开始下载，正在清理资源...';
+        
+        // 清理资源
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          infoText.textContent = `下载完成! WebM文件大小: ${formatFileSize(recordedBlob.size)}`;
+        }, 3000);
+      });
+      
+      // 删除单条记录
+      function deleteRecording(id) {
+        // 查找记录
+        const recordingIndex = recordings.findIndex(r => r.id == id);
+        if (recordingIndex === -1) return;
+        
+        // 释放资源
+        URL.revokeObjectURL(recordings[recordingIndex].url);
+        
+        // 如果删除的记录正在播放，关闭弹框
+        if (modalVideo.src.includes(id)) {
+          closeVideoModal();
+        }
+        
+        // 从数组中移除
+        recordings.splice(recordingIndex, 1);
+        
+        // 更新存储
+        localStorage.setItem('screenRecordings', JSON.stringify(recordings));
+        
+        // 更新UI
+        updateRecordingsList();
+        
+        // 如果没有记录了则隐藏面板
+        if (recordings.length === 0) {
+          showPanel(false);
+        }
+      }
+      
+      // 显示/隐藏录制面板
+      function showPanel(show) {
+        recordingsPanel.style.display = show ? 'block' : 'none';
+      }
+      
+      // 播放最新录制在弹框中
+      playBtn.addEventListener('click', () => {
+        if (!recordedBlob) return;
+        
+        // 设置弹框内容
+        const title = `最近录制_${new Date().toLocaleString().replace(/[:]/g, '-')}`;
+        modalVideoTitle.textContent = title;
+        modalVideoInfo.textContent = `文件大小: ${formatFileSize(recordedBlob.size)}`;
+        modalVideo.src = currentRecordedUrl;
+        
+        // 打开弹框
+        openVideoModal();
+      });
+      
+      // 重置控制按钮状态
+      function resetControls() {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+      
+      // 如果有记录，显示面板
+      if (recordings.length > 0) {
+        showPanel(true);
+      }
+
+      window.addEventListener('unload', () => {
+          // 释放所有Blob URL
+          recordings.forEach(recording => {
+            URL.revokeObjectURL(recording.url);
+          });
+          
+          recordings = [];
+          localStorage.removeItem('screenRecordings');
+          updateRecordingsList();
+          showPanel(false);
+      });
+    </script>
+</body>
+
+</html>
