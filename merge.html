@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FFmpeg 网页版视频合并与缩略图生成工具</title>
+    <script src="./ffmpeg.min.js"></script>
+    <style>
+      :root {
+        --primary: #3498db;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+        --dark: #2c3e50;
+        --light: #ecf0f1;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        color: #333;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: var(--dark);
+        color: white;
+        padding: 25px 30px;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .main-content {
+        padding: 30px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .control-panel {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .panel-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+      }
+
+      .panel-title i {
+        margin-right: 10px;
+        color: var(--primary);
+      }
+
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab {
+        padding: 12px 24px;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .tab::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 10%;
+        width: 80%;
+        height: 3px;
+        background: var(--primary);
+        transform: scaleX(0);
+        transition: transform 0.3s;
+      }
+      .tab.active::after {
+        transform: scaleX(1);
+      }
+      .tab:hover {
+        background: rgba(52, 152, 219, 0.1);
+      }
+
+      .tab-content {
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: opacity 0.4s, height 0.4s;
+      }
+      .tab-content.active {
+        opacity: 1;
+        height: auto;
+        overflow: visible;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark);
+      }
+
+      select,
+      button,
+      .file-input {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        font-size: 16px;
+        background: white;
+        transition: all 0.3s;
+      }
+
+      select:focus,
+      button:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+      }
+
+      button {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+      }
+
+      button:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-convert {
+        background: var(--success);
+        font-size: 1.1rem;
+        padding: 15px;
+        margin-top: 10px;
+      }
+
+      .btn-convert:hover {
+        background: #27ae60;
+      }
+
+      .file-input {
+        border: 2px dashed #ddd;
+        text-align: center;
+        padding: 30px 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .file-input:hover {
+        border-color: var(--primary);
+        background: #f8f9fa;
+      }
+
+      .file-input.dragover {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: var(--primary);
+      }
+
+      .file-list {
+        margin-top: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        position: relative;
+        padding-left: 60px;
+      }
+
+      .file-thumbnail {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .file-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .file-info {
+        flex: 1;
+      }
+
+      .file-name {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+
+      .file-size {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+      }
+
+      .file-actions {
+        display: flex;
+        gap: 5px;
+      }
+
+      .file-action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #7f8c8d;
+        font-size: 1.2rem;
+      }
+
+      .file-action-btn:hover {
+        color: var(--danger);
+      }
+
+      .status-panel {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .progress-container {
+        margin: 30px 0;
+      }
+
+      .progress-bar {
+        height: 10px;
+        background: #eee;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.3s;
+      }
+
+      .progress-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+
+      .result-container {
+        display: none;
+        margin-top: 25px;
+        animation: fadeIn 0.5s;
+      }
+
+      .result-box {
+        border: 2px solid var(--success);
+        border-radius: 8px;
+        padding: 15px;
+        background: rgba(46, 204, 113, 0.05);
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .result-title {
+        font-weight: 600;
+        color: var(--success);
+        font-size: 1.2rem;
+      }
+
+      .file-info-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .file-info-item {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: #f8f9fa;
+      }
+
+      .file-info-title {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+      }
+
+      .file-info-value {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 5px;
+      }
+
+      .btn-download {
+        background: var(--success);
+        margin-top: 15px;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 30px;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(52, 152, 219, 0.3);
+        border-top: 5px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      .status-message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        display: none;
+      }
+
+      .status-success {
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid var(--success);
+        color: #27ae60;
+      }
+
+      .status-error {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid var(--danger);
+        color: #c0392b;
+      }
+
+      .format-info {
+        background: #f8f9fa;
+        border-left: 4px solid var(--primary);
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.95rem;
+      }
+
+      footer {
+        text-align: center;
+        padding: 20px;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        border-top: 1px solid #eee;
+        background: #f8f9fa;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .tab {
+          padding: 10px 16px;
+          font-size: 14px;
+        }
+        .file-actions {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>FFmpeg 网页版视频合并工具</h1>
+        <p class="subtitle">
+          支持 MP4+MP4 视频拼接与 MP3+MP4 音视频合并 -
+          纯前端处理，无需上传服务器
+        </p>
+      </header>
+
+      <div class="main-content">
+        <div class="control-panel">
+          <div class="tabs">
+            <div class="tab active" data-tab="merge">🎬 视频合并</div>
+            <div class="tab" data-tab="avmerge">🎵 音视频合并</div>
+            <div class="tab" data-tab="thumbnail">🖼️ 缩略图生成</div>
+          </div>
+
+          <!-- MP4+MP4 合并界面 -->
+          <div id="mergeTab" class="tab-content active">
+            <h2 class="panel-title">合并多个视频文件</h2>
+
+            <div class="form-group">
+              <label>选择视频文件 (MP4)</label>
+              <div class="file-input" id="videoFilesInput">
+                <p>点击或拖放 MP4 文件到此处</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d">
+                  支持多个 MP4 文件合并
+                </p>
+              </div>
+              <input
+                type="file"
+                id="videoFilesUpload"
+                accept="video/mp4"
+                multiple
+                hidden
+              />
+
+              <div class="file-list" id="videoFilesList"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="mergeMode">合并模式</label>
+              <select id="mergeMode">
+                <option value="fast">快速模式（相同编码格式）</option>
+                <option value="reencode">兼容模式（不同编码格式）</option>
+              </select>
+            </div>
+
+            <div class="format-info">
+              <p><strong>模式说明：</strong></p>
+              <ul>
+                <li>
+                  <strong>快速模式</strong>
+                  ：当所有视频的编码格式、分辨率、帧率一致时使用，速度极快（无损）
+                </li>
+                <li>
+                  <strong>兼容模式</strong>
+                  ：当视频编码不一致时使用，会重新编码为统一格式（处理较慢）
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- MP3+MP4 合并界面 -->
+          <div id="avmergeTab" class="tab-content">
+            <h2 class="panel-title">合并音频与视频</h2>
+
+            <div class="form-group">
+              <label>选择视频文件 (MP4)</label>
+              <div class="file-input" id="avVideoInput">
+                <p>点击或拖放视频文件到此处</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d">
+                  支持 MP4、MOV、WebM 等格式
+                </p>
+              </div>
+              <input type="file" id="avVideoUpload" accept="video/*" hidden />
+              <p
+                id="avVideoName"
+                style="margin-top: 10px; font-style: italic"
+              ></p>
+            </div>
+
+            <div class="form-group">
+              <label>选择音频文件 (MP3)</label>
+              <div class="file-input" id="avAudioInput">
+                <p>点击或拖放音频文件到此处</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d">
+                  支持 MP3、WAV、AAC 等格式
+                </p>
+              </div>
+              <input type="file" id="avAudioUpload" accept="audio/*" hidden />
+              <p
+                id="avAudioName"
+                style="margin-top: 10px; font-style: italic"
+              ></p>
+            </div>
+
+            <div class="form-group">
+              <label for="audioMergeMode">音频处理模式</label>
+              <select id="audioMergeMode">
+                <option value="copy">直接合并（不重新编码）</option>
+                <option value="reencode">重新编码（兼容性好）</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 缩略图生成界面 -->
+          <div id="thumbnailTab" class="tab-content">
+            <h2 class="panel-title">生成视频首帧缩略图</h2>
+
+            <div class="form-group">
+              <label>选择视频文件</label>
+              <div class="file-input" id="thumbnailInput">
+                <p>点击或拖放视频文件到此处</p>
+                <p style="font-size: 0.9rem; color: #7f8c8d">
+                  支持 MP4、MOV、WebM 等格式
+                </p>
+              </div>
+              <input type="file" id="thumbnailUpload" accept="video/*" hidden />
+              <p
+                id="thumbnailName"
+                style="margin-top: 10px; font-style: italic"
+              ></p>
+            </div>
+            <div class="form-group">
+              <label for="thumbnailTime">截取时间点（秒）</label>
+              <input
+                type="number"
+                id="thumbnailTime"
+                min="0"
+                step="0.1"
+                value="0.1"
+                style="width: 80px"
+              />
+              <small style="margin-left: 8px; color: #7f8c8d">
+                支持小数，例如 1.5 表示 1.5 秒处的帧
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="thumbnailQuality">缩略图质量</label>
+              <select id="thumbnailQuality">
+                <option value="2">高质量（文件较大）</option>
+                <option value="5" selected>中等质量</option>
+                <option value="10">较低质量（文件较小）</option>
+              </select>
+            </div>
+
+            <div class="result-container" id="thumbnailResultContainer">
+              <div class="result-box">
+                <div class="result-header">
+                  <div class="result-title">缩略图生成完成！</div>
+                </div>
+                <div class="file-info-container">
+                  <div class="file-info-item">
+                    <div
+                      class="file-thumbnail-preview"
+                      id="thumbnailPreview"
+                      style="
+                        width: 100%;
+                        height: 200px;
+                        background: #eee;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                      "
+                    ></div>
+                  </div>
+                </div>
+                <button id="downloadThumbBtn" class="btn-download">
+                  <span>下载缩略图</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button id="convertBtn" class="btn-convert" disabled>
+            <span>开始处理</span>
+          </button>
+        </div>
+
+        <div class="status-panel">
+          <h2 class="panel-title"><i>📊</i> 处理状态</h2>
+
+          <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p id="loadingText">正在加载FFmpeg引擎，请稍候...</p>
+          </div>
+
+          <div id="progressSection">
+            <h3>处理进度</h3>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+              </div>
+              <div class="progress-info">
+                <span>状态: <span id="progressStatus">等待中</span></span>
+                <span id="progressPercent">0%</span>
+              </div>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+
+            <div class="result-container" id="resultContainer">
+              <div class="result-box">
+                <div class="result-header">
+                  <div class="result-title">处理完成！</div>
+                </div>
+
+                <div class="file-info-container">
+                  <div class="file-info-item">
+                    <div class="file-info-title">处理类型</div>
+                    <div class="file-info-value" id="processType">-</div>
+                  </div>
+                  <div class="file-info-item">
+                    <div class="file-info-title">输出格式</div>
+                    <div class="file-info-value" id="outputFormat">-</div>
+                  </div>
+                  <div class="file-info-item">
+                    <div class="file-info-title">处理时间</div>
+                    <div class="file-info-value" id="processingTime">-</div>
+                  </div>
+                </div>
+
+                <button id="downloadBtn" class="btn-download">
+                  <span>下载处理后的文件</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          基于 FFmpeg.wasm 技术构建 | 纯前端处理 | 不依赖服务器 | 支持现代浏览器
+        </p>
+        <p>注意：大文件处理可能需要较长时间，请保持页面开启</p>
+      </footer>
+    </div>
+
+    <script>
+      // 全局变量
+      let ffmpeg = null
+      const { createFFmpeg, fetchFile } = FFmpeg
+
+      // 文件状态
+      const fileState = {
+        videoFiles: [],
+        avVideo: null,
+        avAudio: null,
+        thumbnailVideo: null,
+        currentTab: 'merge',
+      }
+
+      // DOM元素
+      const elements = {
+        // 标签页
+        tabs: document.querySelectorAll('.tab'),
+        mergeTab: document.getElementById('mergeTab'),
+        avmergeTab: document.getElementById('avmergeTab'),
+        thumbnailTab: document.getElementById('thumbnailTab'),
+
+        // MP4+MP4 元素
+        videoFilesInput: document.getElementById('videoFilesInput'),
+        videoFilesUpload: document.getElementById('videoFilesUpload'),
+        videoFilesList: document.getElementById('videoFilesList'),
+        mergeMode: document.getElementById('mergeMode'),
+
+        // MP3+MP4 元素
+        avVideoInput: document.getElementById('avVideoInput'),
+        avVideoUpload: document.getElementById('avVideoUpload'),
+        avVideoName: document.getElementById('avVideoName'),
+        avAudioInput: document.getElementById('avAudioInput'),
+        avAudioUpload: document.getElementById('avAudioUpload'),
+        avAudioName: document.getElementById('avAudioName'),
+        audioMergeMode: document.getElementById('audioMergeMode'),
+
+        // 缩略图元素
+        thumbnailInput: document.getElementById('thumbnailInput'),
+        thumbnailUpload: document.getElementById('thumbnailUpload'),
+        thumbnailName: document.getElementById('thumbnailName'),
+        thumbnailQuality: document.getElementById('thumbnailQuality'),
+        thumbnailPreview: document.getElementById('thumbnailPreview'),
+        thumbnailResultContainer: document.getElementById(
+          'thumbnailResultContainer'
+        ),
+        downloadThumbBtn: document.getElementById('downloadThumbBtn'),
+
+        // 通用元素
+        convertBtn: document.getElementById('convertBtn'),
+        loadingIndicator: document.getElementById('loadingIndicator'),
+        loadingText: document.getElementById('loadingText'),
+        progressBar: document.getElementById('progressBar'),
+        progressPercent: document.getElementById('progressPercent'),
+        progressStatus: document.getElementById('progressStatus'),
+        statusMessage: document.getElementById('statusMessage'),
+        resultContainer: document.getElementById('resultContainer'),
+        processType: document.getElementById('processType'),
+        outputFormat: document.getElementById('outputFormat'),
+        processingTime: document.getElementById('processingTime'),
+        downloadBtn: document.getElementById('downloadBtn'),
+      }
+
+      async function ensureFFmpegReady() {
+        if (!ffmpeg || !ffmpeg.isLoaded !== true) {
+          await initFFmpeg()
+        }
+      }
+
+      async function generateVideoThumbnail() {
+        if (!fileState.thumbnailVideo) {
+          showError('请选择视频文件')
+          return
+        }
+
+        try {
+          await ensureFFmpegReady()
+
+          showLoading(true, '正在生成缩略图，请稍候...')
+          updateProgress(0, '准备中...')
+          elements.thumbnailResultContainer.style.display = 'none'
+
+          const startTime = Date.now()
+          const ext = fileState.thumbnailVideo.name
+            .split('.')
+            .pop()
+            .toLowerCase()
+          const inputFileName = `input.${ext}`
+          const outputFileName = `thumbnail.jpg`
+
+          // **读取用户输入的时间点**
+          const timeSec =
+            parseFloat(document.getElementById('thumbnailTime').value) || 0
+          // 格式化为 ffmpeg 可识别的 HH:MM:SS.xxx
+          const hh = String(Math.floor(timeSec / 3600)).padStart(2, '0')
+          const mm = String(Math.floor((timeSec % 3600) / 60)).padStart(2, '0')
+          const ss = (timeSec % 60).toFixed(3).padStart(6, '0')
+          const ssTimecode = `${hh}:${mm}:${ss}`
+
+          const quality = elements.thumbnailQuality.value
+
+          // 上传视频
+          updateProgress(30, '上传视频文件...')
+          ffmpeg.FS(
+            'writeFile',
+            inputFileName,
+            await fetchFile(fileState.thumbnailVideo)
+          )
+
+          // 构建命令，替换硬编码的 -ss
+          const command = [
+            '-ss',
+            ssTimecode,
+            '-i',
+            inputFileName,
+            '-frames:v',
+            '1',
+            '-q:v',
+            quality,
+            outputFileName,
+          ]
+
+          updateProgress(70, '生成缩略图中...')
+          await ffmpeg.run(...command)
+
+          updateProgress(90, '准备缩略图...')
+          const data = ffmpeg.FS('readFile', outputFileName)
+          const processingTime = ((Date.now() - startTime) / 1000).toFixed(1)
+          const url = URL.createObjectURL(
+            new Blob([data.buffer], { type: 'image/jpeg' })
+          )
+
+          updateProgress(100, '生成完成')
+          showSuccess(`缩略图生成成功！耗时 ${processingTime} 秒`)
+
+          elements.thumbnailPreview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:contain;">`
+          elements.thumbnailResultContainer.style.display = 'block'
+          elements.downloadThumbBtn.dataset.url = url
+          elements.downloadThumbBtn.dataset.filename = `thumbnail_${Date.now()}.jpg`
+        } catch (error) {
+          showError(`缩略图生成失败: ${error.message}`)
+          console.error('生成错误:', error)
+        } finally {
+          showLoading(false)
+          // 清理
+          if (ffmpeg) {
+            try {
+              ffmpeg.FS('unlink', inputFileName)
+              ffmpeg.FS('unlink', outputFileName)
+            } catch {}
+          }
+        }
+      }
+
+      // 初始化事件监听
+      function initEventListeners() {
+        // 标签页切换
+        elements.tabs.forEach((tab) => {
+          tab.addEventListener('click', () => {
+            elements.tabs.forEach((t) => t.classList.remove('active'))
+            tab.classList.add('active')
+
+            fileState.currentTab = tab.dataset.tab
+
+            // 隐藏所有内容区
+            document.querySelectorAll('.tab-content').forEach((el) => {
+              el.classList.remove('active')
+            })
+
+            // 延迟显示目标内容区（确保CSS过渡生效）
+            setTimeout(() => {
+              const contentId = `${fileState.currentTab}Tab`
+              const contentEl = document.getElementById(contentId)
+              if (contentEl) contentEl.classList.add('active')
+
+              // 更新按钮文本
+              if (fileState.currentTab === 'thumbnail') {
+                elements.convertBtn.textContent = '生成缩略图'
+              } else {
+                elements.convertBtn.innerHTML = '<span>开始处理</span>'
+              }
+
+              updateConvertButtonState()
+            }, 10)
+          })
+        })
+
+        // MP4+MP4 文件处理
+        elements.videoFilesInput.addEventListener('click', () =>
+          elements.videoFilesUpload.click()
+        )
+        elements.videoFilesUpload.addEventListener(
+          'change',
+          handleVideoFilesSelect
+        )
+
+        // MP4+MP4 拖放事件
+        setupDragAndDrop(elements.videoFilesInput, handleVideoFilesDrop)
+
+        // MP3+MP4 视频文件处理
+        elements.avVideoInput.addEventListener('click', () =>
+          elements.avVideoUpload.click()
+        )
+        elements.avVideoUpload.addEventListener('change', (e) =>
+          handleFileSelect(e, 'avVideo')
+        )
+
+        // MP3+MP4 音频文件处理
+        elements.avAudioInput.addEventListener('click', () =>
+          elements.avAudioUpload.click()
+        )
+        elements.avAudioUpload.addEventListener('change', (e) =>
+          handleFileSelect(e, 'avAudio')
+        )
+
+        // 缩略图文件处理
+        elements.thumbnailInput.addEventListener('click', () =>
+          elements.thumbnailUpload.click()
+        )
+        elements.thumbnailUpload.addEventListener('change', (e) =>
+          handleFileSelect(e, 'thumbnailVideo')
+        )
+
+        // MP3+MP4 拖放事件
+        setupDragAndDrop(elements.avVideoInput, (file) =>
+          handleFileDrop(file, 'avVideo')
+        )
+        setupDragAndDrop(elements.avAudioInput, (file) =>
+          handleFileDrop(file, 'avAudio')
+        )
+        setupDragAndDrop(elements.thumbnailInput, (file) =>
+          handleFileDrop(file, 'thumbnailVideo')
+        )
+
+        // 转换按钮事件
+        elements.convertBtn.addEventListener('click', startProcessing)
+
+        // 下载按钮事件
+        elements.downloadBtn.addEventListener('click', downloadFile)
+        elements.downloadThumbBtn.addEventListener('click', downloadThumbnail)
+      }
+
+      // 设置拖放区域
+      function setupDragAndDrop(element, dropHandler) {
+        element.addEventListener('dragover', (e) => {
+          e.preventDefault()
+          element.classList.add('dragover')
+        })
+
+        element.addEventListener('dragleave', () => {
+          element.classList.remove('dragover')
+        })
+
+        element.addEventListener('drop', (e) => {
+          e.preventDefault()
+          element.classList.remove('dragover')
+
+          if (e.dataTransfer.files.length) {
+            dropHandler(e.dataTransfer.files)
+          }
+        })
+      }
+
+      // 处理MP4文件选择
+      function handleVideoFilesSelect(e) {
+        if (e.target.files.length) {
+          handleVideoFilesDrop(e.target.files)
+        }
+      }
+
+      // 处理MP4文件拖放
+      function handleVideoFilesDrop(files) {
+        const validFiles = Array.from(files).filter(
+          (file) =>
+            file.type.startsWith('video/') &&
+            file.name.toLowerCase().endsWith('.mp4')
+        )
+
+        if (validFiles.length === 0) {
+          showError('请选择有效的 MP4 视频文件')
+          return
+        }
+
+        fileState.videoFiles = [...fileState.videoFiles, ...validFiles]
+        renderVideoFilesList()
+        updateConvertButtonState()
+      }
+
+      // 渲染视频文件列表（带缩略图）
+      function renderVideoFilesList() {
+        elements.videoFilesList.innerHTML = ''
+
+        if (fileState.videoFiles.length === 0) {
+          elements.videoFilesList.innerHTML =
+            '<p style="text-align: center; color: #7f8c8d;">暂无文件</p>'
+          return
+        }
+
+        fileState.videoFiles.forEach((file, index) => {
+          const fileItem = document.createElement('div')
+          fileItem.className = 'file-item'
+
+          fileItem.innerHTML = `
+                    <div class="file-thumbnail">
+                        <!-- 缩略图将动态生成 -->
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(
+                          file.size
+                        )}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" data-index="${index}" data-action="remove">✕</button>
+                        ${
+                          index > 0
+                            ? `<button class="file-action-btn" data-index="${index}" data-action="up">↑</button>`
+                            : ''
+                        }
+                        ${
+                          index < fileState.videoFiles.length - 1
+                            ? `<button class="file-action-btn" data-index="${index}" data-action="down">↓</button>`
+                            : ''
+                        }
+                    </div>
+                `
+
+          elements.videoFilesList.appendChild(fileItem)
+
+          // 生成缩略图
+          generateThumbnail(file, (thumb) => {
+            const thumbnailEl = fileItem.querySelector('.file-thumbnail')
+            if (thumbnailEl) {
+              thumbnailEl.innerHTML = `<img src="${thumb}" alt="${file.name}">`
+            }
+          })
+        })
+
+        // 添加文件操作事件监听
+        document.querySelectorAll('.file-action-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const index = parseInt(btn.dataset.index)
+            const action = btn.dataset.action
+
+            if (action === 'remove') {
+              fileState.videoFiles.splice(index, 1)
+            } else if (action === 'up' && index > 0) {
+              // 上移文件
+              ;[fileState.videoFiles[index], fileState.videoFiles[index - 1]] =
+                [fileState.videoFiles[index - 1], fileState.videoFiles[index]]
+            } else if (
+              action === 'down' &&
+              index < fileState.videoFiles.length - 1
+            ) {
+              // 下移文件
+              ;[fileState.videoFiles[index], fileState.videoFiles[index + 1]] =
+                [fileState.videoFiles[index + 1], fileState.videoFiles[index]]
+            }
+
+            renderVideoFilesList()
+          })
+        })
+      }
+
+      // 生成视频缩略图（首帧）
+      function generateThumbnail(file, callback) {
+        if (!file.type.match('video.*')) return
+
+        const video = document.createElement('video')
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+
+        video.src = URL.createObjectURL(file)
+        video.muted = true
+        video.playsInline = true
+
+        video.addEventListener('loadeddata', () => {
+          // 设置视频当前时间为第一帧
+          video.currentTime = 0.1
+        })
+
+        video.addEventListener('seeked', () => {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+          // 获取缩略图数据URL
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+          callback(dataUrl)
+
+          // 清理资源
+          URL.revokeObjectURL(video.src)
+        })
+
+        video.addEventListener('error', () => {
+          console.error('视频加载错误')
+          URL.revokeObjectURL(video.src)
+        })
+      }
+
+      // 处理文件选择 (通用)
+      function handleFileSelect(e, type) {
+        if (e.target.files.length) {
+          handleFileDrop(e.target.files[0], type)
+        }
+      }
+
+      // 处理文件拖放 (通用)
+      function handleFileDrop(file, type) {
+        if (type === 'avVideo' && !file.type.startsWith('video/')) {
+          showError('请选择有效的视频文件 (MP4, MOV, WebM等)')
+          return
+        }
+
+        if (type === 'avAudio' && !file.type.startsWith('audio/')) {
+          showError('请选择有效的音频文件 (MP3, WAV, AAC等)')
+          return
+        }
+
+        if (type === 'thumbnailVideo' && !file.type.startsWith('video/')) {
+          showError('请选择有效的视频文件 (MP4, MOV, WebM等)')
+          return
+        }
+
+        fileState[type] = file
+
+        const nameElement =
+          type === 'avVideo'
+            ? elements.avVideoName
+            : type === 'avAudio'
+            ? elements.avAudioName
+            : elements.thumbnailName
+
+        if (nameElement) {
+          nameElement.textContent = `${file.name} (${formatFileSize(
+            file.size
+          )})`
+        }
+
+        updateConvertButtonState()
+      }
+
+      // 更新转换按钮状态
+      function updateConvertButtonState() {
+        if (fileState.currentTab === 'merge') {
+          elements.convertBtn.disabled = fileState.videoFiles.length < 2
+        } else if (fileState.currentTab === 'avmerge') {
+          elements.convertBtn.disabled = !(
+            fileState.avVideo && fileState.avAudio
+          )
+        } else if (fileState.currentTab === 'thumbnail') {
+          elements.convertBtn.disabled = !fileState.thumbnailVideo
+        }
+      }
+      async function toBlobURL(url, mimeType) {
+        const res = await fetch(url)
+        const blob = await res.blob()
+        return URL.createObjectURL(blob)
+      }
+      // 初始化FFmpeg
+      async function initFFmpeg() {
+        if (!ffmpeg) {
+          showLoading(true, '正在加载FFmpeg引擎，请稍候...')
+
+          try {
+            // 创建FFmpeg实例
+            ffmpeg = createFFmpeg({
+              log: true,
+              progress: ({ ratio }) => {
+                const percent = Math.round(ratio * 100)
+                updateProgress(percent, '处理中...')
+              },
+            })
+
+            // 加载FFmpeg
+            await ffmpeg.load()
+            showLoading(false)
+            return ffmpeg
+          } catch (error) {
+            showError(`FFmpeg加载失败: ${error.message}`)
+            console.error('FFmpeg加载失败:', error)
+          }
+        }
+      }
+
+      // 开始处理
+      async function startProcessing() {
+        try {
+          await ensureFFmpegReady()
+          if (fileState.currentTab === 'merge') {
+            await mergeVideos()
+          } else if (fileState.currentTab === 'avmerge') {
+            await mergeAudioVideo()
+          } else if (fileState.currentTab === 'thumbnail') {
+            await generateVideoThumbnail()
+          }
+        } catch (e) {
+          showError('FFmpeg 初始化或处理出错：' + e.message)
+          console.error(e)
+        }
+      }
+
+      // 合并多个视频
+      async function mergeVideos() {
+        if (fileState.videoFiles.length < 2) {
+          showError('请至少选择两个视频文件进行合并')
+          return
+        }
+
+        try {
+          // 确保FFmpeg已加载
+          if (!ffmpeg) {
+            await initFFmpeg()
+          }
+
+          showLoading(true, '正在处理文件，请稍候...')
+          updateProgress(0, '准备中...')
+          elements.resultContainer.style.display = 'none'
+
+          const startTime = Date.now()
+          const outputFormat = 'mp4'
+          const outputFileName = `merged_video.${outputFormat}`
+          const mergeMode = elements.mergeMode.value
+
+          // 上传所有视频文件到FFmpeg
+          for (let i = 0; i < fileState.videoFiles.length; i++) {
+            const file = fileState.videoFiles[i]
+            const fileName = `input${i}.mp4`
+            updateProgress(
+              Math.round((i / fileState.videoFiles.length) * 50),
+              `上传文件: ${file.name}`
+            )
+            ffmpeg.FS('writeFile', fileName, await fetchFile(file))
+          }
+
+          // 根据合并模式选择不同的命令
+          let command
+
+          if (mergeMode === 'fast') {
+            // 快速合并模式（相同编码）[11](@ref)
+            const fileListContent = fileState.videoFiles
+              .map((_, i) => `file 'input${i}.mp4'`)
+              .join('\n')
+            ffmpeg.FS(
+              'writeFile',
+              'filelist.txt',
+              new TextEncoder().encode(fileListContent)
+            )
+
+            command = [
+              '-f',
+              'concat',
+              '-safe',
+              '0',
+              '-i',
+              'filelist.txt',
+              '-c',
+              'copy',
+              outputFileName,
+            ]
+          } else {
+            // 兼容模式（不同编码）[11](@ref)
+            let filterComplex = ''
+            let inputs = []
+            let concatInputs = ''
+
+            for (let i = 0; i < fileState.videoFiles.length; i++) {
+              inputs.push('-i', `input${i}.mp4`)
+              concatInputs += `[${i}:v][${i}:a]`
+            }
+
+            filterComplex = `${concatInputs}concat=n=${fileState.videoFiles.length}:v=1:a=1[outv][outa]`
+
+            command = [
+              ...inputs,
+              '-filter_complex',
+              filterComplex,
+              '-map',
+              '[outv]',
+              '-map',
+              '[outa]',
+              '-c:v',
+              'libx264',
+              '-crf',
+              '23',
+              '-preset',
+              'medium',
+              '-c:a',
+              'aac',
+              '-b:a',
+              '160k',
+              outputFileName,
+            ]
+          }
+
+          // 执行合并命令
+          updateProgress(60, '合并视频中...')
+          await ffmpeg.run(...command)
+
+          // 读取输出文件
+          updateProgress(90, '准备下载文件...')
+          const data = ffmpeg.FS('readFile', outputFileName)
+
+          // 计算处理时间
+          const processingTime = ((Date.now() - startTime) / 1000).toFixed(1)
+
+          // 创建下载URL
+          const blob = new Blob([data.buffer], { type: 'video/mp4' })
+          const url = URL.createObjectURL(blob)
+
+          // 更新UI
+          updateProgress(100, '合并完成')
+          showSuccess('视频合并成功！')
+
+          // 显示结果
+          elements.processType.textContent = '视频合并'
+          elements.outputFormat.textContent = 'MP4'
+          elements.processingTime.textContent = `${processingTime}秒`
+          elements.resultContainer.style.display = 'block'
+
+          // 设置下载
+          elements.downloadBtn.dataset.url = url
+          elements.downloadBtn.dataset.filename = `merged_video.${outputFormat}`
+        } catch (error) {
+          showError(`视频合并失败: ${error.message}`)
+          console.error('合并错误:', error)
+        } finally {
+          showLoading(false)
+
+          // 清理FFmpeg文件系统
+          if (ffmpeg) {
+            try {
+              for (let i = 0; i < fileState.videoFiles.length; i++) {
+                ffmpeg.FS('unlink', `input${i}.mp4`)
+              }
+              ffmpeg.FS('unlink', 'filelist.txt')
+              ffmpeg.FS('unlink', 'merged_video.mp4')
+            } catch (e) {
+              // 忽略清理错误
+            }
+          }
+        }
+      }
+
+      // 合并音频和视频
+      async function mergeAudioVideo() {
+        if (!fileState.avVideo || !fileState.avAudio) {
+          showError('请选择视频和音频文件')
+          return
+        }
+
+        try {
+          // 确保FFmpeg已加载
+          if (!ffmpeg) {
+            await initFFmpeg()
+          }
+
+          showLoading(true, '正在处理文件，请稍候...')
+          updateProgress(0, '准备中...')
+          elements.resultContainer.style.display = 'none'
+
+          const startTime = Date.now()
+          const outputFormat = 'mp4'
+          const outputFileName = `av_merged.${outputFormat}`
+          const audioMode = elements.audioMergeMode.value
+
+          // 获取文件扩展名
+          const videoExt = fileState.avVideo.name.split('.').pop().toLowerCase()
+          const audioExt = fileState.avAudio.name.split('.').pop().toLowerCase()
+          const videoFileName = `video.${videoExt}`
+          const audioFileName = `audio.${audioExt}`
+
+          // 上传文件到FFmpeg
+          updateProgress(20, '上传视频文件...')
+          ffmpeg.FS(
+            'writeFile',
+            videoFileName,
+            await fetchFile(fileState.avVideo)
+          )
+
+          updateProgress(40, '上传音频文件...')
+          ffmpeg.FS(
+            'writeFile',
+            audioFileName,
+            await fetchFile(fileState.avAudio)
+          )
+
+          // 构建命令
+          let command = ['-i', videoFileName, '-i', audioFileName]
+
+          if (audioMode === 'copy') {
+            // 直接复制音频流
+            command.push('-c:v', 'copy', '-c:a', 'copy')
+          } else {
+            // 重新编码音频
+            command.push('-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k')
+          }
+
+          command.push('-shortest', outputFileName) // 以较短的流为准
+
+          // 执行合并命令
+          updateProgress(60, '合并音视频中...')
+          await ffmpeg.run(...command)
+
+          // 读取输出文件
+          updateProgress(90, '准备下载文件...')
+          const data = ffmpeg.FS('readFile', outputFileName)
+
+          // 计算处理时间
+          const processingTime = ((Date.now() - startTime) / 1000).toFixed(1)
+
+          // 创建下载URL
+          const blob = new Blob([data.buffer], { type: 'video/mp4' })
+          const url = URL.createObjectURL(blob)
+
+          // 更新UI
+          updateProgress(100, '合并完成')
+          showSuccess('音视频合并成功！')
+
+          // 显示结果
+          elements.processType.textContent = '音视频合并'
+          elements.outputFormat.textContent = 'MP4'
+          elements.processingTime.textContent = `${processingTime}秒`
+          elements.resultContainer.style.display = 'block'
+
+          // 设置下载
+          elements.downloadBtn.dataset.url = url
+          elements.downloadBtn.dataset.filename = `av_merged.${outputFormat}`
+        } catch (error) {
+          showError(`音视频合并失败: ${error.message}`)
+          console.error('合并错误:', error)
+        } finally {
+          showLoading(false)
+
+          // 清理FFmpeg文件系统
+          if (ffmpeg) {
+            try {
+              ffmpeg.FS('unlink', videoFileName)
+              ffmpeg.FS('unlink', audioFileName)
+              ffmpeg.FS('unlink', outputFileName)
+            } catch (e) {
+              // 忽略清理错误
+            }
+          }
+        }
+      }
+
+      // 下载文件
+      function downloadFile() {
+        const url = elements.downloadBtn.dataset.url
+        const filename = elements.downloadBtn.dataset.filename
+
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+
+        // 释放URL对象
+        setTimeout(() => URL.revokeObjectURL(url), 100)
+      }
+
+      // 下载缩略图
+      function downloadThumbnail() {
+        const url = elements.downloadThumbBtn.dataset.url
+        const filename = elements.downloadThumbBtn.dataset.filename
+
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+
+        // 释放URL对象
+        setTimeout(() => URL.revokeObjectURL(url), 100)
+      }
+
+      // 辅助函数
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B'
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+        else return (bytes / 1048576).toFixed(1) + ' MB'
+      }
+
+      function showLoading(show, message) {
+        elements.loadingIndicator.style.display = show ? 'block' : 'none'
+        if (message) elements.loadingText.textContent = message
+      }
+
+      function updateProgress(percent, status) {
+        elements.progressBar.style.width = `${percent}%`
+        elements.progressPercent.textContent = `${percent}%`
+        if (status) elements.progressStatus.textContent = status
+      }
+
+      function showSuccess(message) {
+        elements.statusMessage.textContent = message
+        elements.statusMessage.className = 'status-message status-success'
+        elements.statusMessage.style.display = 'block'
+      }
+
+      function showError(message) {
+        elements.statusMessage.textContent = message
+        elements.statusMessage.className = 'status-message status-error'
+        elements.statusMessage.style.display = 'block'
+
+        // 5秒后自动隐藏错误信息
+        setTimeout(() => {
+          elements.statusMessage.style.display = 'none'
+        }, 5000)
+      }
+
+      // 初始化
+      document.addEventListener('DOMContentLoaded', () => {
+        initEventListeners()
+        initFFmpeg()
+      })
+    </script>
+  </body>
+</html>

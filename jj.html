@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网页版多段视频剪辑工具</title>
+    <script src="./ffmpeg.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-top: 20px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+        background: linear-gradient(to right, #ff9966, #ff5e62);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        color: #ddd;
+        margin-bottom: 30px;
+      }
+
+      .panels {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      .panel {
+        flex: 1;
+        background: rgba(30, 30, 40, 0.85);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .panel-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #4facfe;
+        display: flex;
+        align-items: center;
+      }
+
+      .panel-title i {
+        margin-right: 10px;
+        font-size: 1.8rem;
+      }
+
+      .file-upload {
+        border: 2px dashed #5d9cec;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        cursor: pointer;
+      }
+
+      .file-upload:hover {
+        background: rgba(93, 156, 236, 0.1);
+        transform: translateY(-3px);
+      }
+
+      .file-upload p {
+        margin: 15px 0;
+        font-size: 1.1rem;
+      }
+
+      .video-preview {
+        width: 100%;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 15px;
+      }
+
+      video {
+        width: 100%;
+        max-height: 300px;
+        display: block;
+      }
+
+      .segment-form {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+
+      .form-group {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #aaa;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #444;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+      }
+
+      button {
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      button:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #ff9966, #ff5e62);
+        padding: 14px 30px;
+        font-size: 1.1rem;
+      }
+
+      .segments-list {
+        background: rgba(20, 20, 30, 0.6);
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+      }
+
+      .segment-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+
+      .segment-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .segment-times {
+        font-weight: bold;
+        color: #4facfe;
+      }
+
+      .segment-actions button {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        background: rgba(255, 90, 90, 0.7);
+      }
+
+      .progress-container {
+        margin: 25px 0;
+      }
+
+      .progress-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .progress-text {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .result-panel {
+        text-align: center;
+      }
+
+      .status-message {
+        min-height: 30px;
+        margin: 15px 0;
+        color: #4facfe;
+        font-weight: bold;
+      }
+
+      .error-message {
+        color: #ff5e62;
+        margin: 15px 0;
+        min-height: 30px;
+      }
+
+      .instructions {
+        background: rgba(30, 30, 40, 0.85);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 30px;
+      }
+
+      .instructions h3 {
+        color: #00f2fe;
+        margin-bottom: 15px;
+      }
+
+      .instructions ol {
+        padding-left: 20px;
+        margin-bottom: 15px;
+      }
+
+      .instructions li {
+        margin-bottom: 10px;
+        line-height: 1.6;
+      }
+
+      footer {
+        margin-top: 30px;
+        text-align: center;
+        color: #aaa;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .panels {
+          flex-direction: column;
+        }
+
+        .segment-form {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .actions {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>网页版多段视频剪辑工具</h1>
+      <p class="subtitle">基于 FFmpeg.wasm 技术 - 直接在浏览器中完成视频剪辑</p>
+    </header>
+
+    <div class="container">
+      <div class="panels">
+        <div class="panel">
+          <h2 class="panel-title">📁 1. 上传视频文件</h2>
+          <div class="file-upload" id="fileDropArea">
+            <p>拖放视频文件到此处</p>
+            <p>或</p>
+            <input type="file" id="videoInput" accept="video/*,audio/*" />
+          </div>
+
+          <div id="originalPreview" class="video-preview">
+            <p style="text-align: center; padding: 50px 0">视频预览区</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">✂️ 2. 选择剪辑片段</h2>
+          <div class="segment-form">
+            <div class="form-group">
+              <label for="startTime">开始时间（秒）</label>
+              <input
+                type="number"
+                id="startTime"
+                min="0"
+                step="0.1"
+                value="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="endTime">结束时间（秒）</label>
+              <input type="number" id="endTime" min="0" step="0.1" value="5" />
+            </div>
+
+            <button id="addSegment">添加片段</button>
+          </div>
+
+          <h3>已添加片段：</h3>
+          <div class="segments-list" id="segmentsList">
+            <p style="text-align: center; padding: 10px">暂无添加的片段</p>
+          </div>
+
+          <div class="status-message" id="segmentStatus"></div>
+          <div class="error-message" id="segmentError"></div>
+        </div>
+      </div>
+
+      <div class="panel result-panel">
+        <h2 class="panel-title">🎬 3. 生成剪辑结果</h2>
+
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">准备就绪</div>
+        </div>
+
+        <div class="actions">
+          <button id="processBtn" class="btn-primary" disabled>开始剪辑</button>
+          <button id="downloadBtn" class="btn-primary" disabled>
+            下载结果
+          </button>
+          <button id="resetBtn">重置所有</button>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div id="resultPreview" class="video-preview">
+          <p style="text-align: center; padding: 50px 0">剪辑结果预览区</p>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>使用说明：</h3>
+        <ol>
+          <li>上传视频或音频文件（支持MP4、MOV、AVI、MP3等格式）</li>
+          <li>设置剪辑的开始时间和结束时间（单位：秒），点击"添加片段"</li>
+          <li>可添加多个不重叠的时间片段（系统会自动检测并阻止重叠片段）</li>
+          <li>
+            点击"开始剪辑"按钮处理视频（处理时间取决于视频大小和片段数量）
+          </li>
+          <li>处理完成后点击"下载结果"保存剪辑后的视频</li>
+        </ol>
+        <p>
+          注意：本工具完全在浏览器中运行，不会上传您的视频文件，确保隐私安全。
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      <p>基于 FFmpeg.wasm 技术实现 | 完全在浏览器中运行 | 无需上传到服务器</p>
+      <p>© 2025 网页版视频剪辑工具</p>
+    </footer>
+
+    <script>
+      // FFmpeg实例
+      let ffmpeg = null
+      let inputFile = null
+      let videoUrl = null
+      let outputBlob = null
+      let segments = []
+
+      // DOM元素
+      const videoInput = document.getElementById('videoInput')
+      const startTimeInput = document.getElementById('startTime')
+      const endTimeInput = document.getElementById('endTime')
+      const addSegmentBtn = document.getElementById('addSegment')
+      const segmentsList = document.getElementById('segmentsList')
+      const segmentStatus = document.getElementById('segmentStatus')
+      const segmentError = document.getElementById('segmentError')
+      const processBtn = document.getElementById('processBtn')
+      const downloadBtn = document.getElementById('downloadBtn')
+      const resetBtn = document.getElementById('resetBtn')
+      const statusMessage = document.getElementById('statusMessage')
+      const errorMessage = document.getElementById('errorMessage')
+      const progressFill = document.getElementById('progressFill')
+      const progressText = document.getElementById('progressText')
+      const originalPreview = document.getElementById('originalPreview')
+      const resultPreview = document.getElementById('resultPreview')
+
+      // 初始化事件监听
+      function initEvents() {
+        // 文件上传处理
+        videoInput.addEventListener('change', handleFileUpload)
+
+        // 添加片段按钮
+        addSegmentBtn.addEventListener('click', addSegment)
+
+        // 处理按钮
+        processBtn.addEventListener('click', processVideo)
+
+        // 下载按钮
+        downloadBtn.addEventListener('click', downloadResult)
+
+        // 重置按钮
+        resetBtn.addEventListener('click', resetAll)
+
+        // 拖放功能
+        const dropArea = document.getElementById('fileDropArea')
+        dropArea.addEventListener('dragover', (e) => {
+          e.preventDefault()
+          dropArea.style.borderColor = '#4facfe'
+          dropArea.style.backgroundColor = 'rgba(93, 156, 236, 0.2)'
+        })
+
+        dropArea.addEventListener('dragleave', () => {
+          dropArea.style.borderColor = '#5d9cec'
+          dropArea.style.backgroundColor = 'transparent'
+        })
+
+        dropArea.addEventListener('drop', (e) => {
+          e.preventDefault()
+          dropArea.style.borderColor = '#5d9cec'
+          dropArea.style.backgroundColor = 'transparent'
+
+          if (e.dataTransfer.files.length) {
+            videoInput.files = e.dataTransfer.files
+            handleFileUpload({ target: { files: e.dataTransfer.files } })
+          }
+        })
+      }
+
+      // 处理文件上传
+      function handleFileUpload(event) {
+        const file = event.target.files[0]
+        if (!file) return
+
+        // 检查文件类型
+        if (!file.type.match('video.*') && !file.type.match('audio.*')) {
+          showError('请上传视频或音频文件', errorMessage)
+          return
+        }
+
+        inputFile = file
+        videoUrl = URL.createObjectURL(file)
+
+        // 显示原视频预览
+        originalPreview.innerHTML = `
+                <video controls>
+                    <source src="${videoUrl}" type="${file.type}">
+                    您的浏览器不支持视频预览
+                </video>
+                <p style="text-align: center; padding: 10px 0;">${
+                  file.name
+                } (${formatFileSize(file.size)})</p>
+            `
+
+        // 重置片段列表
+        segments = []
+        updateSegmentsList()
+
+        // 启用处理按钮
+        processBtn.disabled = false
+        downloadBtn.disabled = true
+        segmentStatus.textContent = '请添加要剪辑的时间段'
+      }
+
+      // 添加时间段
+      function addSegment() {
+        const start = parseFloat(startTimeInput.value)
+        const end = parseFloat(endTimeInput.value)
+
+        // 验证输入
+        if (isNaN(start) || isNaN(end) || start < 0 || end < 0) {
+          showError('请输入有效的时间值', segmentError)
+          return
+        }
+
+        if (start >= end) {
+          showError('结束时间必须大于开始时间', segmentError)
+          return
+        }
+
+        if (!inputFile) {
+          showError('请先上传视频文件', segmentError)
+          return
+        }
+
+        // 检查重叠
+        for (const seg of segments) {
+          if (
+            (start >= seg.start && start < seg.end) ||
+            (end > seg.start && end <= seg.end) ||
+            (start <= seg.start && end >= seg.end)
+          ) {
+            showError(
+              `时间段与已添加的片段 (${seg.start}s-${seg.end}s) 重叠`,
+              segmentError
+            )
+            return
+          }
+        }
+
+        // 添加新片段
+        segments.push({ start, end })
+        segments.sort((a, b) => a.start - b.start)
+
+        updateSegmentsList()
+        segmentStatus.textContent = `已添加片段: ${start}s - ${end}s`
+        segmentError.textContent = ''
+
+        // 清空输入
+        startTimeInput.value = ''
+        endTimeInput.value = ''
+      }
+
+      // 更新片段列表显示
+      function updateSegmentsList() {
+        if (segments.length === 0) {
+          segmentsList.innerHTML =
+            '<p style="text-align: center; padding: 10px;">暂无添加的片段</p>'
+          return
+        }
+
+        segmentsList.innerHTML = ''
+        segments.forEach((seg, index) => {
+          const segElement = document.createElement('div')
+          segElement.className = 'segment-item'
+          segElement.innerHTML = `
+                    <div class="segment-times">${
+                      index + 1
+                    }. ${seg.start.toFixed(1)}s - ${seg.end.toFixed(1)}s</div>
+                    <div class="segment-actions">
+                        <button data-index="${index}">删除</button>
+                    </div>
+                `
+          segmentsList.appendChild(segElement)
+        })
+
+        // 添加删除按钮事件
+        document.querySelectorAll('.segment-actions button').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.getAttribute('data-index'))
+            segments.splice(index, 1)
+            updateSegmentsList()
+            segmentStatus.textContent = '片段已删除'
+          })
+        })
+      }
+
+      // 处理视频剪辑
+      async function processVideo() {
+        if (!inputFile || segments.length === 0) {
+          showError('请上传文件并添加至少一个剪辑片段', errorMessage)
+          return
+        }
+
+        // 初始化FFmpeg
+        try {
+          statusMessage.textContent = '正在加载FFmpeg引擎...'
+          errorMessage.textContent = ''
+          processBtn.disabled = true
+          downloadBtn.disabled = true
+
+          if (!ffmpeg) {
+            const { createFFmpeg, fetchFile } = FFmpeg
+            ffmpeg = createFFmpeg({
+              log: true,
+              //   corePath: './ffmpeg-core.js',
+              //   wasmPath: './ffmpeg-core.wasm',
+              //   workerPath: './ffmpeg-core.worker.js',
+            })
+
+            // 监听日志输出以获取进度
+            ffmpeg.setLogging(({ message }) => {
+              if (message.startsWith('frame=')) {
+                const match = message.match(/time=(\d+:\d+:\d+\.\d+)/)
+                if (match) {
+                  const time = match[1]
+                  progressText.textContent = `处理中: ${time}`
+                }
+              }
+            })
+
+            // 监听进度
+            ffmpeg.setProgress(({ ratio }) => {
+              const percent = Math.floor(ratio * 100)
+              progressFill.style.width = `${percent}%`
+              progressText.textContent = `处理中: ${percent}%`
+            })
+
+            await ffmpeg.load()
+          }
+
+          statusMessage.textContent = '正在处理视频...'
+          const { fetchFile } = FFmpeg
+
+          // 写入视频文件到虚拟文件系统
+          const inputName =
+            'input.' + (inputFile.type.includes('audio') ? 'mp3' : 'mp4')
+          ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile))
+
+          // 构建FFmpeg命令 - 多段剪辑
+          let filterComplex = ''
+          segments.forEach((seg, i) => {
+            filterComplex += `[0:v]trim=start=${seg.start}:end=${seg.end},setpts=PTS-STARTPTS[v${i}];`
+            filterComplex += `[0:a]atrim=start=${seg.start}:end=${seg.end},asetpts=PTS-STARTPTS[a${i}];`
+          })
+
+          // 连接所有片段
+          filterComplex += segments.map((_, i) => `[v${i}][a${i}]`).join('')
+          filterComplex += `concat=n=${segments.length}:v=1:a=1[outv][outa]`
+
+          // 执行FFmpeg命令
+          await ffmpeg.run(
+            '-i',
+            inputName,
+            '-filter_complex',
+            filterComplex,
+            '-map',
+            '[outv]',
+            '-map',
+            '[outa]',
+            '-c:v',
+            'libx264',
+            '-c:a',
+            'aac',
+            'output.mp4'
+          )
+
+          // 读取输出文件
+          const data = ffmpeg.FS('readFile', 'output.mp4')
+          outputBlob = new Blob([data.buffer], { type: 'video/mp4' })
+          const outputUrl = URL.createObjectURL(outputBlob)
+
+          // 显示结果预览
+          resultPreview.innerHTML = `
+                    <video controls>
+                        <source src="${outputUrl}" type="video/mp4">
+                        您的浏览器不支持视频预览
+                    </video>
+                `
+
+          statusMessage.textContent = '视频处理完成！'
+          progressText.textContent = '处理完成'
+          progressFill.style.width = '100%'
+          downloadBtn.disabled = false
+        } catch (error) {
+          console.error('处理失败:', error)
+          showError(`处理失败: ${error.message}`, errorMessage)
+          processBtn.disabled = false
+        }
+      }
+
+      // 下载结果
+      function downloadResult() {
+        if (!outputBlob) {
+          showError('没有可下载的结果', errorMessage)
+          return
+        }
+
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(outputBlob)
+        a.download = `剪辑结果_${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace(/:/g, '-')}.mp4`
+        a.click()
+      }
+
+      // 重置所有
+      function resetAll() {
+        segments = []
+        updateSegmentsList()
+
+        if (videoUrl) {
+          URL.revokeObjectURL(videoUrl)
+          videoUrl = null
+        }
+
+        if (outputBlob) {
+          URL.revokeObjectURL(URL.createObjectURL(outputBlob))
+          outputBlob = null
+        }
+
+        videoInput.value = ''
+        originalPreview.innerHTML =
+          '<p style="text-align: center; padding: 50px 0;">视频预览区</p>'
+        resultPreview.innerHTML =
+          '<p style="text-align: center; padding: 50px 0;">剪辑结果预览区</p>'
+        processBtn.disabled = true
+        downloadBtn.disabled = true
+        startTimeInput.value = '0'
+        endTimeInput.value = '5'
+        progressFill.style.width = '0%'
+        progressText.textContent = '准备就绪'
+        statusMessage.textContent = ''
+        errorMessage.textContent = ''
+        segmentStatus.textContent = ''
+        segmentError.textContent = ''
+      }
+
+      // 辅助函数
+      function showError(message, element) {
+        element.textContent = message
+        setTimeout(() => {
+          element.textContent = ''
+        }, 5000)
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes'
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+        else return (bytes / 1048576).toFixed(1) + ' MB'
+      }
+
+      // 初始化
+      window.onload = initEvents
+    </script>
+  </body>
+</html>
