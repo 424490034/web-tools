@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频截图工具 - 基于FFmpeg.wasm</title>
+    <script src="./ffmpeg.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-top: 20px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+        background: linear-gradient(to right, #ff9966, #ff5e62);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        color: #ddd;
+        margin-bottom: 30px;
+      }
+
+      .panels {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .panel {
+        flex: 1;
+        min-width: 300px;
+        background: rgba(30, 30, 40, 0.85);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .panel-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #4facfe;
+        display: flex;
+        align-items: center;
+      }
+
+      .panel-title i {
+        margin-right: 10px;
+        font-size: 1.8rem;
+      }
+
+      .file-upload {
+        position: relative; /* 关键：建立相对定位容器 */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        border: 2px dashed #5d9cec;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        overflow: hidden; /* 防止子元素溢出 */
+        height: 150px; /* 建议固定高度，确保覆盖区域统一 */
+      }
+
+      /* 隐藏原生input并用绝对定位覆盖整个容器 */
+      .file-upload input[type='file'] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0; /* 透明但可点击 */
+        cursor: pointer;
+      }
+
+      .file-upload:hover {
+        background: rgba(93, 156, 236, 0.1);
+        transform: translateY(-3px);
+      }
+
+      .file-upload p {
+        margin: 15px 0;
+        font-size: 1.1rem;
+      }
+
+      .video-container {
+        width: 100%;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 15px;
+        position: relative;
+      }
+
+      video {
+        width: 100%;
+        max-height: 400px;
+        display: block;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      button:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #ff9966, #ff5e62);
+        padding: 14px 30px;
+        font-size: 1.1rem;
+      }
+
+      .result-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .screenshot-item {
+        flex: 1;
+        min-width: 250px;
+        background: rgba(20, 20, 30, 0.6);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+      }
+
+      .screenshot-item img {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        max-height: 300px;
+        object-fit: contain;
+      }
+
+      .screenshot-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      .progress-container {
+        margin: 25px 0;
+      }
+
+      .progress-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .status-area {
+        min-height: 50px;
+        margin: 15px 0;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .status-message {
+        color: #4facfe;
+        font-weight: bold;
+      }
+
+      .error-message {
+        color: #ff5e62;
+      }
+
+      .instructions {
+        background: rgba(30, 30, 40, 0.85);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 30px;
+      }
+
+      .instructions h3 {
+        color: #00f2fe;
+        margin-bottom: 15px;
+      }
+
+      .instructions ol {
+        padding-left: 20px;
+        margin-bottom: 15px;
+      }
+
+      .instructions li {
+        margin-bottom: 10px;
+        line-height: 1.6;
+      }
+
+      footer {
+        margin-top: 30px;
+        text-align: center;
+        color: #aaa;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .panels {
+          flex-direction: column;
+        }
+
+        .controls {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>视频截图工具</h1>
+      <p class="subtitle">基于 FFmpeg.wasm 技术 - 在浏览器中精准截取视频帧</p>
+    </header>
+
+    <div class="container">
+      <div class="panels">
+        <div class="panel">
+          <h2 class="panel-title">📁 1. 上传视频文件</h2>
+          <div class="file-upload" id="fileDropArea">
+            <p>拖放视频文件到此处</p>
+            <input type="file" id="videoInput" accept="video/*" />
+          </div>
+
+          <div id="videoContainer" class="video-container">
+            <video id="videoPlayer" controls>您的浏览器不支持视频播放</video>
+          </div>
+
+          <div class="controls">
+            <button id="captureBtn" class="btn-primary" disabled>
+              截取当前帧
+            </button>
+            <button id="resetBtn">重置所有</button>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">准备就绪</div>
+          </div>
+
+          <div class="status-area">
+            <div class="status-message" id="statusMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">🖼️ 2. 截图结果</h2>
+          <div id="resultContainer" class="result-container">
+            <p style="text-align: center; width: 100; padding: 40px 0">
+              截图将显示在这里
+            </p>
+          </div>
+
+          <div class="controls">
+            <button id="downloadAllBtn" disabled>下载所有截图</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>使用说明：</h3>
+        <ol>
+          <li>上传视频文件（支持MP4、MOV、AVI等格式）</li>
+          <li>使用视频播放器控制播放进度，找到想要截取的画面</li>
+          <li>点击"截取当前帧"按钮生成高清截图</li>
+          <li>截图会显示在右侧区域，可下载单张或所有截图</li>
+          <li>使用"重置所有"按钮可以清除当前视频和截图</li>
+        </ol>
+        <p>
+          技术说明：使用FFmpeg的<code>-ss</code>参数指定时间点，<code
+            >-vframes 1</code
+          >参数截取单帧[6,7](@ref)
+        </p>
+        <p>
+          注意：本工具完全在浏览器中运行，不会上传您的视频文件，确保隐私安全。
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      <p>基于 FFmpeg.wasm 技术实现 | 完全在浏览器中运行 | 无需上传到服务器</p>
+      <p>© 2025 网页版视频截图工具</p>
+    </footer>
+
+    <script>
+      // FFmpeg实例
+      let ffmpeg = null
+      let inputFile = null
+      let videoUrl = null
+      let screenshots = []
+      let screenshotCount = 0
+
+      // DOM元素
+      const videoInput = document.getElementById('videoInput')
+      const videoPlayer = document.getElementById('videoPlayer')
+      const captureBtn = document.getElementById('captureBtn')
+      const resetBtn = document.getElementById('resetBtn')
+      const downloadAllBtn = document.getElementById('downloadAllBtn')
+      const statusMessage = document.getElementById('statusMessage')
+      const errorMessage = document.getElementById('errorMessage')
+      const progressFill = document.getElementById('progressFill')
+      const progressText = document.getElementById('progressText')
+      const resultContainer = document.getElementById('resultContainer')
+      const fileDropArea = document.getElementById('fileDropArea')
+
+      // 初始化事件监听
+      function initEvents() {
+        // 文件上传处理
+        videoInput.addEventListener('change', handleFileUpload)
+
+        // 截图按钮
+        captureBtn.addEventListener('click', captureFrame)
+
+        // 重置按钮
+        resetBtn.addEventListener('click', resetAll)
+
+        // 下载所有截图按钮
+        downloadAllBtn.addEventListener('click', downloadAllScreenshots)
+
+        // 拖放功能
+        fileDropArea.addEventListener('dragover', (e) => {
+          e.preventDefault()
+          fileDropArea.style.borderColor = '#4facfe'
+          fileDropArea.style.backgroundColor = 'rgba(93, 156, 236, 0.2)'
+        })
+
+        fileDropArea.addEventListener('dragleave', () => {
+          fileDropArea.style.borderColor = '#5d9cec'
+          fileDropArea.style.backgroundColor = 'transparent'
+        })
+
+        fileDropArea.addEventListener('drop', (e) => {
+          e.preventDefault()
+          fileDropArea.style.borderColor = '#5d9cec'
+          fileDropArea.style.backgroundColor = 'transparent'
+
+          if (e.dataTransfer.files.length) {
+            videoInput.files = e.dataTransfer.files
+            handleFileUpload({ target: { files: e.dataTransfer.files } })
+          }
+        })
+      }
+
+      // 处理文件上传
+      function handleFileUpload(event) {
+        const file = event.target.files[0]
+        if (!file) return
+
+        // 检查文件类型
+        if (!file.type.match('video.*')) {
+          showError('请上传视频文件', errorMessage)
+          return
+        }
+
+        inputFile = file
+        videoUrl = URL.createObjectURL(file)
+
+        // 设置视频源
+        videoPlayer.src = videoUrl
+
+        // 启用截图按钮
+        captureBtn.disabled = false
+        downloadAllBtn.disabled = true
+
+        // 重置截图
+        screenshots = []
+        screenshotCount = 0
+        updateResultContainer()
+
+        statusMessage.textContent = `已加载视频: ${file.name} (${formatFileSize(
+          file.size
+        )})`
+        errorMessage.textContent = ''
+      }
+
+      // 截取当前帧
+      async function captureFrame() {
+        if (!inputFile || !videoPlayer.src) {
+          showError('请先上传视频文件', errorMessage)
+          return
+        }
+
+        let currentTime = videoPlayer.currentTime
+        if (currentTime <= 0) {
+          currentTime = 0
+        }
+
+        // 显示进度
+        progressFill.style.width = '0%'
+        progressText.textContent = '初始化中...'
+        captureBtn.disabled = true
+
+        try {
+          // 初始化FFmpeg
+          if (!ffmpeg) {
+            statusMessage.textContent = '正在加载FFmpeg引擎...'
+
+            const { createFFmpeg, fetchFile } = FFmpeg
+            ffmpeg = createFFmpeg({
+              log: true,
+              progress: ({ ratio }) => {
+                const percent = Math.floor(ratio * 100)
+                progressFill.style.width = `${percent}%`
+                progressText.textContent = `处理中: ${percent}%`
+              },
+            })
+
+            await ffmpeg.load()
+          }
+
+          statusMessage.textContent = `正在截取 ${formatTime(
+            currentTime
+          )} 的画面...`
+
+          // 写入视频文件到虚拟文件系统
+          const inputName = 'input.' + inputFile.name.split('.').pop()
+          ffmpeg.FS('writeFile', inputName, await FFmpeg.fetchFile(inputFile))
+
+          // 构建输出文件名
+          const timestamp = Math.floor(currentTime)
+          screenshotCount++
+          const outputName = `screenshot_${screenshotCount}_${timestamp}s.jpg`
+
+          // 执行FFmpeg截图命令
+          // 使用-ss参数指定时间点，-vframes 1指定只取一帧[6,7](@ref)
+          await ffmpeg.run(
+            '-ss',
+            String(currentTime), // 指定截图时间点
+            '-i',
+            inputName, // 输入文件
+            '-vframes',
+            '1', // 只取一帧
+            '-q:v',
+            '2', // 输出质量
+            outputName // 输出文件名
+          )
+
+          // 读取输出文件
+          const data = ffmpeg.FS('readFile', outputName)
+          const blob = new Blob([data.buffer], { type: 'image/jpeg' })
+          const url = URL.createObjectURL(blob)
+
+          // 保存截图信息
+          screenshots.push({
+            id: screenshotCount,
+            time: currentTime,
+            url: url,
+            blob: blob,
+            filename: outputName,
+          })
+
+          // 更新结果展示
+          updateResultContainer()
+
+          progressText.textContent = '截图完成!'
+          statusMessage.textContent = `成功截取 ${formatTime(
+            currentTime
+          )} 的画面`
+          downloadAllBtn.disabled = false
+        } catch (error) {
+          console.error('截图失败:', error)
+          showError(`截图失败: ${error.message}`, errorMessage)
+        } finally {
+          captureBtn.disabled = false
+        }
+      }
+
+      // 更新结果展示区域
+      function updateResultContainer() {
+        if (screenshots.length === 0) {
+          resultContainer.innerHTML =
+            '<p style="text-align: center; width: 100%; padding: 40px 0;">截图将显示在这里</p>'
+          return
+        }
+
+        resultContainer.innerHTML = ''
+        screenshots.forEach((screenshot) => {
+          const item = document.createElement('div')
+          item.className = 'screenshot-item'
+          item.innerHTML = `
+                    <img src="${screenshot.url}" alt="视频截图">
+                    <div class="screenshot-info">
+                        <span>#${screenshot.id}</span>
+                        <span>${formatTime(screenshot.time)}</span>
+                    </div>
+                    <button class="download-btn" data-id="${
+                      screenshot.id
+                    }">下载</button>
+                `
+          resultContainer.appendChild(item)
+        })
+
+        // 添加下载按钮事件
+        document.querySelectorAll('.download-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const id = parseInt(e.target.getAttribute('data-id'))
+            const screenshot = screenshots.find((s) => s.id === id)
+            if (screenshot) {
+              downloadScreenshot(screenshot)
+            }
+          })
+        })
+      }
+
+      // 下载单张截图
+      function downloadScreenshot(screenshot) {
+        const a = document.createElement('a')
+        a.href = screenshot.url
+        a.download = screenshot.filename
+        a.click()
+      }
+
+      // 下载所有截图
+      function downloadAllScreenshots() {
+        screenshots.forEach((screenshot) => {
+          const a = document.createElement('a')
+          a.href = screenshot.url
+          a.download = screenshot.filename
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+        })
+      }
+
+      // 重置所有
+      function resetAll() {
+        screenshots = []
+        screenshotCount = 0
+
+        if (videoUrl) {
+          URL.revokeObjectURL(videoUrl)
+          videoUrl = null
+        }
+
+        // 释放截图URL
+        screenshots.forEach((screenshot) => {
+          URL.revokeObjectURL(screenshot.url)
+        })
+
+        videoInput.value = ''
+        videoPlayer.src = ''
+        captureBtn.disabled = true
+        downloadAllBtn.disabled = true
+        progressFill.style.width = '0%'
+        progressText.textContent = '准备就绪'
+        statusMessage.textContent = ''
+        errorMessage.textContent = ''
+        updateResultContainer()
+      }
+
+      // 辅助函数
+      function showError(message, element) {
+        element.textContent = message
+        setTimeout(() => {
+          element.textContent = ''
+        }, 5000)
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes'
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+        else return (bytes / 1048576).toFixed(1) + ' MB'
+      }
+
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60)
+        const secs = Math.floor(seconds % 60)
+        return `${mins.toString().padStart(2, '0')}:${secs
+          .toString()
+          .padStart(2, '0')}`
+      }
+
+      // 初始化
+      window.onload = initEvents
+    </script>
+  </body>
+</html>
