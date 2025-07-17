@@ -630,6 +630,39 @@
         pdf.addFont(fontFileName, fontName, 'normal')
         return fontName
       }
+
+      // 添加多行水印（每行3个）
+      function addMultiLineWatermark(pdf, watermark, pageWidth, pageHeight) {
+        const fontSize = 40
+        const opacity = 0.2
+        const textColor = 150
+
+        pdf.setFontSize(fontSize)
+        pdf.setTextColor(textColor)
+
+        // 计算水印间距和行数
+        const watermarkWidth = pdf.getStringUnitWidth(watermark) * fontSize // 水印文本宽度
+        const horizontalSpacing = pageWidth / 3 // 每行3个水印的横向间距
+        const verticalSpacing = 100 // 纵向间距（根据需求调整）
+
+        // 计算水印行数（纵向铺满）
+        const rowCount = Math.ceil(pageHeight / verticalSpacing)
+
+        // 循环绘制水印
+        for (let row = 0; row < rowCount; row++) {
+          for (let col = 0; col < 3; col++) {
+            // 每行固定3个
+            const x = col * horizontalSpacing + horizontalSpacing / 2 // 居中定位
+            const y = row * verticalSpacing
+
+            pdf.text(watermark, x, y, {
+              align: 'center',
+              angle: 45,
+              opacity: opacity,
+            })
+          }
+        }
+      }
       // 生成PDF功能
       document
         .getElementById('generateBtn')
@@ -730,13 +763,7 @@
               // 添加水印
               if (watermark) {
                 pdf.setFont(fontName)
-                pdf.setFontSize(40)
-                pdf.setTextColor(150)
-                pdf.text(watermark, pageWidth / 2, pageHeight / 2, {
-                  align: 'center',
-                  angle: 45,
-                  opacity: 0.2,
-                })
+                addMultiLineWatermark(pdf, watermark, pageWidth, pageHeight)
               }
 
               if (i < files.length - 1) pdf.addPage()
