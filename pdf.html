@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片转PDF工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        --theme-primary: #3b82f6;
+      }
+      .theme-transition {
+        transition: background-color 0.5s ease, color 0.3s ease;
+      }
+      /* 时间主题色定义 */
+      .morning-theme {
+        --primary: #3b82f6;
+        --bg: #f0f9ff;
+        --card: #ffffff;
+        --text: #1e293b;
+      }
+      .noon-theme {
+        --primary: #f59e0b;
+        --bg: #fffbeb;
+        --card: #fff7e6;
+        --text: #1e293b;
+      }
+      .afternoon-theme {
+        --primary: #10b981;
+        --bg: #ecfdf5;
+        --card: #e0f2e9;
+        --text: #1e293b;
+      }
+      .evening-theme {
+        --primary: #f97316;
+        --bg: #fff7ed;
+        --card: #ffedd5;
+        --text: #1e293b;
+      }
+      .night-theme {
+        --primary: #8b5cf6;
+        --bg: #1e293b;
+        --card: #334155;
+        --text: #f1f5f9;
+      }
+
+      .file-pdf-bgc input {
+        opacity: 0;
+      }
+
+      /* 自定义滚动条 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--card);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 4px;
+      }
+
+      /* 卡片阴影 */
+      .card-shadow {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      /* 拖放区域高亮 */
+      .drop-area-highlight {
+        border-color: var(--primary);
+        background-color: rgba(59, 130, 246, 0.05);
+      }
+
+      /* 图片预览悬停效果 */
+      .image-preview:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+    </style>
+  </head>
+  <body
+    class="theme-transition min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)]"
+  >
+    <div class="max-w-6xl mx-auto px-4 py-6 w-full">
+      <!-- 头部标题 -->
+      <header class="mb-8 text-center">
+        <div class="flex items-center justify-center gap-3">
+          <div class="bg-[var(--primary)] p-3 rounded-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-8 w-8 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold">图片转PDF工具</h1>
+        </div>
+        <p class="text-lg opacity-80 mt-2">
+          快速将多张图片转换为专业的PDF文档(第一次转换需要加载字体,请耐心等待)
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 左侧操作面板 -->
+        <div class="space-y-6">
+          <!-- 上传区域 -->
+          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              上传图片
+            </h2>
+            <div
+              class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover:border-[var(--primary)]"
+              id="dropArea"
+            >
+              <input
+                type="file"
+                id="imagesInput"
+                accept="image/*"
+                multiple
+                class="hidden"
+              />
+              <div class="flex flex-col items-center justify-center py-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-16 w-16 opacity-60 mb-3 text-[var(--primary)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                  />
+                </svg>
+                <p class="font-medium">
+                  拖放图片到此处或<span
+                    class="font-semibold text-[var(--primary)]"
+                  >
+                    点击选择</span
+                  >
+                </p>
+                <p class="text-sm opacity-70 mt-2">支持 JPG, PNG, WEBP 格式</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 图片预览区 -->
+          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                  />
+                </svg>
+                图片预览
+              </h2>
+              <span id="imageCount" class="text-sm opacity-70">0 张图片</span>
+            </div>
+            <div
+              id="imagePreviews"
+              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 min-h-[120px]"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 右侧配置面板 -->
+        <div class="space-y-6">
+          <!-- PDF设置区域 -->
+          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              PDF设置
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-medium mb-2">页面大小</label>
+                <select
+                  id="pageSize"
+                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                >
+                  <option value="a4">A4 (210×297mm)</option>
+                  <option value="letter">Letter (216×279mm)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium mb-2">方向</label>
+                <select
+                  id="orientation"
+                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                >
+                  <option value="portrait">纵向</option>
+                  <option value="landscape">横向</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-medium mb-2">边距 (mm)</label>
+                <input
+                  type="number"
+                  id="margin"
+                  value="10"
+                  min="0"
+                  max="50"
+                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium mb-2">背景图 (可选)</label>
+                <input
+                  type="file"
+                  id="backgroundInput"
+                  accept="image/*"
+                  class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <h3
+                class="font-medium mb-3 flex items-center gap-2 text-[var(--primary)]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+                页眉页脚设置
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-medium mb-2">页眉文字</label>
+                  <input
+                    type="text"
+                    id="headerText"
+                    class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                    placeholder="例如：公司名称"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium mb-2">页脚文字</label>
+                  <input
+                    type="text"
+                    id="footerText"
+                    class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                    placeholder="例如：页码或日期"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <h3
+                class="font-medium mb-3 flex items-center gap-2 text-[var(--primary)]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  />
+                </svg>
+                水印设置
+              </h3>
+              <input
+                type="text"
+                id="watermarkText"
+                class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                placeholder="例如：草稿或机密"
+              />
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button
+              id="generateBtn"
+              class="flex-1 py-4 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-white bg-[var(--primary)] hover:opacity-90"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              生成 PDF
+            </button>
+            <a
+              id="downloadBtn"
+              href="#"
+              download="images.pdf"
+              class="flex-1 py-4 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 bg-gray-200 text-gray-800 hover:bg-gray-300 hidden"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              下载 PDF
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF预览区域 -->
+      <div class="mt-8 bg-[var(--card)] rounded-2xl card-shadow p-5">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            PDF 预览
+          </h2>
+          <span id="pdfPageCount" class="text-sm opacity-70">0 页</span>
+        </div>
+        <iframe
+          id="preview"
+          class="w-full h-[500px] rounded-xl border bg-white"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer
+      class="text-center py-6 mt-8 text-sm opacity-80 border-t border-gray-200"
+    >
+      <p>© 2025 图片转PDF工具 | 当前时间: <span id="currentTime"></span></p>
+    </footer>
+    <script>
+      const { jsPDF } = window.jspdf
+
+      // 根据当前时间设置主题[6,8](@ref)
+      function setThemeByTime() {
+        const now = new Date()
+        const hour = now.getHours()
+        const themes = [
+          'night',
+          'morning',
+          'noon',
+          'afternoon',
+          'evening',
+          'night',
+        ]
+        const themeTimes = [0, 6, 11, 14, 18, 22]
+
+        let themeIndex = 0
+        for (let i = 1; i < themeTimes.length; i++) {
+          if (hour >= themeTimes[i - 1] && hour < themeTimes[i]) {
+            themeIndex = i - 1
+            break
+          }
+        }
+
+        document.body.className = document.body.className.replace(
+          /\b\w+-theme/g,
+          ''
+        )
+        document.body.classList.add(`${themes[themeIndex]}-theme`)
+
+        // 应用主题色到元素
+        document.documentElement.style.setProperty(
+          '--theme-primary',
+          `var(--primary)`
+        )
+        document.documentElement.style.setProperty('--theme-bg', `var(--bg)`)
+        document.documentElement.style.setProperty(
+          '--theme-card',
+          `var(--card)`
+        )
+
+        // 更新UI颜色
+        document.documentElement.style.backgroundColor = `var(--theme-bg)`
+        document.documentElement.style.color = `var(--text-color)`
+
+        // 更新按钮样式
+        const primaryBtn = document.getElementById('generateBtn')
+        if (primaryBtn) {
+          primaryBtn.style.backgroundColor = `var(--theme-primary)`
+          primaryBtn.style.color = '#fff'
+        }
+
+        // 更新卡片背景
+        const cards = document.querySelectorAll('.bg-white')
+        cards.forEach((card) => {
+          card.style.backgroundColor = `var(--theme-card)`
+        })
+
+        // 更新时间显示
+        const timeDisplay = document.getElementById('currentTime')
+        if (timeDisplay) {
+          timeDisplay.textContent = now.toLocaleTimeString()
+        }
+      }
+
+      // 初始化时间主题
+      setThemeByTime()
+      // 每分钟更新一次主题
+      setInterval(setThemeByTime, 60000)
+
+      // 文件操作函数
+      function readFileAsDataURL(file) {
+        return new Promise((res, rej) => {
+          const reader = new FileReader()
+          reader.onload = () => res(reader.result)
+          reader.onerror = () => rej(reader.error)
+          reader.readAsDataURL(file)
+        })
+      }
+
+      function loadImage(src) {
+        return new Promise((res, rej) => {
+          const img = new Image()
+          img.onload = () => res(img)
+          img.onerror = rej
+          img.src = src
+        })
+      }
+
+      // 拖放上传功能
+      const dropArea = document.getElementById('dropArea')
+      const imagesInput = document.getElementById('imagesInput')
+      const imagePreviews = document.getElementById('imagePreviews')
+
+      dropArea.addEventListener('click', () => imagesInput.click())
+      ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+        dropArea.addEventListener(eventName, preventDefaults, false)
+      })
+
+      function preventDefaults(e) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+
+      ;['dragenter', 'dragover'].forEach((eventName) => {
+        dropArea.addEventListener(eventName, highlight, false)
+      })
+      ;['dragleave', 'drop'].forEach((eventName) => {
+        dropArea.addEventListener(eventName, unhighlight, false)
+      })
+
+      function highlight() {
+        dropArea.classList.add('border-opacity-100', 'bg-gray-100/50')
+      }
+
+      function unhighlight() {
+        dropArea.classList.remove('border-opacity-100', 'bg-gray-100/50')
+      }
+
+      dropArea.addEventListener('drop', handleDrop, false)
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer
+        const files = dt.files
+        imagesInput.files = files
+        handleFiles(files)
+      }
+
+      imagesInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files)
+      })
+
+      // 处理上传的图片并生成预览
+      function handleFiles(files) {
+        imagePreviews.innerHTML = ''
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i]
+          if (!file.type.match('image.*')) continue
+
+          const reader = new FileReader()
+          reader.onload = (function (file) {
+            return function (e) {
+              const div = document.createElement('div')
+              div.className = 'relative group'
+
+              const img = document.createElement('img')
+              img.src = e.target.result
+              img.className = 'rounded-lg object-cover h-32 w-full border'
+
+              const overlay = document.createElement('div')
+              overlay.className =
+                'absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'
+
+              const name = document.createElement('p')
+              name.className = 'text-white text-xs truncate px-2'
+              name.textContent = file.name
+
+              overlay.appendChild(name)
+              div.appendChild(img)
+              div.appendChild(overlay)
+              imagePreviews.appendChild(div)
+            }
+          })(file)
+          reader.readAsDataURL(file)
+        }
+      }
+      // ===== 1. 定义字体加载函数 =====
+      async function loadChineseFont() {
+        return new Promise((resolve, reject) => {
+          // 直接通过fetch加载TTF文件
+          fetch('./SourceHanSansCN-Regular.ttf')
+            .then((response) => response.arrayBuffer())
+            .then((data) => {
+              // 将ArrayBuffer转为Base64
+              const uint8Array = new Uint8Array(data)
+              let binaryString = ''
+              uint8Array.forEach((byte) => {
+                binaryString += String.fromCharCode(byte)
+              })
+              const base64Data = btoa(binaryString)
+              resolve(base64Data)
+            })
+            .catch((error) =>
+              reject(new Error('字体加载失败: ' + error.message))
+            )
+        })
+      }
+
+      // ===== 2. 注册字体到jsPDF =====
+      function registerFont(pdf, fontData) {
+        const fontName = 'SourceHanSansCN-Regular'
+        const fontFileName = 'SourceHanSansCN-Regular.ttf'
+
+        // 注册字体
+        pdf.addFileToVFS(fontFileName, fontData)
+        pdf.addFont(fontFileName, fontName, 'normal')
+        return fontName
+      }
+      // 生成PDF功能
+      document
+        .getElementById('generateBtn')
+        .addEventListener('click', async () => {
+          // 加载字体
+          const fontData = await loadChineseFont()
+
+          const files = Array.from(document.getElementById('imagesInput').files)
+          if (!files.length) return alert('请选择至少一张图片')
+
+          const pageSize = document.getElementById('pageSize').value
+          const orientation = document.getElementById('orientation').value
+          const margin =
+            parseFloat(document.getElementById('margin').value) || 0
+          const headerText = document.getElementById('headerText').value.trim()
+          const footerText = document.getElementById('footerText').value.trim()
+          const watermark = document
+            .getElementById('watermarkText')
+            .value.trim()
+          const bgFile = document.getElementById('backgroundInput').files[0]
+          const backgroundDataURL = bgFile
+            ? await readFileAsDataURL(bgFile)
+            : null
+
+          const pdf = new jsPDF({ unit: 'mm', format: pageSize, orientation })
+          const pageWidth = pdf.internal.pageSize.getWidth()
+          const pageHeight = pdf.internal.pageSize.getHeight()
+
+          // 显示加载状态
+          const generateBtn = document.getElementById('generateBtn')
+          const originalBtnText = generateBtn.innerHTML
+          generateBtn.innerHTML =
+            '<span class="animate-spin">⏳</span> 正在生成...'
+          generateBtn.disabled = true
+
+          const fontName = registerFont(pdf, fontData)
+          pdf.setFont(fontName)
+          pdf.setFontSize(12)
+
+          try {
+            for (let i = 0; i < files.length; i++) {
+              const imgDataURL = await readFileAsDataURL(files[i])
+              const img = await loadImage(imgDataURL)
+
+              // 添加背景图
+              if (backgroundDataURL) {
+                pdf.addImage(
+                  backgroundDataURL,
+                  'JPEG',
+                  0,
+                  0,
+                  pageWidth,
+                  pageHeight
+                )
+              }
+
+              // 图片等比缩放
+              let imgW = img.width,
+                imgH = img.height
+              const ratio = Math.min(
+                (pageWidth - margin * 2) / imgW,
+                (pageHeight - margin * 2) / imgH
+              )
+              imgW *= ratio
+              imgH *= ratio
+              const x = (pageWidth - imgW) / 2
+              const y = (pageHeight - imgH) / 2
+
+              // 添加图片到PDF
+              pdf.addImage(imgDataURL, 'JPEG', x, y, imgW, imgH)
+
+              // 添加页眉
+              if (headerText) {
+                pdf.setFont(fontName)
+                pdf.setFontSize(12)
+                pdf.setTextColor(100)
+                pdf.text(headerText, margin, 10)
+              }
+
+              // 添加页脚
+              if (footerText) {
+                pdf.setFont(fontName)
+                pdf.setFontSize(10)
+                pdf.setTextColor(100)
+                if (footerText === '页码') {
+                  pdf.text(`${i + 1}`, margin, pageHeight - 5)
+                } else if (footerText === '日期') {
+                  pdf.text(
+                    new Date().toLocaleDateString(),
+                    margin,
+                    pageHeight - 5
+                  )
+                } else {
+                  pdf.text(footerText, margin, pageHeight - 5)
+                }
+              }
+
+              // 添加水印
+              if (watermark) {
+                pdf.setFont(fontName)
+                pdf.setFontSize(40)
+                pdf.setTextColor(150)
+                pdf.text(watermark, pageWidth / 2, pageHeight / 2, {
+                  align: 'center',
+                  angle: 45,
+                  opacity: 0.2,
+                })
+              }
+
+              if (i < files.length - 1) pdf.addPage()
+            }
+
+            // 生成PDF文件
+            const blob = pdf.output('blob')
+            const url = URL.createObjectURL(blob)
+
+            // 显示预览和下载按钮
+            document.getElementById('preview').src = url
+            const downloadBtn = document.getElementById('downloadBtn')
+            downloadBtn.href = url
+            downloadBtn.classList.remove('hidden')
+            downloadBtn.classList.add('flex')
+
+            // 恢复按钮状态
+            generateBtn.innerHTML = '✅ 生成成功!'
+            setTimeout(() => {
+              generateBtn.innerHTML = originalBtnText
+              generateBtn.disabled = false
+            }, 2000)
+          } catch (error) {
+            console.error('生成PDF失败:', error)
+            alert('生成PDF时出错: ' + error.message)
+            generateBtn.innerHTML = '❌ 生成失败，重试'
+            setTimeout(() => {
+              generateBtn.innerHTML = originalBtnText
+              generateBtn.disabled = false
+            }, 3000)
+          }
+        })
+
+      // 初始设置
+      setThemeByTime()
+    </script>
+  </body>
+</html>
