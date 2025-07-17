@@ -1322,26 +1322,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
     </script>
-    <script>
-    // 初始设置页面标题[1,2](@ref)
-    document.title = "你可算回来了 (｡•ˇ‸ˇ•｡)";
-        
-        // 监听页面可见性变化[3](@ref)
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                // 当用户切换标签页或最小化窗口时
-                document.title = "你别走吖 Σ(っ °Д °;)っ";
-            } else {
-                // 当用户返回页面时
-                document.title = "你可算回来了 (｡•ˇ‸ˇ•｡)";
-            }
-        });
+    <script src="./title.js"></script>
 
-        // 监听窗口关闭事件（增强体验）
-        window.addEventListener('beforeunload', function() {
-            document.title = "你别走吖 Σ(っ °Д °;)っ";
-        });
-    </script>
 </body>
 
 </html>
