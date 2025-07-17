@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="纯前端工具集合 - 提供中文姓名生成、屏幕录制、图片处理、音视频编辑等在线工具"
+    />
+    <meta
+      name="keywords"
+      content="前端工具, 姓名生成器, 图片压缩, 音视频剪辑, 在线工具"
+    />
+    <title>纯前端工具集合 | 中文姓名生成器 | 媒体处理工具</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        /* 浅色主题变量 */
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --card-bg: #f8f9fa;
+        --border-color: #e0e0e0;
+        --primary-color: #4a6cf7;
+        --hover-color: #3a56e0;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --section-bg: #f1f5f9;
+        --theme-icon: '🌙';
+      }
+
+      /* 深色主题变量 */
+      .dark-theme {
+        --bg-color: #1a1a1a;
+        --text-color: #f0f0f0;
+        --card-bg: #2d2d2d;
+        --border-color: #444444;
+        --primary-color: #6c8eff;
+        --hover-color: #5a7ce6;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --section-bg: #252525;
+        --theme-icon: '☀️';
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* 头部样式 */
+      header {
+        background-color: var(--section-bg);
+        padding: 20px 0;
+        box-shadow: 0 2px 10px var(--shadow-color);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+
+      .logo p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .theme-switch {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 50px;
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+      }
+
+      .theme-switch:hover {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .theme-switch::after {
+        content: var(--theme-icon);
+      }
+
+      /* 主内容区 */
+      main {
+        flex: 1;
+        padding: 40px 0;
+      }
+
+      .intro {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .intro h2 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .intro p {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      /* 工具卡片网格 */
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+      }
+
+      .tool-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px var(--shadow-color);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px var(--shadow-color);
+      }
+
+      .tool-icon {
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        background: linear-gradient(135deg, var(--primary-color), #8a63d2);
+        color: white;
+      }
+
+      .tool-content {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .tool-content h3 {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+      }
+
+      .tool-content p {
+        margin-bottom: 15px;
+        flex: 1;
+        opacity: 0.9;
+        font-size: 0.95rem;
+      }
+
+      .tool-link {
+        display: inline-block;
+        padding: 10px 15px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        text-align: center;
+        transition: background-color 0.3s;
+      }
+
+      .tool-link:hover {
+        background: var(--hover-color);
+      }
+
+      /* 页脚样式 */
+      footer {
+        background-color: var(--section-bg);
+        padding: 30px 0;
+        margin-top: auto;
+      }
+
+      .footer-content {
+        text-align: center;
+        padding: 20px 0;
+      }
+
+      .content-section {
+        font-size: 0.9rem;
+        color: var(--text-color);
+        opacity: 0.8;
+        line-height: 1.8;
+      }
+
+      .subp {
+        margin-bottom: 8px;
+      }
+
+      .subp_a {
+        color: var(--primary-color);
+        text-decoration: none;
+      }
+
+      .subp_a:hover {
+        text-decoration: underline;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .header-content {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .intro h2 {
+          font-size: 1.8rem;
+        }
+
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .theme-switch {
+          align-self: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <h1>多功能工具箱</h1>
+            <p>纯前端工具集合 | 不依赖服务器</p>
+          </div>
+          <div class="theme-switch" id="themeSwitch"></div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="intro">
+          <h2>高效工具集合</h2>
+          <p>
+            所有工具均在浏览器中运行，不依赖服务器处理，保护您的隐私安全。点击下方卡片即可使用相应工具。
+          </p>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="tool-content">
+              <h3>中文姓名生成器</h3>
+              <p>
+                随机生成中文姓名，可用于游戏角色、写作素材等场景，包含常见姓氏和名字组合。
+              </p>
+              <a
+                href="https://open.996day.com/name.html"
+                class="tool-link"
+                target="_blank"
+                >立即使用</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-video"></i>
+            </div>
+            <div class="tool-content">
+              <h3>在线屏幕录制</h3>
+              <p>
+                直接在浏览器中录制屏幕活动，支持全屏或指定标签页录制，无需安装任何软件。
+              </p>
+              <a
+                href="https://open.996day.com/record.html"
+                class="tool-link"
+                target="_blank"
+                >开始录制</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-compress"></i>
+            </div>
+            <div class="tool-content">
+              <h3>图片压缩</h3>
+              <p>
+                智能压缩JPG/PNG图片，最高可减少70%文件大小，保持图片质量无明显损失。
+              </p>
+              <a href="https://tinypng.com/" class="tool-link" target="_blank"
+                >压缩图片</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+            <div class="tool-content">
+              <h3>图片格式转换</h3>
+              <p>支持JPG、PNG、WEBP、GIF等多种格式互相转换，保留EXIF信息。</p>
+              <a
+                href="https://open.996day.com/imgFormat.html"
+                class="tool-link"
+                target="_blank"
+                >转换图片</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-cut"></i>
+            </div>
+            <div class="tool-content">
+              <h3>音视频剪辑</h3>
+              <p>在浏览器中直接剪辑音频和视频文件，支持MP3、MP4等多种格式。</p>
+              <a
+                href="https://open.996day.com/jj.html"
+                class="tool-link"
+                target="_blank"
+                >开始剪辑</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-sync"></i>
+            </div>
+            <div class="tool-content">
+              <h3>音视频格式转换</h3>
+              <p>
+                将音视频文件转换为不同格式，支持MP3、WAV、MP4、MOV等常用格式。
+              </p>
+              <a
+                href="https://open.996day.com/format.html"
+                class="tool-link"
+                target="_blank"
+                >转换格式</a
+              >
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-icon">
+              <i class="fas fa-object-group"></i>
+            </div>
+            <div class="tool-content">
+              <h3>音视频合并</h3>
+              <p>
+                将多个音频或视频文件合并为一个文件，支持调整顺序和添加过渡效果。
+              </p>
+              <a
+                href="https://open.996day.com/merge.html"
+                class="tool-link"
+                target="_blank"
+                >合并文件</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="content-section">
+            <p class="subp">
+              版权所有ICP证:
+              <a class="subp_a" href="https://beian.miit.gov.cn" target="_blank"
+                >蜀ICP备19030136号</a
+              ><br />
+              <a class="subp_a" href="https://www.miit.gov.cn/" target="_blank"
+                >工信部</a
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // 主题切换功能
+      const themeSwitch = document.getElementById('themeSwitch')
+      const body = document.body
+
+      // 检查用户之前是否设置了主题偏好
+      const userTheme = localStorage.getItem('theme')
+      const systemPrefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches
+
+      // 根据时间自动设置初始主题
+      function setInitialTheme() {
+        const now = new Date()
+        const hours = now.getHours()
+        const isNightTime = hours < 6 || hours >= 18
+
+        // 如果用户之前设置过主题，优先使用用户设置
+        if (userTheme) {
+          body.classList.toggle('dark-theme', userTheme === 'dark')
+          return
+        }
+
+        // 否则根据时间设置主题
+        body.classList.toggle('dark-theme', isNightTime)
+      }
+
+      // 页面加载时设置主题
+      setInitialTheme()
+
+      // 切换主题
+      themeSwitch.addEventListener('click', () => {
+        const isDark = body.classList.contains('dark-theme')
+        body.classList.toggle('dark-theme', !isDark)
+
+        // 保存用户选择
+        localStorage.setItem('theme', isDark ? 'light' : 'dark')
+      })
+
+      // 监听系统主题变化
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', (e) => {
+          // 只有用户没有设置偏好时才跟随系统变化
+          if (!userTheme) {
+            body.classList.toggle('dark-theme', e.matches)
+          }
+        })
+    </script>
+    <script>
+      var _hmt = _hmt || []
+      ;(function () {
+        var hm = document.createElement('script')
+        hm.src = 'https://hm.baidu.com/hm.js?485da93d3180b17d631385000c18e8d5'
+        var s = document.getElementsByTagName('script')[0]
+        s.parentNode.insertBefore(hm, s)
+      })()
+    </script>
+    <script>
+      // 初始设置页面标题[1,2](@ref)
+      document.title = '你可算回来了 (｡•ˇ‸ˇ•｡)'
+
+      // 监听页面可见性变化[3](@ref)
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+          // 当用户切换标签页或最小化窗口时
+          document.title = '你别走吖 Σ(っ °Д °;)っ'
+        } else {
+          // 当用户返回页面时
+          document.title = '你可算回来了 (｡•ˇ‸ˇ•｡)'
+        }
+      })
+
+      // 监听窗口关闭事件（增强体验）
+      window.addEventListener('beforeunload', function () {
+        document.title = '你别走吖 Σ(っ °Д °;)っ'
+      })
+    </script>
+  </body>
+</html>

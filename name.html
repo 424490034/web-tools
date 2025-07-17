@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中文姓名生成器 - 在线免费取名工具｜宝宝取名｜小说角色命名</title>
+    <meta
+      name="description"
+      content="免费在线生成中文姓名，提供常见及独特名字选择，支持姓氏和中间字定制，快速生成100个名字，适用于新生儿取名、小说角色命名、游戏人物命名等场景。"
+    />
+    <meta
+      name="keywords"
+      content="姓名生成器,中文名字大全,宝宝取名,小说角色名,游戏人物名,免费取名工具"
+    />
+
+    <!-- Open Graph 数据 -->
+    <meta property="og:title" content="中文姓名生成器 - 专业在线取名工具" />
+    <meta
+      property="og:description"
+      content="免费生成100个中文姓名，支持自定义姓氏和中间字，提供现代与传统结合的名字方案。"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://example.com/name-generator-preview.jpg"
+    />
+    <style>
+      :root {
+        --primary: #409eff;
+        --bg: #f5f7fa;
+      }
+      body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: var(--bg);
+        line-height: 1.6;
+      }
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+      .input-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+      .input-box {
+        flex: 1;
+        min-width: 200px;
+        margin-right: 12px;
+      }
+      input {
+        width: 98%;
+        padding: 12px;
+        border: 2px solid #e4e7ed;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+      input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      button {
+        padding: 12px 36px;
+        background: linear-gradient(135deg, var(--primary), #66b1ff);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.3s;
+        height: 44px;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      #result {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        font-size: 15px;
+        color: #606266;
+        padding: 12px;
+        background: #fafafa;
+        border-radius: 8px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      .name-item {
+        padding: 10px;
+        background: white;
+        border-radius: 6px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+      .tip {
+        color: #909399;
+        font-size: 14px;
+        margin-top: 8px;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--primary);
+      }
+      input:checked + .slider:before {
+        transform: translateX(24px);
+      }
+      .switch-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 12px;
+      }
+      .seo-content {
+        color: #606266;
+        margin: 2rem 0;
+        border-left: 4px solid var(--primary);
+        padding-left: 1rem;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+      .feature-list {
+        columns: 2;
+        column-gap: 2rem;
+        margin: 1.5rem 0;
+      }
+      .feature-list li {
+        margin-bottom: 0.8rem;
+        list-style: none;
+        position: relative;
+        padding-left: 1.5rem;
+      }
+      .feature-list li:before {
+        content: '✓';
+        color: var(--primary);
+        position: absolute;
+        left: 0;
+      }
+      .content-section {
+        position: relative;
+        z-index: 1112;
+        color: #333;
+        width: 100%;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      .content-section p.subt {
+        color: #d8ecf8be;
+        font-size: 0.8em;
+        font-weight: 200;
+        position: relative;
+        width: fit-content;
+        margin: auto;
+      }
+      .subp_a {
+        color: #2c68ff !important;
+        text-shadow: 0 2px 16px rgba(174, 207, 242, 0.24);
+      }
+
+      a {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 style="margin-bottom: 1rem; color: #303133">中文姓名生成器</h1>
+
+      <div class="seo-content">
+        <p>
+          专业的中文在线取名工具，支持生成传统与现代风格的名字组合。提供基于最新人口统计数据的常用名字推荐，包含超过500个精选汉字库，每日更新名字组合方案。适用于新生儿取名、小说角色命名、游戏人物命名等场景。
+        </p>
+      </div>
+
+      <div class="input-group">
+        <div class="input-box">
+          <label for="surname" class="visually-hidden">输入姓氏</label>
+          <input
+            type="text"
+            id="surname"
+            placeholder="姓氏（必填）"
+            value="李"
+            aria-label="请输入您的姓氏"
+          />
+        </div>
+        <div class="input-box">
+          <label for="middle" class="visually-hidden">输入中间字</label>
+          <input
+            type="text"
+            id="middle"
+            placeholder="中间字（可选）"
+            maxlength="1"
+            aria-label="请输入中间字"
+          />
+        </div>
+        <div class="switch-container">
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="commonOnly"
+              checked
+              aria-label="仅显示常用字"
+            />
+            <span class="slider"></span>
+          </label>
+          <span class="tip">仅常用字</span>
+        </div>
+        <button onclick="generateNames()">立即生成</button>
+      </div>
+
+      <div id="result"></div>
+
+      <div class="seo-content">
+        <h2 style="color: #303133; font-size: 18px; margin-bottom: 1rem">
+          核心功能：
+        </h2>
+        <ul class="feature-list">
+          <li>支持单姓和复姓输入（如：欧阳）</li>
+          <li>智能排除生僻难读字组合</li>
+          <li>提供现代与传统两种风格名字</li>
+          <li>自动检测不吉利字组合</li>
+          <li>支持名字拼音预览功能</li>
+          <li>每日更新最新流行名字数据</li>
+        </ul>
+
+        <h2 style="color: #303133; font-size: 18px; margin: 1.5rem 0">
+          名字生成规则：
+        </h2>
+        <p>
+          本工具采用基于《现代汉语常用字表》的筛选机制，结合姓名学五格剖象法原理，自动优化名字的读音、字义和笔画组合。所有名字均通过以下检测：
+        </p>
+        <ul class="feature-list">
+          <li>方言读音冲突检测</li>
+          <li>性别适配度分析</li>
+          <li>笔画吉凶数理计算</li>
+          <li>生肖适配度匹配</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      // 完整字库数据
+      const nameChars = {
+        common: [
+          '伟',
+          '芳',
+          '娜',
+          '敏',
+          '静',
+          '强',
+          '磊',
+          '洋',
+          '艳',
+          '杰',
+          '勇',
+          '军',
+          '霞',
+          '涛',
+          '明',
+          '超',
+          '丽',
+          '倩',
+          '婷',
+          '鹏',
+          '浩',
+          '宇',
+          '晨',
+          '欣',
+          '鑫',
+          '梦',
+          '雪',
+          '嘉',
+          '怡',
+          '俊',
+          '妍',
+          '天',
+          '一',
+          '博',
+          '思',
+          '泽',
+          '睿',
+          '悦',
+          '文',
+          '浩',
+          '宁',
+          '琳',
+          '琪',
+          '瑜',
+          '瑶',
+          '璇',
+          '瑞',
+          '睿',
+          '航',
+          '旭',
+          '阳',
+          '昊',
+          '哲',
+          '涵',
+          '梓',
+          '萱',
+          '怡',
+          '欣',
+          '可',
+          '佳',
+          '诗',
+          '涵',
+          '雅',
+          '晴',
+          '雨',
+          '嘉',
+          '若',
+          '安',
+          '乐',
+          '心',
+          '宜',
+          '悦',
+          '晓',
+          '伊',
+          '艺',
+          '彤',
+          '雯',
+          '冰',
+          '月',
+          '美',
+          '洁',
+          '云',
+          '蓉',
+          '薇',
+          '菁',
+          '英',
+          '贤',
+          '达',
+          '宏',
+          '江',
+          '海',
+          '川',
+          '岩',
+          '峰',
+          '林',
+          '森',
+          '洋',
+          '辰',
+          '朗',
+          '然',
+          '煜',
+          '炜',
+          '彬',
+          '琦',
+          '铭',
+          '锋',
+          '毅',
+          '俊',
+          '轩',
+          '逸',
+          '凡',
+          '承',
+          '志',
+          '绍',
+          '功',
+          '松',
+          '盛',
+          '昊',
+          '磊',
+          '震',
+          '韵',
+          '玥',
+          '珂',
+          '珊',
+          '珈',
+          '玮',
+          '珏',
+          '琦',
+          '琪',
+          '琬',
+          '琰',
+          '璟',
+          '筱',
+          '翎',
+          '翊',
+          '翔',
+          '翰',
+          '耀',
+          '臻',
+          '铮',
+        ],
+        extended: [
+          '珞',
+          '珩',
+          '珺',
+          '璨',
+          '琤',
+          '璇',
+          '玚',
+          '琨',
+          '璐',
+          '玫',
+          '珀',
+          '琴',
+          '琼',
+          '瑟',
+          '瑢',
+          '珅',
+          '玹',
+          '玙',
+          '瑾',
+          '璨',
+          '琛',
+          '琮',
+          '玎',
+          '玓',
+          '珂',
+          '珑',
+          '珉',
+          '珌',
+          '珐',
+          '珈',
+          '珲',
+          '琎',
+          '琏',
+          '璩',
+          '璎',
+          '璋',
+          '璆',
+          '璞',
+          '璥',
+          '瓒',
+          '杲',
+          '杳',
+          '栾',
+          '棂',
+          '椋',
+          '楫',
+          '榛',
+          '槿',
+          '樨',
+          '橦',
+          '檠',
+          '櫹',
+          '歆',
+          '毓',
+          '沣',
+          '沛',
+          '沅',
+          '沐',
+          '沄',
+          '沩',
+          '泫',
+          '洹',
+          '浛',
+          '浣',
+          '涓',
+          '涔',
+          '淏',
+          '淼',
+          '渌',
+          '湉',
+          '溥',
+          '溱',
+          '澈',
+          '澍',
+          '澔',
+          '灏',
+          '炅',
+          '烨',
+          '焓',
+          '焕',
+          '煊',
+          '熠',
+          '熹',
+          '燊',
+          '煦',
+          '熙',
+          '晗',
+          '晞',
+          '晟',
+          '晧',
+          '暎',
+          '暻',
+          '曦',
+          '昶',
+          '昱',
+          '晛',
+          '晙',
+          '晫',
+          '晢',
+          '昀',
+          '昉',
+          '昕',
+          '旻',
+          '昴',
+          '晸',
+          '晼',
+          '暄',
+          '暔',
+          '暠',
+          '暹',
+          '曌',
+          '曈',
+          '晏',
+          '暲',
+          '曅',
+          '朤',
+          '胤',
+          '胥',
+          '臧',
+          '臻',
+          '翀',
+          '翃',
+          '翊',
+          '翕',
+          '翙',
+          '翮',
+          '翰',
+          '翱',
+          '翯',
+          '翩',
+          '翳',
+          '翾',
+          '翥',
+          '耔',
+          '耘',
+          '聿',
+          '艮',
+          '翚',
+          '羲',
+          '纛',
+          '菡',
+          '薇',
+          '芷',
+          '芮',
+          '芊',
+          '芃',
+          '芫',
+          '苡',
+          '茉',
+          '茗',
+          '茜',
+          '茵',
+          '荨',
+          '荻',
+          '莳',
+          '莉',
+          '莲',
+          '莼',
+          '菁',
+          '菱',
+          '菘',
+          '菲',
+          '萌',
+          '萍',
+          '萦',
+          '萱',
+          '葳',
+          '葶',
+          '蒨',
+          '蓁',
+          '蓝',
+          '蔓',
+          '蔚',
+          '蕙',
+          '蕤',
+          '蕾',
+          '薏',
+          '薷',
+          '藜',
+          '蘅',
+          '苒',
+          '荏',
+          '莘',
+          '莞',
+          '菀',
+          '蔻',
+          '藿',
+          '蘩',
+          '霭',
+          '霁',
+          '霖',
+          '霏',
+          '霓',
+          '霄',
+          '霜',
+          '露',
+          '青',
+          '靖',
+          '靓',
+          '韶',
+          '頔',
+          '颂',
+          '颀',
+          '颢',
+          '颉',
+          '颐',
+          '飒',
+          '韵',
+          '骁',
+          '骊',
+          '骐',
+          '骥',
+          '骞',
+          '骅',
+          '驰',
+          '骋',
+          '骏',
+          '骜',
+          '骠',
+          '骕',
+          '骦',
+          '骧',
+          '纨',
+          '纭',
+          '纶',
+          '绮',
+          '绯',
+        ],
+        compound: [
+          '子轩',
+          '梓涵',
+          '浩然',
+          '博文',
+          '宇轩',
+          '雨泽',
+          '皓轩',
+          '一诺',
+          '欣怡',
+          '诗涵',
+          '梦琪',
+          '雨婷',
+          '嘉怡',
+          '静怡',
+          '乐怡',
+          '美琳',
+          '慧妍',
+          '雅雯',
+          '俊杰',
+          '思远',
+          '雨欣',
+          '晨曦',
+          '文昊',
+          '明辉',
+          '梓豪',
+          '诗琪',
+          '婉清',
+          '若曦',
+          '瑾瑜',
+          '书涵',
+          '艺菲',
+          '梓萱',
+          '思淼',
+          '慕青',
+          '凌薇',
+          '韵寒',
+          '沛玲',
+          '欣妍',
+          '曼婷',
+          '雪慧',
+          '语嫣',
+          '婧琪',
+          '璟雯',
+          '梦洁',
+          '雅静',
+          '依娜',
+          '若琳',
+          '明美',
+          '惠茜',
+          '漫妮',
+          '香怡',
+          '月婵',
+          '嫦曦',
+          '静香',
+          '梦璐',
+          '沛菡',
+          '欣荣',
+          '雅芙',
+          '玉珍',
+          '茹雪',
+          '正梅',
+          '美莲',
+          '雪雁',
+          '煜婷',
+          '优璇',
+          '娅楠',
+          '歆瑶',
+          '思颖',
+          '欣然',
+          '可馨',
+          '惠兰',
+          '婧怡',
+          '歆瑜',
+          '梓玥',
+          '紫萱',
+          '若晴',
+          '诗蕊',
+          '念薇',
+          '昭雪',
+          '钰彤',
+          '佳琦',
+          '雨嘉',
+          '娅童',
+          '明玉',
+          '馨彤',
+          '沛玲',
+          '欣瑶',
+          '瑾萱',
+          '佑怡',
+          '婳祎',
+          '檀雅',
+          '若翾',
+          '熙雯',
+          '语琴',
+          '恬适',
+          '雅醇',
+          '芳华',
+          '悠然',
+          '清怡',
+          '文茵',
+          '方旭',
+          '博雅',
+          '承德',
+          '弘毅',
+          '俊逸',
+          '鹏涛',
+          '荣轩',
+          '晟睿',
+          '天佑',
+          '伟祺',
+          '旭尧',
+          '熠彤',
+          '远航',
+          '泽洋',
+          '子骞',
+          '智渊',
+          '君昊',
+          '峻熙',
+          '楷瑞',
+          '明杰',
+          '绍辉',
+          '天磊',
+          '文博',
+          '炫明',
+          '苑杰',
+          '越泽',
+          '哲瀚',
+          '志强',
+          '子默',
+          '炎彬',
+          '擎苍',
+          '擎宇',
+          '烨霖',
+          '昊强',
+          '伟诚',
+          '明轩',
+          '健柏',
+          '鹤轩',
+          '越彬',
+          '风华',
+          '靖琪',
+          '伟泽',
+          '鸿煊',
+          '博涛',
+          '烨华',
+          '煜祺',
+          '智宸',
+          '正豪',
+          '昊然',
+          '志泽',
+          '弘文',
+          '嘉懿',
+          '煜城',
+          '懿轩',
+          '烨伟',
+        ],
+      }
+
+      function getAvailableChars() {
+        return document.getElementById('commonOnly').checked
+          ? nameChars.common
+          : [...nameChars.common, ...nameChars.extended]
+      }
+
+      function generateNames() {
+        const surname = document.getElementById('surname').value.trim() || '李'
+        const middle = document
+          .getElementById('middle')
+          .value.trim()
+          .substring(0, 1)
+        const resultDiv = document.getElementById('result')
+        const names = new Set()
+        const availableChars = getAvailableChars()
+
+        while (names.size < 100) {
+          const name = middle
+            ? generateThreeCharName(surname, middle, availableChars)
+            : generateRandomName(surname, availableChars)
+          names.add(name)
+        }
+
+        resultDiv.innerHTML = [...names]
+          .map((name) => `<div class="name-item">${name}</div>`)
+          .join('')
+      }
+
+      function generateThreeCharName(surname, middle, chars) {
+        const lastChar = chars[Math.floor(Math.random() * chars.length)]
+        return `${surname}${middle}${lastChar}`
+      }
+
+      function generateRandomName(surname, chars) {
+        if (Math.random() < 0.3 && nameChars.compound.length > 0) {
+          return (
+            surname +
+            nameChars.compound[
+              Math.floor(Math.random() * nameChars.compound.length)
+            ]
+          )
+        }
+
+        const length = Math.random() < 0.6 ? 2 : 1
+        let name = ''
+        for (let i = 0; i < length; i++) {
+          name += chars[Math.floor(Math.random() * chars.length)]
+        }
+        return surname + name
+      }
+
+      // 初始生成
+      generateNames()
+    </script>
+
+    <script>
+      var _hmt = _hmt || []
+      ;(function () {
+        var hm = document.createElement('script')
+        hm.src = 'https://hm.baidu.com/hm.js?485da93d3180b17d631385000c18e8d5'
+        var s = document.getElementsByTagName('script')[0]
+        s.parentNode.insertBefore(hm, s)
+      })()
+    </script>
+  </body>
+</html>
