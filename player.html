@@ -6,6 +6,7 @@
     <title>多格式视频播放器</title>
     <!-- 引入DPlayer核心库 -->
     <link rel="stylesheet" href="./player/DPlayer.min.css" />
+    <link rel="stylesheet" href="./player/model.css" />
     <!-- 流媒体格式支持库 -->
     <script src="./player/flv.min.js"></script>
     <script src="./player/hls.min.js"></script>
@@ -322,6 +323,32 @@
     </style>
   </head>
   <body>
+    <div id="customModal" class="custom-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">添加视频</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="videoUrl">视频URL</label>
+            <input type="text" id="videoUrl" placeholder="请输入视频URL" />
+          </div>
+          <div class="input-group">
+            <label for="videoTitle">视频标题</label>
+            <input
+              type="text"
+              id="videoTitle"
+              placeholder="请输入视频标题（默认：我的视频）"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn cancel">取消</button>
+          <button class="modal-btn confirm">确认</button>
+        </div>
+      </div>
+    </div>
     <div class="container">
       <header>
         <h1>多功能视频播放器</h1>
@@ -489,20 +516,6 @@
           }
         })
         fileInput.value = ''
-      })
-
-      // 添加URL按钮
-      addUrlBtn.addEventListener('click', () => {
-        const url = prompt('请输入视频URL:', '')
-        if (url) {
-          const title = prompt('请输入视频标题:', '我的视频')
-          const type = getFileType(url)
-          addToPlaylist({
-            title: title || '新视频',
-            url: url,
-            type: type,
-          })
-        }
       })
 
       // 删除选中项
@@ -753,5 +766,6 @@
       // 初始化状态
       updateStatus('就绪')
     </script>
+    <script src="./player/model.js"></script>
   </body>
 </html>
