@@ -728,15 +728,15 @@
         transition: all 0.3s ease;
         width: auto;
       }
-      
+
       .sidebar-container.collapsed {
         transform: translateY(-50%) translateX(calc(100% - 40px));
       }
-      
+
       .sidebar-container:not(.collapsed) {
         min-width: 180px;
       }
-      
+
       .sidebar-toggle {
         width: 40px;
         height: 40px;
@@ -755,20 +755,20 @@
         z-index: 101;
         color: var(--text-color);
       }
-      
+
       .sidebar-toggle:hover {
         background-color: var(--primary-color);
         color: white;
       }
-      
+
       .sidebar-container.collapsed .sidebar-toggle i {
         transform: rotate(180deg);
       }
-      
+
       .sidebar-toggle i {
         transition: transform 0.3s ease;
       }
-      
+
       .sidebar-navigation {
         display: flex;
         flex-direction: column;
@@ -788,21 +788,21 @@
         scrollbar-color: var(--primary-color) transparent;
         width: 100%;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-navigation {
         padding: 15px;
         min-width: 150px;
       }
-      
+
       .sidebar-navigation::-webkit-scrollbar {
         width: 5px;
       }
-      
+
       .sidebar-navigation::-webkit-scrollbar-thumb {
         background-color: var(--primary-color);
         border-radius: 10px;
       }
-      
+
       .sidebar-dot {
         width: 12px;
         height: 12px;
@@ -813,12 +813,12 @@
         transition: all 0.3s ease;
         position: relative;
       }
-      
+
       .sidebar-dot.active {
         background: var(--primary-color);
         transform: scale(1.2);
       }
-      
+
       /* 侧边栏导航点悬停提示 */
       .sidebar-dot:hover::after {
         content: attr(data-title);
@@ -838,12 +838,12 @@
         border: 1px solid var(--glass-border);
         z-index: 102;
       }
-      
+
       /* 折叠状态下的导航点悬停提示 */
       .sidebar-container.collapsed .sidebar-dot:hover::after {
         right: 25px;
       }
-      
+
       /* 展开状态下的导航点样式 */
       .sidebar-container:not(.collapsed) .sidebar-dot {
         display: flex;
@@ -854,9 +854,9 @@
         padding: 0 10px 0 25px;
         position: relative;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-dot::before {
-        content: "";
+        content: '';
         position: absolute;
         left: 10px;
         width: 8px;
@@ -865,11 +865,11 @@
         background: var(--primary-color);
         opacity: 0.7;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-dot.active::before {
         opacity: 1;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-dot::after {
         content: attr(data-title);
         position: static;
@@ -886,17 +886,17 @@
         border: none;
         transition: opacity 0.3s ease;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-dot:hover::after,
       .sidebar-container:not(.collapsed) .sidebar-dot.active::after {
         opacity: 1;
       }
-      
+
       .sidebar-container:not(.collapsed) .sidebar-dot.active {
         background: rgba(var(--primary-color-rgb), 0.1);
         transform: none;
       }
-      
+
       @media (max-width: 768px) {
         .sidebar-container {
           /* 移动端显示侧边栏，但调整位置和样式 */
@@ -906,39 +906,39 @@
           transform: translateY(0);
           z-index: 1000;
         }
-        
+
         .sidebar-container.collapsed {
           transform: translateX(calc(100% - 40px));
         }
-        
+
         .sidebar-toggle {
           width: 36px;
           height: 36px;
           border-radius: 50% 0 0 50%;
         }
-        
+
         .sidebar-navigation {
           max-height: 200px;
           padding: 10px 8px;
           border-radius: 20px 0 0 20px;
         }
-        
+
         .sidebar-container:not(.collapsed) .sidebar-dot {
           height: 20px;
           padding: 0 8px 0 20px;
         }
-        
+
         .sidebar-container:not(.collapsed) .sidebar-dot::before {
           left: 8px;
           width: 6px;
           height: 6px;
         }
-        
+
         .sidebar-container:not(.collapsed) .sidebar-dot::after {
           font-size: 0.75rem;
         }
       }
-      
+
       /* 鼠标跟随效果 */
       .cursor-follower {
         position: fixed;
@@ -997,7 +997,7 @@
         <!-- 侧边栏导航点将通过JavaScript动态生成 -->
       </div>
     </div>
-    
+
     <!-- 鼠标跟随效果 -->
     <div class="cursor-follower"></div>
 
@@ -1060,7 +1060,7 @@
         </div>
       </div>
     </footer>
-    <script src="./nav/list.js"></script>
+    <script src="./nav/list2.js"></script>
     <script>
       // 主题切换功能
       const themeSwitch = document.getElementById('themeSwitch')
@@ -1286,24 +1286,24 @@
           // 确保所有链接都在新窗口打开
           link.setAttribute('target', '_blank')
         })
-        
+
         // 侧边栏抽屉功能
         const sidebarContainer = document.querySelector('.sidebar-container')
         const sidebarToggle = document.querySelector('.sidebar-toggle')
-        
+
         // 默认收起侧边栏
         sidebarContainer.classList.add('collapsed')
-        
+
         // 点击切换侧边栏展开/收起状态
         sidebarToggle.addEventListener('click', (e) => {
           e.preventDefault() // 防止事件冒泡
           e.stopPropagation() // 防止事件冒泡
           sidebarContainer.classList.toggle('collapsed')
         })
-        
+
         // 点击侧边栏导航点后自动收起侧边栏
         const sidebarDots = document.querySelectorAll('.sidebar-dot')
-        sidebarDots.forEach(dot => {
+        sidebarDots.forEach((dot) => {
           dot.addEventListener('click', () => {
             // 延迟收起，让用户看到点击效果
             setTimeout(() => {
@@ -1311,18 +1311,21 @@
             }, 500)
           })
         })
-        
+
         // 添加触摸事件支持，使移动端更易于操作
         sidebarToggle.addEventListener('touchend', (e) => {
           e.preventDefault()
           e.stopPropagation()
           sidebarContainer.classList.toggle('collapsed')
         })
-        
+
         // 点击页面其他区域时收起侧边栏
         document.addEventListener('click', (e) => {
           // 如果点击的不是侧边栏内的元素，且侧边栏处于展开状态，则收起侧边栏
-          if (!sidebarContainer.contains(e.target) && !sidebarContainer.classList.contains('collapsed')) {
+          if (
+            !sidebarContainer.contains(e.target) &&
+            !sidebarContainer.classList.contains('collapsed')
+          ) {
             sidebarContainer.classList.add('collapsed')
           }
         })
