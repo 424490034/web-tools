@@ -251,6 +251,7 @@
 
       /* 简约层叠风格CSS变量 */
       :root {
+        --glass-bg: #fff;
         --bg-primary: #f8fafc;
         --bg-secondary: #ffffff;
         --text-primary: #1a202c;
@@ -738,7 +739,7 @@
         font-size: 24px;
         font-weight: 700;
         margin-bottom: 15px;
-        color: #fff;
+        color: var(--text-primary);
       }
 
       .auth-description {
@@ -803,7 +804,11 @@
 
       /* macOS权限说明样式 */
       .macos-permission-notice {
-        background: linear-gradient(135deg, rgba(255, 149, 0, 0.1), rgba(255, 59, 48, 0.1));
+        background: linear-gradient(
+          135deg,
+          rgba(255, 149, 0, 0.1),
+          rgba(255, 59, 48, 0.1)
+        );
         border: 1px solid rgba(255, 149, 0, 0.3);
         border-radius: 12px;
         padding: 20px;
@@ -842,6 +847,7 @@
       .notice-content li {
         margin: 8px 0;
         color: var(--text-primary);
+        text-align: left;
       }
 
       .notice-content strong {
@@ -1250,9 +1256,13 @@
             <p class="auth-description">
               为了录制音频，我们需要访问您的麦克风。请在浏览器弹出的权限请求中点击"允许"。
             </p>
-            
+
             <!-- macOS权限说明 -->
-            <div class="macos-permission-notice" id="macosNotice" style="display: none;">
+            <div
+              class="macos-permission-notice"
+              id="macosNotice"
+              style="display: none"
+            >
               <div class="notice-header">
                 <span class="apple-icon">🍎</span>
                 <strong>macOS用户注意</strong>
@@ -1260,7 +1270,10 @@
               <div class="notice-content">
                 <p>如果浏览器权限请求失败，请检查系统设置：</p>
                 <ol>
-                  <li>打开 <strong>系统偏好设置</strong> → <strong>安全性与隐私</strong></li>
+                  <li>
+                    打开 <strong>系统偏好设置</strong> →
+                    <strong>安全性与隐私</strong>
+                  </li>
                   <li>点击 <strong>隐私</strong> 标签页</li>
                   <li>在左侧列表中选择 <strong>麦克风</strong></li>
                   <li>确保您的浏览器（Safari/Chrome/Firefox等）已勾选</li>
@@ -1439,7 +1452,7 @@
         screenAuthStep.style.display = 'none'
         step1Dot.classList.add('active')
         step2Dot.classList.remove('active')
-        
+
         // 如果是macOS系统，显示权限说明
         if (isMacOS && macosNotice) {
           macosNotice.style.display = 'block'
@@ -1458,7 +1471,9 @@
         const canStart = authState.screenAuthorized
 
         if (canStart) {
-          const audioStatus = authState.micAuthorized ? '(含麦克风)' : '(仅屏幕)'
+          const audioStatus = authState.micAuthorized
+            ? '(含麦克风)'
+            : '(仅屏幕)'
           statusDisplay.textContent = `准备就绪，可以开始录制${audioStatus}`
         } else {
           statusDisplay.textContent = '需要授权: 屏幕共享'
@@ -1526,7 +1541,7 @@
         } catch (error) {
           console.error('麦克风授权失败:', error)
           statusDisplay.textContent = '麦克风授权失败: ' + error.message
-          
+
           // 如果是macOS系统且授权失败，显示权限说明
           if (isMacOS && macosNotice) {
             macosNotice.style.display = 'block'
@@ -1621,7 +1636,8 @@
             if (micStream && authState.micAuthorized) {
               const micSource = audioCtx.createMediaStreamSource(micStream)
               micSource.connect(audioDestination)
-              statusDisplay.textContent = '检测到系统音频不可用，仅录制麦克风音频'
+              statusDisplay.textContent =
+                '检测到系统音频不可用，仅录制麦克风音频'
             } else {
               statusDisplay.textContent = '警告：无任何音频来源，将录制无声视频'
             }
@@ -1649,7 +1665,7 @@
           recorder.startRecording()
           startBtn.disabled = true
           stopBtn.disabled = false
-          
+
           // 根据实际音频状态显示录制信息
           let recordingStatus = '正在录制：'
           if (hasSystemAudio && micStream && authState.micAuthorized) {
