@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>多格式视频播放器</title>
+    <!-- 引入DPlayer核心库 -->
+    <link rel="stylesheet" href="./player/DPlayer.min.css" />
+    <!-- 流媒体格式支持库 -->
+    <script src="./player/flv.min.js"></script>
+    <script src="./player/hls.min.js"></script>
+    <script src="./player/dash.all.min.js"></script>
+    <script src="./player/shaka-player.compiled.js"></script>
+    <script src="./player/webtorrent.min.js"></script>
+    <script src="./player/DPlayer.min.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+        color: #ecf0f1;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+      }
+      header {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #3498db;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(90deg, #3498db, #2ecc71);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        color: #bdc3c7;
+        font-size: 1.1rem;
+      }
+      /* 播放器区域 */
+      .player-section {
+        background: rgba(30, 40, 60, 0.7);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
+      #dplayer {
+        border-radius: 8px;
+        overflow: hidden;
+        height: 500px;
+        background: #000;
+      }
+      /* 播放列表区域 */
+      .playlist-section {
+        background: rgba(25, 35, 55, 0.8);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        height: fit-content;
+        max-height: 560px;
+      }
+      .playlist-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #3498db;
+      }
+      .playlist-controls {
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+      }
+      .btn-danger {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+      }
+      .btn-success {
+        background: linear-gradient(90deg, #2ecc71, #27ae60);
+      }
+      .btn i {
+        font-size: 1.2em;
+      }
+      #file-input {
+        display: none;
+      }
+      .file-label {
+        display: block;
+        background: linear-gradient(90deg, #9b59b6, #8e44ad);
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+      }
+      .file-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+      }
+      /* 播放列表样式 */
+      #playlist {
+        list-style: none;
+        overflow-y: auto;
+        max-height: 400px;
+        margin-top: 15px;
+        scrollbar-width: thin;
+        scrollbar-color: #3498db #2c3e50;
+      }
+      #playlist::-webkit-scrollbar {
+        width: 8px;
+      }
+      #playlist::-webkit-scrollbar-track {
+        background: #2c3e50;
+        border-radius: 4px;
+      }
+      #playlist::-webkit-scrollbar-thumb {
+        background: #3498db;
+        border-radius: 4px;
+      }
+      #playlist li {
+        background: rgba(40, 55, 80, 0.6);
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+      }
+      #playlist li:hover {
+        background: rgba(52, 73, 94, 0.8);
+        transform: translateX(5px);
+      }
+      #playlist li.active {
+        border-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.15);
+      }
+      #playlist li .format-tag {
+        background: #3498db;
+        color: white;
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-right: 10px;
+      }
+      #playlist li .flv-tag {
+        background: #e74c3c;
+      }
+      #playlist li .m3u8-tag {
+        background: #9b59b6;
+      }
+      #playlist li .dash-tag {
+        background: #f39c12;
+      }
+      #playlist li .webtorrent-tag {
+        background: #1abc9c;
+      }
+      .video-info {
+        flex-grow: 1;
+        overflow: hidden;
+      }
+      .video-info .title {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+      }
+      .video-info .url {
+        font-size: 0.8rem;
+        color: #bdc3c7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .checkbox {
+        margin-right: 12px;
+      }
+      /* 响应式设计 */
+      @media (max-width: 900px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+        #dplayer {
+          height: 400px;
+        }
+      }
+      @media (max-width: 500px) {
+        #dplayer {
+          height: 300px;
+        }
+        .btn-text {
+          display: none;
+        }
+        .btn i {
+          margin-right: 0;
+        }
+      }
+      /* 格式支持提示 */
+      .format-info {
+        background: rgba(44, 62, 80, 0.7);
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        grid-column: 1 / -1;
+      }
+      .format-info h3 {
+        color: #2ecc71;
+        margin-bottom: 10px;
+      }
+      .format-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .format-badge {
+        background: rgba(52, 152, 219, 0.2);
+        border: 1px solid #3498db;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+      .format-badge.flv {
+        background: rgba(231, 76, 60, 0.2);
+        border-color: #e74c3c;
+      }
+      .format-badge.m3u8 {
+        background: rgba(155, 89, 182, 0.2);
+        border-color: #9b59b6;
+      }
+      .format-badge.dash {
+        background: rgba(243, 156, 18, 0.2);
+        border-color: #f39c12;
+      }
+      .format-badge.webtorrent {
+        background: rgba(26, 188, 156, 0.2);
+        border-color: #1abc9c;
+      }
+      .footer {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 20px 0;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-top: 20px;
+        border-top: 1px solid #34495e;
+      }
+      /* 状态提示 */
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .status-dot.connecting {
+        background-color: #f39c12;
+        animation: pulse 1.5s infinite;
+      }
+      .status-dot.playing {
+        background-color: #2ecc71;
+      }
+      .status-dot.error {
+        background-color: #e74c3c;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>多功能视频播放器</h1>
+        <p class="subtitle">支持多选、M3U8直播、FLV流媒体及主流视频格式</p>
+      </header>
+
+      <!-- 播放器区域 -->
+      <section class="player-section">
+        <div id="dplayer"></div>
+        <div class="status-indicator">
+          <div class="status-dot" id="status-dot"></div>
+          <span id="status-text">就绪</span>
+        </div>
+      </section>
+
+      <!-- 播放列表区域 -->
+      <section class="playlist-section">
+        <div class="playlist-header">
+          <h2>播放列表</h2>
+          <div class="playlist-controls">
+            <button class="btn btn-success" id="add-url">
+              <i>+</i><span class="btn-text">添加URL</span>
+            </button>
+            <button class="btn btn-danger" id="remove-selected">
+              <i>×</i><span class="btn-text">删除选中</span>
+            </button>
+          </div>
+        </div>
+
+        <input
+          type="file"
+          id="file-input"
+          multiple
+          accept=".mp4,.webm,.flv,.m3u8,.mpd,.ts,.m4s,.torrent,video/*"
+        />
+        <label for="file-input" class="file-label">
+          <i>📁</i> 选择本地视频文件
+        </label>
+
+        <ul id="playlist"></ul>
+      </section>
+
+      <!-- 格式支持信息 -->
+      <div class="format-info">
+        <h3>支持格式</h3>
+        <div class="format-list">
+          <span class="format-badge">MP4</span>
+          <span class="format-badge">WebM</span>
+          <span class="format-badge m3u8">M3U8/HLS</span>
+          <span class="format-badge flv">FLV</span>
+          <span class="format-badge dash">MPEG-DASH</span>
+          <span class="format-badge">OGG</span>
+          <span class="format-badge webtorrent">WebTorrent</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>
+          基于 DPlayer + flv.js + hls.js + dash.js + WebTorrent 技术构建 |
+          支持多格式流媒体播放
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // 播放器初始化
+      const dp = new DPlayer({
+        container: document.getElementById('dplayer'),
+        autoplay: true,
+        theme: '#3498db',
+        loop: false,
+        hotkey: true,
+        screenshot: true,
+        preload: 'auto',
+        mutex: true, // 互斥锁，避免同时播放多个
+        video: {
+          url: '',
+          type: 'auto',
+        },
+        // 添加自定义类型处理[1,9](@ref)
+        customType: {
+          // HLS格式支持
+          hls: function (video, player) {
+            const hls = new Hls()
+            hls.loadSource(video.src)
+            hls.attachMedia(video)
+          },
+          // FLV格式支持
+          flv: function (video, player) {
+            const flvPlayer = flvjs.createPlayer({
+              type: 'flv',
+              url: video.src,
+            })
+            flvPlayer.attachMediaElement(video)
+            flvPlayer.load()
+          },
+          // MPEG-DASH支持（dash.js）
+          dash: function (video, player) {
+            const playerInstance = dashjs.MediaPlayer().create()
+            playerInstance.initialize(video, video.src, true)
+          },
+          // MPEG-DASH支持（Shaka）
+          shakaDash: function (video, player) {
+            const playerInstance = new shaka.Player(video)
+            playerInstance.load(video.src)
+          },
+          // WebTorrent支持
+          webtorrent: function (video, player) {
+            const client = new WebTorrent()
+            client.add(video.src, (torrent) => {
+              const file = torrent.files.find((file) =>
+                file.name.endsWith('.mp4')
+              )
+              if (file) {
+                file.renderTo(video)
+              } else {
+                updateStatus('错误：未找到可播放的视频文件', 'error')
+              }
+            })
+          },
+        },
+      })
+
+      // 播放列表数据
+      const playlist = []
+      let currentIndex = -1
+      let webtorrentClient = null
+
+      // DOM元素
+      const fileInput = document.getElementById('file-input')
+      const playlistEl = document.getElementById('playlist')
+      const addUrlBtn = document.getElementById('add-url')
+      const removeSelectedBtn = document.getElementById('remove-selected')
+      const statusDot = document.getElementById('status-dot')
+      const statusText = document.getElementById('status-text')
+
+      // 更新状态提示
+      function updateStatus(message, status = 'playing') {
+        statusText.textContent = message
+        statusDot.className = 'status-dot'
+        statusDot.classList.add(status)
+      }
+
+      // 添加本地文件
+      fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files)
+        files.forEach((file) => {
+          const url = URL.createObjectURL(file)
+          const type = getFileType(file.name)
+
+          // 特殊处理：WebTorrent种子文件
+          if (type === 'torrent') {
+            // 直接使用种子文件路径
+            addToPlaylist({
+              title: file.name,
+              url: URL.createObjectURL(file),
+              type: 'webtorrent',
+            })
+          } else {
+            addToPlaylist({
+              title: file.name,
+              url: url,
+              type: type,
+            })
+          }
+        })
+        fileInput.value = ''
+      })
+
+      // 添加URL按钮
+      addUrlBtn.addEventListener('click', () => {
+        const url = prompt('请输入视频URL:', '')
+        if (url) {
+          const title = prompt('请输入视频标题:', '我的视频')
+          const type = getFileType(url)
+          addToPlaylist({
+            title: title || '新视频',
+            url: url,
+            type: type,
+          })
+        }
+      })
+
+      // 删除选中项
+      removeSelectedBtn.addEventListener('click', () => {
+        const selectedItems = Array.from(
+          playlistEl.querySelectorAll('li input[type="checkbox"]:checked')
+        ).map((checkbox) => checkbox.closest('li').dataset.index)
+
+        // 从后往前删除避免索引变化
+        selectedItems
+          .sort((a, b) => b - a)
+          .forEach((index) => {
+            const video = playlist[index]
+            // 释放Blob URL内存
+            if (video.url.startsWith('blob:')) {
+              URL.revokeObjectURL(video.url)
+            }
+            playlist.splice(index, 1)
+            // 如果删除的是当前播放项，停止播放
+            if (parseInt(index) === currentIndex) {
+              dp.pause()
+              currentIndex = -1
+            }
+          })
+        renderPlaylist()
+        updateStatus('已删除选中项目')
+      })
+
+      // 添加视频到播放列表
+      function addToPlaylist(video) {
+        playlist.push(video)
+        renderPlaylist()
+
+        // 如果是第一个视频自动播放
+        if (playlist.length === 1) {
+          playVideo(0)
+        }
+      }
+
+      // 渲染播放列表
+      function renderPlaylist() {
+        playlistEl.innerHTML = ''
+        playlist.forEach((video, index) => {
+          const li = document.createElement('li')
+          li.dataset.index = index
+          if (index === currentIndex) li.classList.add('active')
+
+          li.innerHTML = `
+                    <div class="checkbox">
+                        <input type="checkbox" id="item-${index}">
+                    </div>
+                    <div class="video-info">
+                        <div class="title">${video.title}</div>
+                        <div class="url">${
+                          video.url.length > 50
+                            ? video.url.substring(0, 50) + '...'
+                            : video.url
+                        }</div>
+                    </div>
+                    <span class="format-tag ${getFormatTagClass(video.type)}">
+                        ${formatTypeName(video.type)}
+                    </span>
+                `
+
+          li.addEventListener('click', (e) => {
+            // 避免点击checkbox时触发播放
+            if (e.target.tagName !== 'INPUT') {
+              playVideo(index)
+            }
+          })
+
+          playlistEl.appendChild(li)
+        })
+      }
+
+      // 获取格式标签的类名
+      function getFormatTagClass(type) {
+        const map = {
+          flv: 'flv-tag',
+          m3u8: 'm3u8-tag',
+          hls: 'm3u8-tag',
+          dash: 'dash-tag',
+          webtorrent: 'webtorrent-tag',
+          torrent: 'webtorrent-tag',
+        }
+        return map[type] || ''
+      }
+
+      // 格式化类型名称
+      function formatTypeName(type) {
+        const map = {
+          flv: 'FLV',
+          m3u8: 'HLS',
+          hls: 'HLS',
+          dash: 'DASH',
+          webtorrent: 'Torrent',
+          torrent: 'Torrent',
+          mp4: 'MP4',
+          webm: 'WebM',
+          ogg: 'OGG',
+        }
+        return map[type] || type.toUpperCase()
+      }
+
+      // 播放指定索引的视频（已修改）
+      function playVideo(index) {
+        if (index < 0 || index >= playlist.length) return
+
+        const video = playlist[index]
+        currentIndex = index
+        renderPlaylist()
+        updateStatus('正在加载视频...', 'connecting')
+
+        // 销毁之前的WebTorrent实例
+        if (webtorrentClient) {
+          webtorrentClient.destroy()
+          webtorrentClient = null
+        }
+
+        try {
+          let playerType = video.type
+          let finalUrl = video.url // 最终传递给播放器的URL
+
+          // M3U8特殊处理：计算基础路径并重写TS路径
+          if (video.type === 'm3u8') {
+            playerType = 'hls'
+
+            // 1. 获取M3U8文件所在目录作为基础路径
+            const basePath = finalUrl.substring(
+              0,
+              finalUrl.lastIndexOf('/') + 1
+            )
+
+            // 2. 覆盖HLS自定义处理逻辑
+            dp.customType['hls'] = function (videoElement) {
+              const hls = new Hls()
+
+              // 监听清单解析事件，重写TS路径
+              hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                data.levels.forEach((level) => {
+                  // 保留TS文件名 + 拼接基础路径
+                  const tsName = level.url.split('/').pop()
+                  level.url = basePath + tsName
+                })
+              })
+
+              hls.loadSource(finalUrl)
+              hls.attachMedia(videoElement)
+            }
+          }
+          // 其他格式处理保持不变
+          else if (video.type === 'torrent') {
+            playerType = 'webtorrent'
+          } else if (video.type === 'dash') {
+            playerType = 'dash'
+          }
+
+          // 切换视频（M3U8使用自定义hls处理）
+          dp.switchVideo({
+            url: finalUrl,
+            type: playerType,
+            pic: '',
+            thumbnails: '',
+          })
+
+          // 事件监听（保持不变）
+          dp.on('canplay', () => {
+            updateStatus('正在播放: ' + video.title, 'playing')
+          })
+          dp.on('error', (err) => {
+            updateStatus('播放错误: ' + err.message, 'error')
+          })
+          dp.play()
+        } catch (e) {
+          console.error('播放失败:', e)
+          updateStatus('播放失败: ' + e.message, 'error')
+        }
+      }
+
+      // 根据文件名或URL获取文件类型
+      function getFileType(filename) {
+        // 处理磁力链接
+        if (filename.startsWith('magnet:')) {
+          return 'webtorrent'
+        }
+
+        // 处理URL中的文件类型
+        const url = filename.toLowerCase()
+        if (url.includes('.m3u8') || url.includes('.ts')) return 'm3u8'
+        if (url.includes('.flv')) return 'flv'
+        if (url.includes('.mpd') || url.includes('.m4s')) return 'dash'
+        if (url.includes('.torrent')) return 'torrent'
+        if (url.includes('webtorrent')) return 'webtorrent'
+
+        // 处理文件扩展名
+        const ext = filename.split('.').pop().toLowerCase()
+        switch (ext) {
+          case 'm3u8':
+          case 'ts':
+            return 'm3u8'
+          case 'flv':
+            return 'flv'
+          case 'mpd':
+          case 'm4s':
+            return 'dash'
+          case 'torrent':
+            return 'torrent'
+          case 'mp4':
+          case 'm4v':
+            return 'mp4'
+          case 'webm':
+            return 'webm'
+          case 'ogg':
+          case 'ogv':
+            return 'ogg'
+          default:
+            return ext
+        }
+      }
+
+      // 拖放功能支持
+      playlistEl.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'copy'
+      })
+
+      playlistEl.addEventListener('drop', (e) => {
+        e.preventDefault()
+        const files = e.dataTransfer.files
+        if (files.length) {
+          Array.from(files).forEach((file) => {
+            if (
+              file.type.startsWith('video/') ||
+              file.name.endsWith('.torrent')
+            ) {
+              const url = URL.createObjectURL(file)
+              const type = getFileType(file.name)
+              addToPlaylist({
+                title: file.name,
+                url: url,
+                type: type,
+              })
+            }
+          })
+        }
+      })
+
+      // 初始化状态
+      updateStatus('就绪')
+    </script>
+  </body>
+</html>
