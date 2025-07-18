@@ -800,6 +800,75 @@
       .screen-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Crect x='2' y='3' width='20' height='14' rx='2' ry='2'/%3E%3Cline x1='8' y1='21' x2='16' y2='21'/%3E%3Cline x1='12' y1='17' x2='12' y2='21'/%3E%3C/svg%3E");
       }
+
+      /* macOS权限说明样式 */
+      .macos-permission-notice {
+        background: linear-gradient(135deg, rgba(255, 149, 0, 0.1), rgba(255, 59, 48, 0.1));
+        border: 1px solid rgba(255, 149, 0, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        animation: fadeInUp 0.5s ease-out;
+      }
+
+      .notice-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        color: #ff9500;
+        font-weight: 600;
+      }
+
+      .apple-icon {
+        font-size: 20px;
+        filter: drop-shadow(0 2px 4px rgba(255, 149, 0, 0.3));
+      }
+
+      .notice-content {
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .notice-content p {
+        margin: 10px 0;
+      }
+
+      .notice-content ol {
+        margin: 15px 0;
+        padding-left: 20px;
+      }
+
+      .notice-content li {
+        margin: 8px 0;
+        color: var(--text-primary);
+      }
+
+      .notice-content strong {
+        color: #ff9500;
+        font-weight: 600;
+      }
+
+      .notice-tip {
+        background: rgba(255, 149, 0, 0.1);
+        border-left: 3px solid #ff9500;
+        padding: 10px 15px;
+        margin: 15px 0 5px 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 14px;
+        color: var(--text-primary);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
 
@@ -1181,9 +1250,31 @@
             <p class="auth-description">
               为了录制音频，我们需要访问您的麦克风。请在浏览器弹出的权限请求中点击"允许"。
             </p>
+            
+            <!-- macOS权限说明 -->
+            <div class="macos-permission-notice" id="macosNotice" style="display: none;">
+              <div class="notice-header">
+                <span class="apple-icon">🍎</span>
+                <strong>macOS用户注意</strong>
+              </div>
+              <div class="notice-content">
+                <p>如果浏览器权限请求失败，请检查系统设置：</p>
+                <ol>
+                  <li>打开 <strong>系统偏好设置</strong> → <strong>安全性与隐私</strong></li>
+                  <li>点击 <strong>隐私</strong> 标签页</li>
+                  <li>在左侧列表中选择 <strong>麦克风</strong></li>
+                  <li>确保您的浏览器（Safari/Chrome/Firefox等）已勾选</li>
+                  <li>如果没有勾选，请点击左下角锁图标解锁后勾选</li>
+                </ol>
+                <p class="notice-tip">💡 设置完成后，请刷新页面重新尝试授权</p>
+              </div>
+            </div>
             <div class="auth-buttons">
               <button class="auth-btn auth-btn-secondary" id="cancelAuth">
                 取消
+              </button>
+              <button class="auth-btn auth-btn-secondary" id="skipMicAuth">
+                跳过
               </button>
               <button class="auth-btn auth-btn-primary" id="requestMicAuth">
                 授权麦克风
@@ -1270,6 +1361,7 @@
       const requestScreenAuth = document.getElementById('requestScreenAuth')
       const cancelAuth = document.getElementById('cancelAuth')
       const backToMic = document.getElementById('backToMic')
+      const skipMicAuth = document.getElementById('skipMicAuth')
 
       // 状态变量
       let recorder
@@ -1291,6 +1383,10 @@
         micAuthorized: false,
         screenAuthorized: false,
       }
+
+      // 检测操作系统
+      const isMacOS = /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent)
+      const macosNotice = document.getElementById('macosNotice')
 
       async function toBlobURL(url, mimeType) {
         const res = await fetch(url)
@@ -1343,6 +1439,11 @@
         screenAuthStep.style.display = 'none'
         step1Dot.classList.add('active')
         step2Dot.classList.remove('active')
+        
+        // 如果是macOS系统，显示权限说明
+        if (isMacOS && macosNotice) {
+          macosNotice.style.display = 'block'
+        }
       }
 
       function showScreenAuthStep() {
@@ -1354,15 +1455,13 @@
 
       // 更新按钮状态
       function updateButtonStates() {
-        const canStart = authState.micAuthorized && authState.screenAuthorized
+        const canStart = authState.screenAuthorized
 
         if (canStart) {
-          statusDisplay.textContent = '准备就绪，可以开始录制'
+          const audioStatus = authState.micAuthorized ? '(含麦克风)' : '(仅屏幕)'
+          statusDisplay.textContent = `准备就绪，可以开始录制${audioStatus}`
         } else {
-          const missing = []
-          if (!authState.micAuthorized) missing.push('麦克风')
-          if (!authState.screenAuthorized) missing.push('屏幕共享')
-          statusDisplay.textContent = `需要授权: ${missing.join('、')}`
+          statusDisplay.textContent = '需要授权: 屏幕共享'
         }
       }
 
@@ -1427,7 +1526,19 @@
         } catch (error) {
           console.error('麦克风授权失败:', error)
           statusDisplay.textContent = '麦克风授权失败: ' + error.message
+          
+          // 如果是macOS系统且授权失败，显示权限说明
+          if (isMacOS && macosNotice) {
+            macosNotice.style.display = 'block'
+          }
         }
+      })
+
+      skipMicAuth.addEventListener('click', () => {
+        authState.micAuthorized = false
+        micStream = null
+        showScreenAuthStep()
+        statusDisplay.textContent = '已跳过麦克风授权，请继续授权屏幕共享'
       })
 
       requestScreenAuth.addEventListener('click', async () => {
@@ -1468,8 +1579,8 @@
       })
 
       const startRecord = async () => {
-        // 检查授权状态
-        if (!authState.micAuthorized || !authState.screenAuthorized) {
+        // 检查授权状态 - 只要求屏幕授权，麦克风授权可选
+        if (!authState.screenAuthorized) {
           showAuthModal()
           return
         }
@@ -1499,22 +1610,20 @@
             systemGain.gain.value = micStream ? 1.5 : 1.0
             systemSource.connect(systemGain).connect(audioDestination)
 
-            // 处理麦克风
-            if (micStream) {
+            // 处理麦克风（如果已授权）
+            if (micStream && authState.micAuthorized) {
               const micSource = audioCtx.createMediaStreamSource(micStream)
               const micGain = audioCtx.createGain()
               micGain.gain.value = 1.2
               micSource.connect(micGain).connect(audioDestination)
             }
           } else {
-            statusDisplay.textContent =
-              '检测到系统音频不可用，请确保已启用"分享音频"'
-
-            if (micStream) {
+            if (micStream && authState.micAuthorized) {
               const micSource = audioCtx.createMediaStreamSource(micStream)
               micSource.connect(audioDestination)
+              statusDisplay.textContent = '检测到系统音频不可用，仅录制麦克风音频'
             } else {
-              statusDisplay.textContent = '警告：无任何音频来源'
+              statusDisplay.textContent = '警告：无任何音频来源，将录制无声视频'
             }
           }
 
@@ -1540,9 +1649,19 @@
           recorder.startRecording()
           startBtn.disabled = true
           stopBtn.disabled = false
-          statusDisplay.textContent = hasSystemAudio
-            ? '正在录制：系统音频+麦克风'
-            : '正在录制：麦克风（请检查系统音频）'
+          
+          // 根据实际音频状态显示录制信息
+          let recordingStatus = '正在录制：'
+          if (hasSystemAudio && micStream && authState.micAuthorized) {
+            recordingStatus += '系统音频+麦克风'
+          } else if (hasSystemAudio) {
+            recordingStatus += '系统音频（无麦克风）'
+          } else if (micStream && authState.micAuthorized) {
+            recordingStatus += '麦克风（无系统音频）'
+          } else {
+            recordingStatus += '无声视频'
+          }
+          statusDisplay.textContent = recordingStatus
 
           // 8. 自动检测系统音频丢失
           combinedStream.getTracks().forEach(
@@ -1610,6 +1729,7 @@
             micStream.getTracks().forEach((t) => t.stop())
             micStream = null
           }
+          authState.micAuthorized = false
           // 4. 关闭音频上下文
           if (audioCtx) {
             await audioCtx.close()
