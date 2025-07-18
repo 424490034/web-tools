@@ -98,36 +98,25 @@
     }
   ];
 
-  // 动态生成工具时间线
+  // 动态生成工具网格
   document.addEventListener("DOMContentLoaded", function() {
     const timelineTrack = document.querySelector("#timelineTrack");
-    const timelineNavigation = document.querySelector("#timelineNavigation");
-    const sidebarNavigation = document.querySelector("#sidebarNavigation");
-    const timelineIndicator = document.querySelector("#timelineIndicator");
-    const timelinePrev = document.querySelector("#timelinePrev");
-    const timelineNext = document.querySelector("#timelineNext");
     
     // 清空现有内容
     timelineTrack.innerHTML = "";
-    timelineNavigation.innerHTML = "";
-    sidebarNavigation.innerHTML = "";
-    
     
     // 使用DocumentFragment批量添加元素
     const trackFragment = document.createDocumentFragment();
-    const navFragment = document.createDocumentFragment();
-    const sidebarFragment = document.createDocumentFragment();
     
     tools.forEach((tool, index) => {
       // 提取表情符号
       const emoji = tool.emoji;
-      // 创建时间线部分
+      // 创建工具卡片
       const section = document.createElement("div");
       section.className = "tool-section";
       section.id = `tool-${index}`;
-      section.dataset.index = index;
       
-      // 创建时间线HTML结构
+      // 创建卡片HTML结构
       section.innerHTML = `
         <div class="tool-content-wrapper">
           <div class="tool-visual">
@@ -142,221 +131,33 @@
         </div>
       `;
       
-      // 创建主导航点
-      const dot = document.createElement("div");
-      dot.className = "timeline-dot";
-      dot.dataset.index = index;
-      if (index === 0) dot.classList.add("active");
-      
-      // 创建侧边栏导航点
-      const sidebarDot = document.createElement("div");
-      sidebarDot.className = "sidebar-dot";
-      sidebarDot.dataset.index = index;
-      sidebarDot.dataset.title = tool.title; // 添加标题属性用于悬停显示
-      if (index === 0) sidebarDot.classList.add("active");
-      
       // 添加到文档片段
       trackFragment.appendChild(section);
-      navFragment.appendChild(dot);
-      sidebarFragment.appendChild(sidebarDot);
     });
     
     // 一次性添加到DOM
     timelineTrack.appendChild(trackFragment);
-    timelineNavigation.appendChild(navFragment);
-    sidebarNavigation.appendChild(sidebarFragment);
     
-    // 设置当前活动工具索引
-    let currentIndex = 0;
-    const totalTools = tools.length;
+    // 工具卡片动画效果
+    const toolSections = document.querySelectorAll('.tool-section');
     
-    // 更新导航点状态
-    function updateNavDots(index) {
-      // 更新主导航点
-      const dots = document.querySelectorAll('.timeline-dot');
-      dots.forEach(dot => dot.classList.remove('active'));
-      dots[index].classList.add('active');
-      
-      // 更新侧边栏导航点
-      const sidebarDots = document.querySelectorAll('.sidebar-dot');
-      sidebarDots.forEach(dot => dot.classList.remove('active'));
-      sidebarDots[index].classList.add('active');
-    }
+    // 添加进入视图时的动画
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
     
-    // 滚动到指定工具
-    function scrollToTool(index) {
-      if (index < 0) index = 0;
-      if (index >= totalTools) index = totalTools - 1;
-      
-      currentIndex = index;
-      const section = document.querySelector(`#tool-${index}`);
-      section.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-      updateNavDots(index);
-      
-      // 更新进度指示器
-      const progress = (index / (totalTools - 1)) * 100;
-      timelineIndicator.style.width = `${progress}%`;
-    }
-    
-    // 主导航点点击事件
-    timelineNavigation.addEventListener('click', (e) => {
-      if (e.target.classList.contains('timeline-dot')) {
-        const index = parseInt(e.target.dataset.index);
-        scrollToTool(index);
-      }
+    toolSections.forEach((section) => {
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(30px)';
+      section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(section);
     });
-    
-    // 侧边栏导航点点击事件
-    sidebarNavigation.addEventListener('click', (e) => {
-      if (e.target.classList.contains('sidebar-dot')) {
-        const index = parseInt(e.target.dataset.index);
-        scrollToTool(index);
-      }
-    });
-    
-    // 为侧边栏导航点添加触摸事件支持
-    sidebarNavigation.addEventListener('touchend', (e) => {
-      if (e.target.classList.contains('sidebar-dot')) {
-        const index = parseInt(e.target.dataset.index);
-        scrollToTool(index);
-      }
-    });
-    
-    // 前后导航按钮 - 添加点击和触摸事件支持
-    timelinePrev.addEventListener('click', () => scrollToTool(currentIndex - 1));
-    timelineNext.addEventListener('click', () => scrollToTool(currentIndex + 1));
-    
-    // 为前后导航按钮添加触摸事件支持
-    timelinePrev.addEventListener('touchend', (e) => {
-      e.preventDefault(); // 防止触发点击事件
-      scrollToTool(currentIndex - 1);
-    });
-    timelineNext.addEventListener('touchend', (e) => {
-      e.preventDefault(); // 防止触发点击事件
-      scrollToTool(currentIndex + 1);
-    });
-    
-    // 监听滚动事件，更新当前索引和导航点
-    timelineTrack.addEventListener('scroll', () => {
-      const sections = document.querySelectorAll('.tool-section');
-      const trackWidth = timelineTrack.offsetWidth;
-      const scrollLeft = timelineTrack.scrollLeft;
-      
-      // 计算当前可见的部分
-      const visibleIndex = Math.round(scrollLeft / trackWidth);
-      
-      if (visibleIndex !== currentIndex) {
-        currentIndex = visibleIndex;
-        updateNavDots(currentIndex);
-        
-        // 更新进度指示器
-        const progress = (currentIndex / (totalTools - 1)) * 100;
-        timelineIndicator.style.width = `${progress}%`;
-      }
-    });
-    
-    // 监听页面垂直滚动，自动切换工具卡片
-    let lastScrollY = window.scrollY;
-    let scrollTimeout;
-    let isScrollingVertically = false;
-    
-    window.addEventListener('scroll', () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY;
-      const timelineRect = document.querySelector('.tools-timeline').getBoundingClientRect();
-      
-      // 检查时间线是否在视口中
-      if (timelineRect.top < window.innerHeight && timelineRect.bottom > 0) {
-        // 防止水平滚动时触发
-        if (!isScrollingVertically) {
-          // 清除之前的定时器
-          clearTimeout(scrollTimeout);
-          
-          // 设置新的定时器，防止频繁触发
-          scrollTimeout = setTimeout(() => {
-            // 向下滚动切换到下一个工具，向上滚动切换到上一个工具
-            if (Math.abs(scrollDelta) > 20) { // 滚动幅度阈值
-              if (scrollDelta > 0 && currentIndex < totalTools - 1) {
-                // 向下滚动，切换到下一个工具
-                scrollToTool(currentIndex + 1);
-              } else if (scrollDelta < 0 && currentIndex > 0) {
-                // 向上滚动，切换到上一个工具
-                scrollToTool(currentIndex - 1);
-              }
-            }
-          }, 100); // 延迟执行，防止频繁触发
-        }
-      }
-      
-      lastScrollY = currentScrollY;
-    });
-    
-    // 标记水平滚动状态
-    timelineTrack.addEventListener('scroll', () => {
-      isScrollingVertically = false;
-      clearTimeout(scrollTimeout);
-      
-      // 200ms后重置标志，允许垂直滚动触发切换
-      setTimeout(() => {
-        isScrollingVertically = false;
-      }, 200);
-    });
-    
-    // 初始化第一个工具的显示，但不滚动页面到底部
-    // 使用setTimeout确保DOM完全加载后再执行，防止初始滚动问题
-    setTimeout(() => {
-      // 保存当前滚动位置
-      const currentScrollY = window.scrollY;
-      
-      // 更新当前索引和导航点，但不触发页面滚动
-      currentIndex = 0;
-      updateNavDots(0);
-      
-      // 只滚动时间线，不滚动整个页面
-      const section = document.querySelector(`#tool-0`);
-      if (section) {
-        timelineTrack.scrollLeft = 0;
-      }
-      
-      // 更新进度指示器
-      timelineIndicator.style.width = '0%';
-      
-      // 如果页面被滚动了，恢复原来的滚动位置
-      if (window.scrollY !== currentScrollY) {
-        window.scrollTo(0, currentScrollY);
-      }
-    }, 100);
-    
-    // 添加键盘导航
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') {
-        scrollToTool(currentIndex - 1);
-      } else if (e.key === 'ArrowRight') {
-        scrollToTool(currentIndex + 1);
-      }
-    });
-    
-    // 为移动端添加触摸滑动功能
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    timelineTrack.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, false);
-    
-    timelineTrack.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, false);
-    
-    function handleSwipe() {
-      const swipeThreshold = 50; // 滑动阈值
-      if (touchEndX < touchStartX - swipeThreshold) {
-        // 向左滑动，显示下一个工具
-        scrollToTool(currentIndex + 1);
-      } else if (touchEndX > touchStartX + swipeThreshold) {
-        // 向右滑动，显示上一个工具
-        scrollToTool(currentIndex - 1);
-      }
-    }
   });

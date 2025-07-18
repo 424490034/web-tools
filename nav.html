@@ -270,7 +270,7 @@
         border: 1px solid var(--glass-border);
       }
 
-      /* 工具时间线布局 */
+      /* 工具网格布局 */
       .tools-timeline {
         position: relative;
         margin-top: 50px;
@@ -290,74 +290,58 @@
       .timeline-track {
         position: relative;
         width: 100%;
-        height: 70vh;
-        overflow-y: hidden;
-        overflow-x: hidden;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: thin;
-        scrollbar-color: var(--primary-color) var(--glass-bg);
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
         padding-bottom: 30px;
-      }
-
-      .timeline-track::-webkit-scrollbar {
-        height: 8px;
-      }
-
-      .timeline-track::-webkit-scrollbar-track {
-        background: var(--glass-bg);
-        border-radius: 10px;
-      }
-
-      .timeline-track::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 10px;
-      }
-
-      .timeline-indicator {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 3px;
-        width: 0;
-        background: var(--primary-color);
-        z-index: 2;
-        transition: width 0.3s ease;
+        overflow-y: visible;
       }
 
       .tool-section {
-        min-width: 100%;
-        scroll-snap-align: start;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 0 50px;
+        padding: 20px;
         position: relative;
-        transition: transform 0.5s ease;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        margin-bottom: 20px;
       }
 
       .tool-content-wrapper {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        gap: 50px;
-        max-width: 1200px;
-        margin: 0 auto;
+        justify-content: flex-start;
+        gap: 20px;
         width: 100%;
+        height: 100%;
         position: relative;
         z-index: 2;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: var(--glass-shadow);
+        border: 1px solid var(--glass-border);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .tool-content-wrapper:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(var(--primary-color-rgb), 0.2);
       }
 
       .tool-visual {
-        flex: 1;
         display: flex;
         justify-content: center;
         align-items: center;
         position: relative;
+        margin-bottom: 10px;
       }
 
       .tool-icon-large {
-        font-size: 8rem;
+        font-size: 5rem;
         color: var(--primary-color);
         position: relative;
         z-index: 1;
@@ -378,8 +362,8 @@
 
       .tool-icon-bg {
         position: absolute;
-        width: 300px;
-        height: 300px;
+        width: 150px;
+        height: 150px;
         border-radius: 50%;
         background: radial-gradient(
           circle at center,
@@ -391,30 +375,18 @@
       }
 
       .tool-details {
-        flex: 1;
-        max-width: 500px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: var(--glass-shadow);
-        border: 1px solid var(--glass-border);
+        width: 100%;
+        text-align: center;
         transform: translateZ(0);
-        transition: transform 0.5s ease, box-shadow 0.5s ease;
-      }
-
-      .tool-details:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(var(--primary-color-rgb), 0.2);
       }
 
       .tool-details h3 {
-        font-size: 2rem;
+        font-size: 1.8rem;
         margin-bottom: 15px;
         color: var(--primary-color);
         position: relative;
         display: inline-block;
+        text-align: center;
       }
 
       .tool-details h3::after {
@@ -426,23 +398,28 @@
       }
 
       .tool-details p {
-        margin-bottom: 25px;
-        font-size: 1.1rem;
-        line-height: 1.7;
+        margin-bottom: 20px;
+        font-size: 1rem;
+        line-height: 1.5;
         opacity: 0.9;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .tool-link {
         display: inline-block;
-        padding: 12px 25px;
+        padding: 10px 20px;
         background: var(--primary-color);
         color: white;
         text-decoration: none;
-        border-radius: 50px;
-        font-weight: 500;
-        font-size: 1.1rem;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 1rem;
         text-align: center;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
         box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.3);
@@ -458,9 +435,9 @@
 
       .tool-link:hover {
         background: var(--hover-color);
-        padding-right: 35px;
+        padding-right: 30px;
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.4);
+        box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.4);
       }
 
       .tool-link:hover::after {
@@ -468,64 +445,7 @@
         transform: translateX(5px);
       }
 
-      .timeline-navigation {
-        position: absolute;
-        bottom: 30px;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        z-index: 10;
-      }
-
-      .timeline-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--glass-bg);
-        border: 1px solid var(--primary-color);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .timeline-dot.active {
-        background: var(--primary-color);
-        transform: scale(1.2);
-      }
-
-      .timeline-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: var(--glass-bg);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--glass-shadow);
-        transition: all 0.3s ease;
-      }
-
-      .timeline-arrow:hover {
-        background: var(--primary-color);
-        color: white;
-      }
-
-      .timeline-prev {
-        left: 20px;
-      }
-
-      .timeline-next {
-        right: 20px;
-      }
+      /* 时间线导航样式已移除 */
 
       /* 页脚样式 */
       footer {
@@ -598,10 +518,16 @@
 
       /* 响应式设计 */
       @media (max-width: 1024px) {
+        .timeline-track {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+        
         .tool-content-wrapper {
           flex-direction: column;
           gap: 30px;
           text-align: center;
+          padding: 20px;
         }
 
         .tool-details {
@@ -633,6 +559,8 @@
         }
 
         .timeline-track {
+          grid-template-columns: 1fr;
+          gap: 15px;
           height: auto;
           min-height: 80vh;
         }
@@ -641,16 +569,21 @@
           padding: 0 20px;
         }
 
+        .tool-content-wrapper {
+          padding: 15px;
+        }
+
         .tool-icon-large {
-          font-size: 6rem;
+          font-size: 4.5rem;
         }
 
         .tool-details h3 {
-          font-size: 1.6rem;
+          font-size: 1.5rem;
         }
 
         .tool-details p {
-          font-size: 1rem;
+          font-size: 0.95rem;
+          -webkit-line-clamp: 2;
         }
 
         .timeline-arrow {
@@ -716,228 +649,7 @@
         animation: fadeInUp 0.6s ease backwards;
       }
 
-      /* 侧边栏快捷导航 */
-      .sidebar-container {
-        position: fixed;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        transition: all 0.3s ease;
-        width: auto;
-      }
-
-      .sidebar-container.collapsed {
-        transform: translateY(-50%) translateX(calc(100% - 40px));
-      }
-
-      .sidebar-container:not(.collapsed) {
-        min-width: 180px;
-      }
-
-      .sidebar-toggle {
-        width: 40px;
-        height: 40px;
-        background-color: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 50% 0 0 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: var(--glass-shadow);
-        border: 1px solid var(--glass-border);
-        border-right: none;
-        transition: all 0.3s ease;
-        z-index: 101;
-        color: var(--text-color);
-      }
-
-      .sidebar-toggle:hover {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .sidebar-container.collapsed .sidebar-toggle i {
-        transform: rotate(180deg);
-      }
-
-      .sidebar-toggle i {
-        transition: transform 0.3s ease;
-      }
-
-      .sidebar-navigation {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        background-color: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 15px 10px;
-        border-radius: 30px 0 0 30px;
-        box-shadow: var(--glass-shadow);
-        border: 1px solid var(--glass-border);
-        border-right: none;
-        transition: all 0.3s ease;
-        max-height: 70vh;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--primary-color) transparent;
-        width: 100%;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-navigation {
-        padding: 15px;
-        min-width: 150px;
-      }
-
-      .sidebar-navigation::-webkit-scrollbar {
-        width: 5px;
-      }
-
-      .sidebar-navigation::-webkit-scrollbar-thumb {
-        background-color: var(--primary-color);
-        border-radius: 10px;
-      }
-
-      .sidebar-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--glass-bg);
-        border: 1px solid var(--primary-color);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-      }
-
-      .sidebar-dot.active {
-        background: var(--primary-color);
-        transform: scale(1.2);
-      }
-
-      /* 侧边栏导航点悬停提示 */
-      .sidebar-dot:hover::after {
-        content: attr(data-title);
-        position: absolute;
-        right: 25px;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: var(--glass-bg);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 0.8rem;
-        white-space: nowrap;
-        opacity: 1;
-        box-shadow: var(--glass-shadow);
-        border: 1px solid var(--glass-border);
-        z-index: 102;
-      }
-
-      /* 折叠状态下的导航点悬停提示 */
-      .sidebar-container.collapsed .sidebar-dot:hover::after {
-        right: 25px;
-      }
-
-      /* 展开状态下的导航点样式 */
-      .sidebar-container:not(.collapsed) .sidebar-dot {
-        display: flex;
-        align-items: center;
-        width: auto;
-        height: 24px;
-        border-radius: 12px;
-        padding: 0 10px 0 25px;
-        position: relative;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-dot::before {
-        content: '';
-        position: absolute;
-        left: 10px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        opacity: 0.7;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-dot.active::before {
-        opacity: 1;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-dot::after {
-        content: attr(data-title);
-        position: static;
-        transform: none;
-        background: none;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        padding: 0;
-        border-radius: 0;
-        font-size: 0.85rem;
-        white-space: nowrap;
-        opacity: 0.8;
-        box-shadow: none;
-        border: none;
-        transition: opacity 0.3s ease;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-dot:hover::after,
-      .sidebar-container:not(.collapsed) .sidebar-dot.active::after {
-        opacity: 1;
-      }
-
-      .sidebar-container:not(.collapsed) .sidebar-dot.active {
-        background: rgba(var(--primary-color-rgb), 0.1);
-        transform: none;
-      }
-
-      @media (max-width: 768px) {
-        .sidebar-container {
-          /* 移动端显示侧边栏，但调整位置和样式 */
-          bottom: 20px;
-          top: auto;
-          right: 0;
-          transform: translateY(0);
-          z-index: 1000;
-        }
-
-        .sidebar-container.collapsed {
-          transform: translateX(calc(100% - 40px));
-        }
-
-        .sidebar-toggle {
-          width: 36px;
-          height: 36px;
-          border-radius: 50% 0 0 50%;
-        }
-
-        .sidebar-navigation {
-          max-height: 200px;
-          padding: 10px 8px;
-          border-radius: 20px 0 0 20px;
-        }
-
-        .sidebar-container:not(.collapsed) .sidebar-dot {
-          height: 20px;
-          padding: 0 8px 0 20px;
-        }
-
-        .sidebar-container:not(.collapsed) .sidebar-dot::before {
-          left: 8px;
-          width: 6px;
-          height: 6px;
-        }
-
-        .sidebar-container:not(.collapsed) .sidebar-dot::after {
-          font-size: 0.75rem;
-        }
-      }
+      /* 侧边栏快捷导航已移除 */
 
       /* 鼠标跟随效果 */
       .cursor-follower {
@@ -988,15 +700,7 @@
       <div class="parallax-shape shape-5"></div>
     </div>
 
-    <!-- 侧边栏快捷导航 -->
-    <div class="sidebar-container">
-      <div class="sidebar-toggle">
-        <i class="fas fa-chevron-left"></i>
-      </div>
-      <div class="sidebar-navigation" id="sidebarNavigation">
-        <!-- 侧边栏导航点将通过JavaScript动态生成 -->
-      </div>
-    </div>
+    <!-- 侧边栏快捷导航已移除 -->
 
     <!-- 鼠标跟随效果 -->
     <div class="cursor-follower"></div>
@@ -1028,16 +732,6 @@
         <div class="tools-timeline">
           <div class="timeline-track" id="timelineTrack">
             <!-- 工具部分将通过JavaScript动态生成 -->
-          </div>
-          <div class="timeline-indicator" id="timelineIndicator"></div>
-          <div class="timeline-navigation" id="timelineNavigation">
-            <!-- 导航点将通过JavaScript动态生成 -->
-          </div>
-          <div class="timeline-arrow timeline-prev" id="timelinePrev">
-            <i class="fas fa-chevron-left"></i>
-          </div>
-          <div class="timeline-arrow timeline-next" id="timelineNext">
-            <i class="fas fa-chevron-right"></i>
           </div>
         </div>
       </div>
@@ -1287,48 +981,7 @@
           link.setAttribute('target', '_blank')
         })
 
-        // 侧边栏抽屉功能
-        const sidebarContainer = document.querySelector('.sidebar-container')
-        const sidebarToggle = document.querySelector('.sidebar-toggle')
-
-        // 默认收起侧边栏
-        sidebarContainer.classList.add('collapsed')
-
-        // 点击切换侧边栏展开/收起状态
-        sidebarToggle.addEventListener('click', (e) => {
-          e.preventDefault() // 防止事件冒泡
-          e.stopPropagation() // 防止事件冒泡
-          sidebarContainer.classList.toggle('collapsed')
-        })
-
-        // 点击侧边栏导航点后自动收起侧边栏
-        const sidebarDots = document.querySelectorAll('.sidebar-dot')
-        sidebarDots.forEach((dot) => {
-          dot.addEventListener('click', () => {
-            // 延迟收起，让用户看到点击效果
-            setTimeout(() => {
-              sidebarContainer.classList.add('collapsed')
-            }, 500)
-          })
-        })
-
-        // 添加触摸事件支持，使移动端更易于操作
-        sidebarToggle.addEventListener('touchend', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          sidebarContainer.classList.toggle('collapsed')
-        })
-
-        // 点击页面其他区域时收起侧边栏
-        document.addEventListener('click', (e) => {
-          // 如果点击的不是侧边栏内的元素，且侧边栏处于展开状态，则收起侧边栏
-          if (
-            !sidebarContainer.contains(e.target) &&
-            !sidebarContainer.classList.contains('collapsed')
-          ) {
-            sidebarContainer.classList.add('collapsed')
-          }
-        })
+        // 侧边栏功能已移除
       })
     </script>
     <script>
