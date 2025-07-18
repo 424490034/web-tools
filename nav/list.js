@@ -14,6 +14,14 @@
       link: "https://open.996day.com/record.html",
       buttonText: "开始录制"
     },
+    ,
+    {
+        "icon": "fas fa-microphone",
+        "title": "快捷录音",
+        "description": "直接在浏览器中录音，录音存储在本地保护隐私。支持移动端浏览器，提供WebM（推荐）和MP3格式下载。",
+        "link": "https://open.996day.com/tape.html",
+        "buttonText": "开始录音"
+    },
     {
       icon: "fas fa-palette",
       title: "颜色卡",

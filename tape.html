@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>快捷录音</title>
+    <script src="./ffmpeg.min.js"></script>
+    <!-- 新增ffmpeg库 -->
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+        padding-bottom: 80px;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 新增弹窗样式 */
+      .conversion-dialog {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .conversion-dialog-content {
+        background: rgba(0, 0, 0, 0.8);
+        padding: 25px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .conversion-progress {
+        margin: 20px 0;
+      }
+
+      .conversion-progress-bar {
+        width: 100%;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .conversion-progress-inner {
+        height: 100%;
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        border-radius: 10px;
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .conversion-progress-text {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #4facfe;
+      }
+
+      .conversion-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .conversion-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .conversion-cancel {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ff6b6b;
+      }
+
+      .conversion-cancel:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      /* 原有样式保持不变 */
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .status {
+        font-size: 14px;
+        color: #ccc;
+        margin: 10px 0;
+        text-align: center;
+        min-height: 20px;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 30px 0;
+      }
+
+      .btn {
+        padding: 14px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 120px;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+
+      .btn-danger {
+        background: linear-gradient(to right, #ff416c, #ff4b2b);
+        color: white;
+      }
+
+      .btn-success {
+        background: linear-gradient(to right, #0ba360 0%, #3cba92 100%);
+        color: white;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .visualizer {
+        width: 100%;
+        height: 120px;
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        margin: 20px 0;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .waveform {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .bar {
+        width: 4px;
+        margin: 0 1px;
+        background: linear-gradient(to top, #00f2fe, #4facfe);
+        border-radius: 2px 2px 0 0;
+      }
+
+      .recordings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 30px 0 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .recordings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .recording-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .recording-info {
+        flex-grow: 1;
+      }
+
+      .recording-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #fff;
+      }
+
+      .recording-details {
+        display: flex;
+        font-size: 13px;
+        color: #ddd;
+        gap: 15px;
+      }
+
+      .recording-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .action-btn:hover {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .no-recordings {
+        text-align: center;
+        padding: 40px 20px;
+        color: #aaa;
+        font-style: italic;
+      }
+
+      .timer {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+        font-family: monospace;
+        letter-spacing: 2px;
+        color: #4facfe;
+      }
+
+      .clear-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: #ff6b6b;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .clear-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 30px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      @media (max-width: 500px) {
+        .controls {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .btn {
+          width: 100%;
+          max-width: 300px;
+        }
+
+        .recording-actions {
+          gap: 5px;
+        }
+
+        .action-btn {
+          width: 32px;
+          height: 32px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>移动端录音应用</h1>
+        <div class="status" id="status">准备就绪</div>
+        <div class="timer" id="timer">00:00</div>
+      </header>
+
+      <div class="visualizer">
+        <div class="waveform" id="waveform"></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-primary">开始录音</button>
+        <button id="stopBtn" class="btn btn-danger" disabled>停止录音</button>
+        <button id="pauseBtn" class="btn btn-success" disabled>暂停录音</button>
+      </div>
+
+      <div class="recordings-header">
+        <h2>录音记录</h2>
+        <button id="clearBtn" class="clear-btn">清空记录</button>
+      </div>
+
+      <div class="recordings-list" id="recordingsList">
+        <div class="no-recordings">暂无录音记录</div>
+      </div>
+
+      <footer>
+        <p>支持移动端浏览器 | 录音存储在本地 | 保护用户隐私</p>
+      </footer>
+    </div>
+
+    <!-- 新增转换弹窗 -->
+    <div id="conversion-dialog" class="conversion-dialog">
+      <div class="conversion-dialog-content">
+        <h3>正在转换为MP3</h3>
+        <p style="font-size: 14px; margin: 10px 0; color: #ff6b6b">
+          提示：原始WebM格式下载更快且音质更好，建议优先保存
+        </p>
+        <div class="conversion-progress">
+          <div class="conversion-progress-bar">
+            <div
+              class="conversion-progress-inner"
+              id="conversion-progress-inner"
+            ></div>
+          </div>
+          <div class="conversion-progress-text" id="conversion-progress-text">
+            0%
+          </div>
+        </div>
+        <div class="conversion-buttons">
+          <button
+            id="conversion-cancel"
+            class="conversion-btn conversion-cancel"
+          >
+            取消转换
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 页面加载时清空录音记录
+      window.addEventListener('DOMContentLoaded', () => {
+        localStorage.removeItem('audioRecordings')
+        updateRecordingsList()
+        document.getElementById('status').textContent =
+          '首次进入，已清空历史记录'
+      })
+
+      // 获取DOM元素
+      const startBtn = document.getElementById('startBtn')
+      const stopBtn = document.getElementById('stopBtn')
+      const pauseBtn = document.getElementById('pauseBtn')
+      const clearBtn = document.getElementById('clearBtn')
+      const statusEl = document.getElementById('status')
+      const timerEl = document.getElementById('timer')
+      const recordingsList = document.getElementById('recordingsList')
+      const waveform = document.getElementById('waveform')
+
+      // 新增转换弹窗元素
+      const conversionDialog = document.getElementById('conversion-dialog')
+      const conversionProgressInner = document.getElementById(
+        'conversion-progress-inner'
+      )
+      const conversionProgressText = document.getElementById(
+        'conversion-progress-text'
+      )
+      const conversionCancelBtn = document.getElementById('conversion-cancel')
+
+      // 录音相关变量
+      let mediaRecorder
+      let audioChunks = []
+      let audioContext
+      let analyser
+      let timerInterval
+      let seconds = 0
+      let isPaused = false
+      let animationId // 用于控制波形动画
+
+      // 新增转换状态变量
+      let conversionInProgress = false
+      let currentConversionIndex = null
+      let ffmpegInstance = null
+
+      // 创建音频分析器
+      function createAnalyser(stream) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        analyser = audioContext.createAnalyser()
+        const source = audioContext.createMediaStreamSource(stream)
+        source.connect(analyser)
+        analyser.fftSize = 256
+
+        // 清除之前的波形
+        waveform.innerHTML = ''
+
+        // 创建波形条
+        const bufferLength = analyser.frequencyBinCount
+
+        const bars = 50
+        const barWidth = waveform.offsetWidth / bars - 2
+
+        for (let i = 0; i < bars; i++) {
+          const bar = document.createElement('div')
+          bar.className = 'bar'
+          bar.style.height = '2px'
+          bar.style.width = barWidth + 'px'
+          waveform.appendChild(bar)
+        }
+
+        function updateWaveform() {
+          if (
+            !analyser ||
+            !mediaRecorder ||
+            mediaRecorder.state === 'inactive' ||
+            isPaused
+          ) {
+            animationId = requestAnimationFrame(updateWaveform)
+            return
+          }
+
+          const dataArray = new Uint8Array(bufferLength)
+          analyser.getByteFrequencyData(dataArray)
+          const bars = waveform.querySelectorAll('.bar')
+
+          for (let i = 0; i < bars.length; i++) {
+            const value = dataArray[i] || 0
+            const percent = value / 256
+            const height = Math.max(2, percent * 100)
+            bars[i].style.height = height + 'px'
+            bars[i].style.background = `linear-gradient(to top, 
+                        rgba(${Math.floor(79 + percent * 176)}, ${Math.floor(
+              172 + percent * 84
+            )}, ${Math.floor(254 - percent * 84)}), 
+                        rgba(${Math.floor(79 + percent * 176)}, ${Math.floor(
+              172 + percent * 84
+            )}, ${Math.floor(254 - percent * 84)}, 0.7))`
+          }
+
+          animationId = requestAnimationFrame(updateWaveform)
+        }
+
+        updateWaveform()
+      }
+
+      // 开始录音
+      startBtn.addEventListener('click', async () => {
+        statusEl.textContent = '正在请求麦克风权限...'
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          })
+          statusEl.textContent = '正在录音...'
+
+          // 设置媒体录制器
+          mediaRecorder = new MediaRecorder(stream)
+          audioChunks = []
+
+          // 创建音频分析器
+          createAnalyser(stream)
+
+          // 处理数据可用事件
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data)
+            }
+          }
+
+          // 处理录音停止事件
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+            // 保存录音时传入当前录音时长
+            saveRecording(audioBlob, seconds)
+            stream.getTracks().forEach((track) => track.stop())
+
+            // 清除定时器
+            clearInterval(timerInterval)
+            seconds = 0
+            timerEl.textContent = '00:00'
+
+            // 停止波形动画
+            cancelAnimationFrame(animationId)
+          }
+
+          // 开始录音
+          mediaRecorder.start()
+
+          // 更新按钮状态
+          startBtn.disabled = true
+          stopBtn.disabled = false
+          pauseBtn.disabled = false
+
+          // 开始计时器
+          startTimer()
+        } catch (err) {
+          console.error('录音错误:', err)
+          statusEl.textContent = '无法访问麦克风，请确保已授予权限'
+          startBtn.disabled = false
+        }
+      })
+
+      // 停止录音
+      stopBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop()
+          statusEl.textContent = '录音已停止'
+          startBtn.disabled = false
+          stopBtn.disabled = true
+          pauseBtn.disabled = true
+          pauseBtn.textContent = '暂停录音'
+          isPaused = false
+        }
+      })
+
+      // 暂停/恢复录音
+      pauseBtn.addEventListener('click', () => {
+        if (!mediaRecorder) return
+
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.pause()
+          statusEl.textContent = '录音已暂停'
+          pauseBtn.textContent = '继续录音'
+          isPaused = true
+          clearInterval(timerInterval)
+        } else if (mediaRecorder.state === 'paused') {
+          mediaRecorder.resume()
+          statusEl.textContent = '正在录音...'
+          pauseBtn.textContent = '暂停录音'
+          isPaused = false
+          startTimer()
+        }
+      })
+
+      // 清空录音记录
+      clearBtn.addEventListener('click', () => {
+        localStorage.removeItem('audioRecordings')
+        updateRecordingsList()
+        statusEl.textContent = '录音记录已清空'
+      })
+
+      // 保存录音到本地存储（修复：添加duration参数）
+      function saveRecording(blob, duration) {
+        const reader = new FileReader()
+        reader.readAsDataURL(blob)
+
+        reader.onloadend = () => {
+          const base64data = reader.result
+          const recording = {
+            data: base64data,
+            timestamp: new Date().toISOString(),
+            duration: duration, // 使用传入的时长
+          }
+
+          // 获取现有录音记录或创建新数组
+          const recordings =
+            JSON.parse(localStorage.getItem('audioRecordings')) || []
+          recordings.push(recording)
+
+          // 只保留最新的10条录音
+          if (recordings.length > 10) {
+            recordings.shift()
+          }
+
+          // 保存到本地存储
+          localStorage.setItem('audioRecordings', JSON.stringify(recordings))
+
+          // 更新录音列表
+          updateRecordingsList()
+        }
+      }
+
+      // 更新录音列表
+      function updateRecordingsList() {
+        const recordings =
+          JSON.parse(localStorage.getItem('audioRecordings')) || []
+
+        if (recordings.length === 0) {
+          recordingsList.innerHTML =
+            '<div class="no-recordings">暂无录音记录</div>'
+          return
+        }
+
+        recordingsList.innerHTML = ''
+
+        // 按时间倒序排列（最新的在最前面）
+        recordings.reverse().forEach((rec, index) => {
+          const date = new Date(rec.timestamp)
+          const dateStr = date.toLocaleDateString()
+          const timeStr = date.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+
+          const durationStr = formatTime(rec.duration)
+
+          const recordingItem = document.createElement('div')
+          recordingItem.className = 'recording-item'
+          recordingItem.innerHTML = `
+                    <div class="recording-info">
+                        <div class="recording-title">录音 ${
+                          recordings.length - index
+                        }</div>
+                        <div class="recording-details">
+                            <span>${dateStr} ${timeStr}</span>
+                            <span>时长: ${durationStr}</span>
+                        </div>
+                    </div>
+                    <div class="recording-actions">
+                        <button class="action-btn play-btn" title="播放">
+                            ▶
+                        </button>
+                        <button class="action-btn download-webm-btn" title="下载WebM">
+                            ⬇
+                        </button>
+                        <button class="action-btn download-mp3-btn" title="下载MP3">
+                            <small>MP3</small>
+                        </button>
+                        <button class="action-btn delete-btn" title="删除">
+                            ✖
+                        </button>
+                    </div>
+                `
+
+          // 添加播放功能
+          recordingItem
+            .querySelector('.play-btn')
+            .addEventListener('click', () => {
+              playRecording(rec.data)
+            })
+
+          // 添加WebM下载功能
+          recordingItem
+            .querySelector('.download-webm-btn')
+            .addEventListener('click', () => {
+              downloadRecording(rec.data, `recording-${index + 1}.webm`)
+            })
+
+          // 添加MP3下载功能
+          recordingItem
+            .querySelector('.download-mp3-btn')
+            .addEventListener('click', () => {
+              // 提示用户优先保存原始格式
+              if (
+                confirm(
+                  '转换为MP3格式需要时间且消耗更多资源。\n建议优先下载WebM格式（更快更省资源）\n\n是否继续转换为MP3？'
+                )
+              ) {
+                currentConversionIndex = index
+                convertToMP3(rec.data, index)
+              }
+            })
+
+          // 添加删除功能
+          recordingItem
+            .querySelector('.delete-btn')
+            .addEventListener('click', () => {
+              deleteRecording(index)
+            })
+
+          recordingsList.appendChild(recordingItem)
+        })
+      }
+
+      // 播放录音
+      function playRecording(base64data) {
+        const audio = new Audio(base64data)
+        audio.play()
+        statusEl.textContent = '正在播放录音...'
+      }
+
+      // 下载录音
+      function downloadRecording(base64data, filename) {
+        const link = document.createElement('a')
+        link.href = base64data
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        statusEl.textContent = '录音下载中...'
+      }
+
+      // 新增：将Base64转换为Blob
+      function base64ToBlob(base64) {
+        const byteString = atob(base64.split(',')[1])
+        const mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
+        const ab = new ArrayBuffer(byteString.length)
+        const ia = new Uint8Array(ab)
+
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i)
+        }
+
+        return new Blob([ab], { type: mimeString })
+      }
+
+      // 新增：将WebM转换为MP3
+      async function convertToMP3(base64Data, index) {
+        if (conversionInProgress) {
+          alert('当前已有转换任务在进行中，请稍后再试')
+          return
+        }
+
+        // 显示转换弹窗
+        conversionDialog.style.display = 'flex'
+        conversionInProgress = true
+
+        try {
+          // 创建FFmpeg实例
+          const { createFFmpeg, fetchFile } = FFmpeg
+          ffmpegInstance = createFFmpeg({
+            log: true,
+            progress: ({ ratio }) => {
+              // 更新进度显示
+              const percent = Math.round(ratio * 100)
+              conversionProgressInner.style.width = `${percent}%`
+              conversionProgressText.textContent = `${percent}%`
+            },
+          })
+
+          // 加载FFmpeg
+          await ffmpegInstance.load()
+
+          // 将Base64数据转换为Blob
+          const webmBlob = base64ToBlob(base64Data)
+
+          // 将WebM文件写入FFmpeg文件系统
+          ffmpegInstance.FS(
+            'writeFile',
+            'input.webm',
+            await fetchFile(webmBlob)
+          )
+
+          // 运行转换命令
+          await ffmpegInstance.run(
+            '-i',
+            'input.webm',
+            '-b:a',
+            '64k',
+            '-ac',
+            '1',
+            'output.mp3'
+          )
+
+          // 读取转换后的MP3文件
+          const mp3Data = ffmpegInstance.FS('readFile', 'output.mp3')
+
+          // 创建Blob对象
+          const mp3Blob = new Blob([mp3Data.buffer], { type: 'audio/mp3' })
+
+          // 创建下载链接
+          const url = URL.createObjectURL(mp3Blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `recording-${index + 1}.mp3`
+          document.body.appendChild(a)
+          a.click()
+
+          // 清理
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+
+          // 更新状态
+          statusEl.textContent = 'MP3转换完成并已下载'
+        } catch (error) {
+          console.error('转换失败:', error)
+          statusEl.textContent = 'MP3转换失败: ' + error.message
+        } finally {
+          // 隐藏弹窗
+          conversionDialog.style.display = 'none'
+          conversionInProgress = false
+          ffmpegInstance = null
+        }
+      }
+
+      // 取消转换按钮事件
+      conversionCancelBtn.addEventListener('click', () => {
+        if (conversionInProgress) {
+          // 实际无法取消FFmpeg转换，但可以重置状态
+          conversionDialog.style.display = 'none'
+          conversionInProgress = false
+          statusEl.textContent = 'MP3转换已取消'
+        }
+      })
+
+      // 删除录音
+      function deleteRecording(index) {
+        const recordings =
+          JSON.parse(localStorage.getItem('audioRecordings')) || []
+
+        // 因为显示时是倒序，所以需要调整索引
+        const actualIndex = recordings.length - 1 - index
+
+        if (actualIndex >= 0 && actualIndex < recordings.length) {
+          recordings.splice(actualIndex, 1)
+          localStorage.setItem('audioRecordings', JSON.stringify(recordings))
+          updateRecordingsList()
+          statusEl.textContent = '录音已删除'
+        }
+      }
+
+      // 格式化时间为 MM:SS
+      function formatTime(totalSeconds) {
+        const minutes = Math.floor(totalSeconds / 60)
+        const seconds = totalSeconds % 60
+        return `${minutes.toString().padStart(2, '0')}:${seconds
+          .toString()
+          .padStart(2, '0')}`
+      }
+
+      // 开始计时器
+      function startTimer() {
+        clearInterval(timerInterval)
+        seconds = 0
+        timerEl.textContent = '00:00'
+
+        timerInterval = setInterval(() => {
+          if (!isPaused) {
+            seconds++
+            timerEl.textContent = formatTime(seconds)
+          }
+        }, 1000)
+      }
+
+      // 移动端浏览器兼容性检查
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusEl.textContent =
+          '您的浏览器不支持录音功能，请使用最新版Chrome、Firefox或Edge浏览器'
+        startBtn.disabled = true
+      }
+    </script>
+  </body>
+</html>
