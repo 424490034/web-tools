@@ -1,4 +1,4 @@
-/* 新增自定义弹框样式 */
+/* 拟态风格弹框样式 */
 .custom-modal {
   display: none;
   position: fixed;
@@ -6,105 +6,272 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: rgba(224, 229, 236, 0.8);
+  backdrop-filter: blur(10px);
   z-index: 1000;
   justify-content: center;
   align-items: center;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #2c3e50, #1a2a6c);
-  border-radius: 12px;
-  padding: 25px;
+  background: #e0e5ec;
+  border-radius: 20px;
+  padding: 30px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  border: 1px solid #3498db;
+  box-shadow: 
+    20px 20px 40px #a3b1c6,
+    -20px -20px 40px #ffffff;
+  position: relative;
+  overflow: hidden;
+  animation: modalSlideIn 0.4s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.05) 100%);
+  pointer-events: none;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  position: relative;
+  z-index: 1;
 }
 
 .modal-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #3498db;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4a5568;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  from {
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+  }
+  to {
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8), 0 0 10px rgba(74,85,104,0.3);
+  }
 }
 
 .close-modal {
   cursor: pointer;
   font-size: 24px;
-  color: #e74c3c;
-  transition: transform 0.2s;
+  color: #718096;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e5ec;
+  box-shadow: 
+    8px 8px 16px #a3b1c6,
+    -8px -8px 16px #ffffff;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.close-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s;
 }
 
 .close-modal:hover {
-  transform: scale(1.2);
+  transform: scale(1.05);
+  color: #e53e3e;
+  box-shadow: 
+    inset 4px 4px 8px #a3b1c6,
+    inset -4px -4px 8px #ffffff;
+}
+
+.close-modal:hover::before {
+  left: 100%;
+}
+
+.close-modal:active {
+  transform: scale(0.95);
+  box-shadow: 
+    inset 6px 6px 12px #a3b1c6,
+    inset -6px -6px 12px #ffffff;
 }
 
 .modal-body {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  animation: inputSlide 0.5s ease-out;
+}
+
+@keyframes inputSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .input-group label {
   display: block;
-  margin-bottom: 8px;
-  color: #ecf0f1;
-  font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: #4a5568;
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
 }
 
 .input-group input {
   width: 100%;
-  padding: 12px 15px;
-  border-radius: 8px;
-  border: 1px solid #3498db;
-  background: rgba(30, 40, 60, 0.8);
-  color: #ecf0f1;
+  padding: 15px 20px;
+  border-radius: 15px;
+  border: none;
+  background: #e0e5ec;
+  color: #2d3748;
   font-size: 1rem;
-  transition: all 0.3s;
+  font-weight: 500;
+  box-shadow: 
+    inset 8px 8px 16px #a3b1c6,
+    inset -8px -8px 16px #ffffff;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.input-group input::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #2ecc71;
-  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+  box-shadow: 
+    inset 6px 6px 12px #a3b1c6,
+    inset -6px -6px 12px #ffffff,
+    0 0 0 3px rgba(66, 153, 225, 0.3);
+  color: #2b6cb0;
+}
+
+.input-group input:hover {
+  box-shadow: 
+    inset 6px 6px 12px #a3b1c6,
+    inset -6px -6px 12px #ffffff;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .modal-btn {
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 15px;
   border: none;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s;
+  background: #e0e5ec;
+  color: #4a5568;
+  box-shadow: 
+    8px 8px 16px #a3b1c6,
+    -8px -8px 16px #ffffff;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-width: 100px;
+}
+
+.modal-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s;
 }
 
 .modal-btn.confirm {
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
-  color: white;
+  color: #38a169;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
 }
 
 .modal-btn.cancel {
-  background: rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
+  color: #e53e3e;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
 }
 
 .modal-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 
+    12px 12px 24px #a3b1c6,
+    -12px -12px 24px #ffffff;
+}
+
+.modal-btn:hover::before {
+  left: 100%;
+}
+
+.modal-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    inset 4px 4px 8px #a3b1c6,
+    inset -4px -4px 8px #ffffff;
+}
+
+.modal-btn.confirm:hover {
+  color: #2f855a;
+}
+
+.modal-btn.cancel:hover {
+  color: #c53030;
 }

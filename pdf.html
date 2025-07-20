@@ -6,88 +6,502 @@
     <title>图片转PDF工具</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="./format/css2.css" rel="stylesheet">
     <style>
+      :root {
+        /* 拟态风格颜色变量 */
+        --primary-rgb: 59, 130, 246;
+        --bg-primary: #f0f4f8;
+        --bg-secondary: #e2e8f0;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --shadow-light: #ffffff;
+        --shadow-dark: #d1d9e6;
+        --border-radius: 20px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        /* 拟态阴影 */
+        --shadow-inset: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light);
+        --shadow-outset: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+        --shadow-medium: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+        --shadow-small: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+      }
+      
       body {
-        --theme-primary: #3b82f6;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        color: var(--text-primary);
+        font-weight: 400;
+        line-height: 1.6;
+        overflow-x: hidden;
       }
+      
       .theme-transition {
-        transition: background-color 0.5s ease, color 0.3s ease;
+        transition: var(--transition);
       }
+      
       /* 时间主题色定义 */
       .morning-theme {
         --primary: #3b82f6;
-        --bg: #f0f9ff;
+        --primary-rgb: 59, 130, 246;
+        --bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
         --card: #ffffff;
         --text: #1e293b;
+        --shadow-dark: #bfdbfe;
+        --shadow-light: #ffffff;
       }
       .noon-theme {
         --primary: #f59e0b;
-        --bg: #fffbeb;
+        --primary-rgb: 245, 158, 11;
+        --bg: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
         --card: #fff7e6;
         --text: #1e293b;
+        --shadow-dark: #fde68a;
+        --shadow-light: #ffffff;
       }
       .afternoon-theme {
         --primary: #10b981;
-        --bg: #ecfdf5;
+        --primary-rgb: 16, 185, 129;
+        --bg: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
         --card: #e0f2e9;
         --text: #1e293b;
+        --shadow-dark: #a7f3d0;
+        --shadow-light: #ffffff;
       }
       .evening-theme {
         --primary: #f97316;
-        --bg: #fff7ed;
+        --primary-rgb: 249, 115, 22;
+        --bg: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
         --card: #ffedd5;
         --text: #1e293b;
+        --shadow-dark: #fdba74;
+        --shadow-light: #ffffff;
       }
       .night-theme {
         --primary: #8b5cf6;
-        --bg: #1e293b;
+        --primary-rgb: 139, 92, 246;
+        --bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         --card: #334155;
         --text: #f1f5f9;
+        --shadow-dark: #0f172a;
+        --shadow-light: #475569;
       }
 
-      .file-pdf-bgc input {
-        opacity: 0;
+      /* 容器和布局 */
+      .main-container {
+        background: var(--bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-outset);
+        backdrop-filter: blur(10px);
+        animation: containerFloat 6s ease-in-out infinite;
       }
-
+      
+      @keyframes containerFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+      }
+      
+      /* 标题动效 */
+      .header-title {
+        background: linear-gradient(45deg, var(--primary), #667eea, var(--primary));
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: headerShine 3s ease-in-out infinite;
+      }
+      
+      @keyframes headerShine {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+      
+      .header-icon {
+        background: linear-gradient(135deg, var(--primary), #667eea);
+        box-shadow: var(--shadow-medium);
+        animation: iconPulse 2s ease-in-out infinite;
+      }
+      
+      @keyframes iconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      
+      /* 卡片样式 */
+      .neumorphism-card {
+        background: var(--card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-outset);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .neumorphism-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: var(--transition);
+      }
+      
+      .neumorphism-card:hover::before {
+        left: 100%;
+      }
+      
+      .neumorphism-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-outset), 0 8px 25px rgba(var(--primary-rgb), 0.15);
+      }
+      
       /* 自定义滚动条 */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: var(--card);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--primary);
+        background: var(--shadow-dark);
         border-radius: 4px;
       }
-
-      /* 卡片阴影 */
-      .card-shadow {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, var(--primary), #667eea);
+        border-radius: 4px;
+        box-shadow: var(--shadow-small);
       }
-
-      /* 拖放区域高亮 */
-      .drop-area-highlight {
+      
+      /* 拖放区域 */
+      .drop-area {
+        background: var(--card);
+        border: 2px dashed var(--text-secondary);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-inset);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .drop-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: var(--transition);
+      }
+      
+      .drop-area:hover::before,
+      .drop-area.dragover::before {
+        opacity: 1;
+      }
+      
+      .drop-area:hover,
+      .drop-area.dragover {
         border-color: var(--primary);
-        background-color: rgba(59, 130, 246, 0.05);
+        box-shadow: var(--shadow-inset), inset 0 0 20px rgba(var(--primary-rgb), 0.1);
+        transform: scale(1.02);
       }
-
-      /* 图片预览悬停效果 */
+      
+      .upload-icon {
+        animation: iconFloat 3s ease-in-out infinite;
+      }
+      
+      @keyframes iconFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      
+      /* 图片预览 */
+      .image-preview {
+        border-radius: 12px;
+        box-shadow: var(--shadow-medium);
+        transition: var(--transition);
+        overflow: hidden;
+        position: relative;
+      }
+      
       .image-preview:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: var(--shadow-outset), 0 8px 25px rgba(var(--primary-rgb), 0.2);
       }
+      
+      .image-preview::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+      }
+      
+      .image-preview:hover::after {
+         transform: translateX(100%);
+       }
+       
+       /* 表单元素样式 */
+       .neumorphism-input {
+         background: var(--card);
+         border: none;
+         border-radius: 12px;
+         box-shadow: var(--shadow-inset);
+         padding: 12px 16px;
+         font-size: 14px;
+         font-weight: 500;
+         color: var(--text-primary);
+         transition: var(--transition);
+         width: 100%;
+       }
+       
+       .neumorphism-input:focus {
+         outline: none;
+         box-shadow: var(--shadow-inset), inset 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+       }
+       
+       .neumorphism-select {
+         background: var(--card);
+         border: none;
+         border-radius: 12px;
+         box-shadow: var(--shadow-inset);
+         padding: 12px 16px;
+         font-size: 14px;
+         font-weight: 500;
+         color: var(--text-primary);
+         transition: var(--transition);
+         width: 100%;
+         cursor: pointer;
+       }
+       
+       .neumorphism-select:focus {
+         outline: none;
+         box-shadow: var(--shadow-inset), inset 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+       }
+       
+       .form-label {
+         display: block;
+         font-weight: 600;
+         font-size: 14px;
+         color: var(--text-primary);
+         margin-bottom: 8px;
+         letter-spacing: 0.025em;
+       }
+       
+       .section-title {
+         font-weight: 600;
+         font-size: 16px;
+         color: var(--primary);
+         margin-bottom: 16px;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+       }
+       
+       /* 按钮样式 */
+       .neumorphism-button {
+         background: linear-gradient(135deg, var(--primary), #667eea);
+         border: none;
+         border-radius: 16px;
+         box-shadow: var(--shadow-outset);
+         color: white;
+         font-weight: 600;
+         font-size: 16px;
+         padding: 16px 24px;
+         transition: var(--transition);
+         cursor: pointer;
+         position: relative;
+         overflow: hidden;
+       }
+       
+       .neumorphism-button::before {
+         content: '';
+         position: absolute;
+         top: 0;
+         left: -100%;
+         width: 100%;
+         height: 100%;
+         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+         transition: var(--transition);
+       }
+       
+       .neumorphism-button:hover::before {
+         left: 100%;
+       }
+       
+       .neumorphism-button:hover {
+         transform: translateY(-2px);
+         box-shadow: var(--shadow-outset), 0 8px 25px rgba(var(--primary-rgb), 0.3);
+       }
+       
+       .neumorphism-button:active {
+         transform: translateY(0);
+         box-shadow: var(--shadow-inset);
+       }
+       
+       .neumorphism-button:disabled {
+         opacity: 0.6;
+         cursor: not-allowed;
+         transform: none;
+       }
+       
+       .secondary-button {
+         background: var(--card);
+         color: var(--text-primary);
+         box-shadow: var(--shadow-outset);
+       }
+       
+       .secondary-button:hover {
+          background: linear-gradient(135deg, var(--card), var(--shadow-light));
+        }
+        
+        /* 移动端响应式设计 */
+        @media (max-width: 1024px) {
+          .main-container {
+            padding: 16px;
+          }
+          
+          .grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+          
+          .neumorphism-card {
+            padding: 20px;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .main-container {
+            padding: 12px;
+          }
+          
+          .header-title {
+            font-size: 24px;
+          }
+          
+          .neumorphism-card {
+            padding: 16px;
+          }
+          
+          .grid-cols-2 {
+            grid-template-columns: 1fr;
+          }
+          
+          .neumorphism-button {
+            padding: 14px 20px;
+            font-size: 15px;
+          }
+          
+          .form-label {
+            font-size: 13px;
+          }
+          
+          .neumorphism-input,
+          .neumorphism-select {
+            padding: 10px 14px;
+            font-size: 13px;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .main-container {
+            padding: 8px;
+          }
+          
+          .header-title {
+            font-size: 20px;
+          }
+          
+          .neumorphism-card {
+            padding: 12px;
+          }
+          
+          .section-title {
+            font-size: 14px;
+          }
+          
+          .neumorphism-button {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
+          
+          .form-label {
+            font-size: 12px;
+            margin-bottom: 6px;
+          }
+          
+          .neumorphism-input,
+          .neumorphism-select {
+            padding: 8px 12px;
+            font-size: 12px;
+          }
+          
+          .drop-area {
+            padding: 20px;
+          }
+          
+          .upload-icon {
+             width: 40px;
+             height: 40px;
+           }
+         }
+         
+         /* CSS动画关键帧 */
+         @keyframes containerFloat {
+           0%, 100% { transform: translateY(0px); }
+           50% { transform: translateY(-5px); }
+         }
+         
+         @keyframes headerShine {
+           0% { background-position: -200% center; }
+           100% { background-position: 200% center; }
+         }
+         
+         @keyframes iconPulse {
+           0%, 100% { transform: scale(1); }
+           50% { transform: scale(1.05); }
+         }
+         
+         @keyframes iconFloat {
+           0%, 100% { transform: translateY(0px) rotate(0deg); }
+           25% { transform: translateY(-3px) rotate(1deg); }
+           75% { transform: translateY(3px) rotate(-1deg); }
+         }
+         
+         @keyframes slideIn {
+           from {
+             opacity: 0;
+             transform: translateY(20px);
+           }
+           to {
+             opacity: 1;
+             transform: translateY(0);
+           }
+         }
+         
+         @keyframes fadeIn {
+           from { opacity: 0; }
+           to { opacity: 1; }
+         }
+         
+         @keyframes shimmer {
+           0% { transform: translateX(-100%); }
+           100% { transform: translateX(100%); }
+         }
     </style>
   </head>
-  <body
-    class="theme-transition min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)]"
-  >
-    <div class="max-w-6xl mx-auto px-4 py-6 w-full">
+  <body class="theme-transition min-h-screen flex flex-col">
+    <div class="max-w-6xl mx-auto px-4 py-6 w-full main-container">
       <!-- 头部标题 -->
       <header class="mb-8 text-center">
-        <div class="flex items-center justify-center gap-3">
-          <div class="bg-[var(--primary)] p-3 rounded-full">
+        <div class="flex items-center justify-center gap-4">
+          <div class="header-icon p-4 rounded-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-8 w-8 text-white"
@@ -103,9 +517,9 @@
               />
             </svg>
           </div>
-          <h1 class="text-3xl font-bold">图片转PDF工具</h1>
+          <h1 class="text-4xl font-bold header-title">图片转PDF工具</h1>
         </div>
-        <p class="text-lg opacity-80 mt-2">
+        <p class="text-lg mt-4 font-medium" style="color: var(--text-secondary);">
           快速将多张图片转换为专业的PDF文档(第一次转换需要加载字体,请耐心等待)
         </p>
       </header>
@@ -114,14 +528,15 @@
         <!-- 左侧操作面板 -->
         <div class="space-y-6">
           <!-- 上传区域 -->
-          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
-            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div class="neumorphism-card p-6">
+            <h2 class="text-xl font-semibold mb-6 flex items-center gap-3" style="color: var(--text-primary);">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
+                class="h-6 w-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                style="color: var(--primary);"
               >
                 <path
                   stroke-linecap="round"
@@ -133,7 +548,7 @@
               上传图片
             </h2>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover:border-[var(--primary)]"
+              class="drop-area p-8 text-center cursor-pointer"
               id="dropArea"
             >
               <input
@@ -143,13 +558,14 @@
                 multiple
                 class="hidden"
               />
-              <div class="flex flex-col items-center justify-center py-4">
+              <div class="flex flex-col items-center justify-center py-6">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-16 w-16 opacity-60 mb-3 text-[var(--primary)]"
+                  class="upload-icon h-16 w-16 mb-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  style="color: var(--primary);"
                 >
                   <path
                     stroke-linecap="round"
@@ -158,28 +574,27 @@
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                   />
                 </svg>
-                <p class="font-medium">
-                  拖放图片到此处或<span
-                    class="font-semibold text-[var(--primary)]"
-                  >
+                <p class="font-semibold text-lg mb-2" style="color: var(--text-primary);">
+                  拖放图片到此处或<span style="color: var(--primary);">
                     点击选择</span
                   >
                 </p>
-                <p class="text-sm opacity-70 mt-2">支持 JPG, PNG, WEBP 格式</p>
+                <p class="text-sm font-medium" style="color: var(--text-secondary);">支持 JPG, PNG, WEBP 格式</p>
               </div>
             </div>
           </div>
 
           <!-- 图片预览区 -->
-          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-semibold flex items-center gap-2">
+          <div class="neumorphism-card p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-semibold flex items-center gap-3" style="color: var(--text-primary);">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
+                  class="h-6 w-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  style="color: var(--primary);"
                 >
                   <path
                     stroke-linecap="round"
@@ -190,7 +605,7 @@
                 </svg>
                 图片预览
               </h2>
-              <span id="imageCount" class="text-sm opacity-70">0 张图片</span>
+              <span id="imageCount" class="text-sm font-medium px-3 py-1 rounded-full" style="color: var(--text-secondary); background: var(--shadow-dark);">0 张图片</span>
             </div>
             <div
               id="imagePreviews"
@@ -202,14 +617,15 @@
         <!-- 右侧配置面板 -->
         <div class="space-y-6">
           <!-- PDF设置区域 -->
-          <div class="bg-[var(--card)] rounded-2xl card-shadow p-5">
-            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <div class="neumorphism-card p-6">
+            <h2 class="text-xl font-semibold mb-6 flex items-center gap-3" style="color: var(--text-primary);">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
+                class="h-6 w-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                style="color: var(--primary);"
               >
                 <path
                   stroke-linecap="round"
@@ -229,51 +645,44 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block font-medium mb-2">页面大小</label>
-                <select
-                  id="pageSize"
-                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
-                >
+                <label class="form-label">页面大小</label>
+                <select id="pageSize" class="neumorphism-select">
                   <option value="a4">A4 (210×297mm)</option>
                   <option value="letter">Letter (216×279mm)</option>
                 </select>
               </div>
               <div>
-                <label class="block font-medium mb-2">方向</label>
-                <select
-                  id="orientation"
-                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
-                >
+                <label class="form-label">方向</label>
+                <select id="orientation" class="neumorphism-select">
                   <option value="portrait">纵向</option>
                   <option value="landscape">横向</option>
                 </select>
               </div>
               <div>
-                <label class="block font-medium mb-2">边距 (mm)</label>
+                <label class="form-label">边距 (mm)</label>
                 <input
                   type="number"
                   id="margin"
                   value="10"
                   min="0"
                   max="50"
-                  class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                  class="neumorphism-input"
                 />
               </div>
               <div>
-                <label class="block font-medium mb-2">背景图 (可选)</label>
+                <label class="form-label">背景图 (可选)</label>
                 <input
                   type="file"
                   id="backgroundInput"
                   accept="image/*"
-                  class="w-full p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                  class="neumorphism-input"
+                  style="padding: 8px 12px;"
                 />
               </div>
             </div>
 
             <div class="mt-6">
-              <h3
-                class="font-medium mb-3 flex items-center gap-2 text-[var(--primary)]"
-              >
+              <h3 class="section-title">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-4 w-4"
@@ -292,20 +701,20 @@
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-medium mb-2">页眉文字</label>
+                  <label class="form-label">页眉文字</label>
                   <input
                     type="text"
                     id="headerText"
-                    class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                    class="neumorphism-input"
                     placeholder="例如：公司名称"
                   />
                 </div>
                 <div>
-                  <label class="block font-medium mb-2">页脚文字</label>
+                  <label class="form-label">页脚文字</label>
                   <input
                     type="text"
                     id="footerText"
-                    class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                    class="neumorphism-input"
                     placeholder="例如：页码或日期"
                   />
                 </div>
@@ -313,9 +722,7 @@
             </div>
 
             <div class="mt-6">
-              <h3
-                class="font-medium mb-3 flex items-center gap-2 text-[var(--primary)]"
-              >
+              <h3 class="section-title">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-4 w-4"
@@ -327,7 +734,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a1.994 1.994 0 01-1.414.586H7a4 4 0 01-4-4V7a4 4 0 014-4z"
                   />
                 </svg>
                 水印设置
@@ -335,7 +742,7 @@
               <input
                 type="text"
                 id="watermarkText"
-                class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all bg-[var(--card)]"
+                class="neumorphism-input"
                 placeholder="例如：草稿或机密"
               />
             </div>
@@ -345,7 +752,7 @@
           <div class="flex flex-col sm:flex-row gap-4">
             <button
               id="generateBtn"
-              class="flex-1 py-4 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-white bg-[var(--primary)] hover:opacity-90"
+              class="flex-1 neumorphism-button flex items-center justify-center gap-2 mb-8"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -367,7 +774,8 @@
               id="downloadBtn"
               href="#"
               download="images.pdf"
-              class="flex-1 py-4 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 bg-gray-200 text-gray-800 hover:bg-gray-300 hidden"
+              class="flex-1 neumorphism-button secondary-button flex items-center justify-center gap-2 hidden mb-8"
+              style="background: linear-gradient(135deg, #10b981, #059669); color: white;"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -390,15 +798,15 @@
       </div>
 
       <!-- PDF预览区域 -->
-      <div class="mt-8 bg-[var(--card)] rounded-2xl card-shadow p-5">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold flex items-center gap-2">
+        <div class="neumorphism-card p-6">
+          <h2 class="text-xl font-semibold mb-6 flex items-center gap-3" style="color: var(--text-primary);">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
+              class="h-6 w-6"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              style="color: var(--primary);"
             >
               <path
                 stroke-linecap="round"
@@ -413,7 +821,7 @@
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
               />
             </svg>
-            PDF 预览
+            PDF预览
           </h2>
           <span id="pdfPageCount" class="text-sm opacity-70">0 页</span>
         </div>
