@@ -1,0 +1,2555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频裁剪工具 - FFmpeg WebAssembly</title>
+    <!-- Cropper.js CSS -->
+    <link href="./videoFormat/cropper.min.css" rel="stylesheet" />
+    <script src="./ffmpeg.min.js"></script>
+    <!-- Cropper.js JavaScript -->
+    <script src="./videoFormat/cropper.min.js"></script>
+    <style>
+      :root {
+        /* Neumorphism Color System */
+        --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --primary-solid: #667eea;
+        --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --secondary-solid: #f093fb;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+
+        /* Background System */
+        --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --bg-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+
+        /* Card System */
+        --card: rgba(255, 255, 255, 0.1);
+        --card-hover: rgba(255, 255, 255, 0.15);
+
+        /* Text Colors */
+        --text-primary: rgba(255, 255, 255, 0.95);
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --text-muted: rgba(255, 255, 255, 0.5);
+
+        /* Shadow System */
+        --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
+        --shadow-large: 0 8px 32px rgba(0, 0, 0, 0.2);
+        --shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        --shadow-outset: 0 6px 20px rgba(102, 126, 234, 0.3);
+
+        /* Border Radius */
+        --border-radius: 16px;
+        --border-radius-small: 8px;
+        --border-radius-large: 24px;
+
+        /* Transition */
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+        min-height: 100vh;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 24px;
+        background: var(--card);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius-large);
+        box-shadow: var(--shadow-large);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: containerFloat 6s ease-in-out infinite;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-medium);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+        animation: headerShine 3s ease-in-out infinite;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-solid),
+          var(--secondary-solid)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: titlePulse 2s ease-in-out infinite;
+        letter-spacing: -0.02em;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        letter-spacing: 0.01em;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        padding: 24px;
+        animation: slideIn 0.6s ease-out;
+      }
+
+      .upload-panel,
+      .settings-panel {
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .upload-panel::before,
+      .settings-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transition: var(--transition);
+      }
+
+      .upload-panel:hover::before,
+      .settings-panel:hover::before {
+        left: 100%;
+      }
+
+      .upload-panel:hover,
+      .settings-panel:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .panel-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .panel-title::before {
+        content: '';
+        width: 4px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 2px;
+        animation: titlePulse 2s ease-in-out infinite;
+      }
+
+      .file-upload-area {
+        border: 2px dashed rgba(102, 126, 234, 0.3);
+        border-radius: var(--border-radius);
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        background: var(--card);
+        box-shadow: var(--shadow-inset);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 24px;
+      }
+
+      .file-upload-area::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(
+          circle,
+          rgba(102, 126, 234, 0.1),
+          transparent
+        );
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: var(--transition);
+      }
+
+      .file-upload-area:hover {
+        border-color: var(--primary-solid);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .file-upload-area:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .file-upload-area.dragover {
+        background: var(--card-hover);
+        border-color: var(--primary-solid);
+        transform: scale(1.02);
+        box-shadow: var(--shadow-large);
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        color: var(--primary-solid);
+        margin-bottom: 16px;
+        animation: iconPulse 2s ease-in-out infinite;
+        position: relative;
+        z-index: 1;
+      }
+
+      .file-upload-area p {
+        position: relative;
+        z-index: 1;
+        margin: 8px 0;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .file-upload-area p:first-of-type {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .file-upload-area p:last-of-type {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .cropper-bg {
+        background-image: none;
+      }
+
+      .video-preview {
+        margin-top: 20px;
+        position: relative;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-medium);
+        background: var(--card);
+      }
+
+      .video-preview video {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: var(--border-radius);
+      }
+
+      #cropperContainer {
+        border-radius: var(--border-radius);
+        transition: background 0.3s ease;
+      }
+
+      .cropper-canvas img,
+      .cropper-view-box img,
+      .cropper-modal {
+        opacity: 0;
+      }
+
+      .cropper-point {
+        width: 10px;
+        height: 10px;
+        opacity: 1;
+      }
+
+      .cropper-line {
+        opacity: 0.5;
+      }
+
+      #cropperImage {
+        border-radius: var(--border-radius);
+      }
+
+      .crop-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .crop-selection {
+        position: absolute;
+        border: 3px solid var(--primary-solid);
+        background: rgba(102, 126, 234, 0.15);
+        cursor: move;
+        pointer-events: all;
+        min-width: 50px;
+        min-height: 50px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+          0 0 20px rgba(102, 126, 234, 0.4);
+        transition: var(--transition);
+        touch-action: none;
+      }
+
+      .crop-selection:hover {
+        border-color: var(--secondary-solid);
+        background: rgba(240, 147, 251, 0.15);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+          0 0 30px rgba(240, 147, 251, 0.5);
+      }
+
+      .crop-selection:active {
+        border-color: var(--secondary-solid);
+        background: rgba(240, 147, 251, 0.2);
+      }
+
+      .crop-handle {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: var(--primary-solid);
+        border: 3px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: var(--shadow-medium);
+        transition: var(--transition);
+        z-index: 20;
+        touch-action: none;
+      }
+
+      .crop-handle:hover {
+        box-shadow: var(--shadow-outset);
+        background: var(--secondary-solid);
+      }
+
+      .crop-handle:active {
+        box-shadow: var(--shadow-large);
+      }
+
+      .crop-handle.nw:hover,
+      .crop-handle.ne:hover,
+      .crop-handle.sw:hover,
+      .crop-handle.se:hover {
+        transform: scale(1.2);
+      }
+
+      .crop-handle.nw:active,
+      .crop-handle.ne:active,
+      .crop-handle.sw:active,
+      .crop-handle.se:active {
+        transform: scale(1.1);
+      }
+
+      .crop-handle.nw {
+        top: -8px;
+        left: -8px;
+        cursor: nw-resize;
+      }
+      .crop-handle.ne {
+        top: -8px;
+        right: -8px;
+        cursor: ne-resize;
+      }
+      .crop-handle.sw {
+        bottom: -8px;
+        left: -8px;
+        cursor: sw-resize;
+      }
+      .crop-handle.se {
+        bottom: -8px;
+        right: -8px;
+        cursor: se-resize;
+      }
+      .crop-handle.n {
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: n-resize;
+      }
+      .crop-handle.s {
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: s-resize;
+      }
+      .crop-handle.w {
+        top: 50%;
+        left: -8px;
+        transform: translateY(-50%);
+        cursor: w-resize;
+      }
+      .crop-handle.e {
+        top: 50%;
+        right: -8px;
+        transform: translateY(-50%);
+        cursor: e-resize;
+      }
+
+      .crop-handle.n:hover,
+      .crop-handle.s:hover {
+        transform: translateX(-50%) scale(1.2);
+      }
+
+      .crop-handle.w:hover,
+      .crop-handle.e:hover {
+        transform: translateY(-50%) scale(1.2);
+      }
+
+      /* 自定义视频控制条样式 */
+      .video-controls {
+        margin-top: 16px;
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: var(--transition);
+      }
+
+      .progress-container-video {
+        margin-bottom: 12px;
+      }
+
+      .video-progress {
+        width: 100%;
+        height: 6px;
+        -webkit-appearance: none;
+        background: var(--card-hover);
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
+        transition: var(--transition);
+        padding: 8px 0 !important;
+      }
+
+      #timeSlider {
+        padding: 8px 0 !important;
+      }
+
+      .video-progress::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--primary-solid);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: var(--shadow-medium);
+        transition: var(--transition);
+      }
+
+      .video-progress::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .controls-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .control-btn {
+        background: var(--card-hover);
+        border: none;
+        border-radius: var(--border-radius-small);
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow-small);
+        color: var(--text-primary);
+        font-size: 1.2rem;
+      }
+
+      .control-btn:hover {
+        background: var(--primary-solid);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-medium);
+      }
+
+      .time-display {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        min-width: 80px;
+      }
+
+      .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+      }
+
+      .volume-slider {
+        width: 80px;
+        height: 4px;
+        -webkit-appearance: none;
+        background: var(--card-hover);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+        padding: 8px 0 !important;
+      }
+
+      .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: var(--primary-solid);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .volume-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+      }
+
+      .opacity-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 16px;
+      }
+
+      .opacity-label {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+      }
+
+      .opacity-slider {
+        width: 80px;
+        height: 4px;
+        -webkit-appearance: none;
+        background: var(--card-hover);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+        padding: 8px 0 !important;
+      }
+
+      .opacity-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: var(--secondary-solid);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .opacity-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+      }
+
+      /* 弹框样式 */
+      /* Modal styles removed - using Cropper.js directly */
+
+      .form-group {
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+      }
+
+      input[type='number'],
+      input[type='range'],
+      select {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: var(--border-radius-small);
+        border: none;
+        font-size: 16px;
+        background: var(--card);
+        box-shadow: var(--shadow-inset);
+        transition: var(--transition);
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      select option {
+        color: #333;
+      }
+
+      input[type='number']:focus,
+      select:focus {
+        outline: none;
+        box-shadow: var(--shadow-outset);
+        transform: translateY(-1px);
+      }
+
+      input[type='number']:hover,
+      select:hover {
+        box-shadow: var(--shadow-medium);
+      }
+
+      input[type='range'] {
+        -webkit-appearance: none;
+        height: 8px;
+        background: var(--card-hover);
+        border-radius: 4px;
+        box-shadow: var(--shadow-inset);
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-solid);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: var(--shadow-medium);
+        transition: var(--transition);
+      }
+
+      input[type='range']::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .time-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .format-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .format-option {
+        padding: 16px 12px;
+        background: var(--card);
+        border: 2px solid transparent;
+        border-radius: var(--border-radius-small);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow-medium);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .format-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        opacity: 0;
+        transition: var(--transition);
+      }
+
+      .format-option:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .format-option:hover::before {
+        opacity: 1;
+      }
+
+      .format-option.selected {
+        border-color: var(--primary-solid);
+        background: var(--card-hover);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .format-option.selected::before {
+        opacity: 1;
+      }
+
+      .format-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        display: block;
+        position: relative;
+        z-index: 1;
+      }
+
+      .format-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+        justify-content: center;
+      }
+
+      .btn {
+        padding: 16px 32px;
+        border: none;
+        border-radius: var(--border-radius-small);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-medium);
+      }
+
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: var(--transition);
+      }
+
+      .btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-outset);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-small);
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: var(--card);
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .btn:disabled {
+        background: var(--card);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: var(--shadow-inset);
+        opacity: 0.6;
+      }
+
+      .btn:disabled::before {
+        display: none;
+      }
+
+      .progress-container {
+        margin-top: 24px;
+        display: none;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: var(--card-hover);
+        border-radius: var(--border-radius-small);
+        overflow: hidden;
+        box-shadow: var(--shadow-inset);
+        position: relative;
+      }
+
+      .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          transparent 25%,
+          rgba(255, 255, 255, 0.1) 25%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 50%,
+          transparent 75%,
+          rgba(255, 255, 255, 0.1) 75%
+        );
+        background-size: 20px 20px;
+        animation: progressStripes 1s linear infinite;
+      }
+
+      .progress {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.4s ease-out;
+        position: relative;
+        border-radius: var(--border-radius-small);
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+      }
+
+      .progress::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: progressShine 2s infinite;
+      }
+
+      .progress-text {
+        text-align: center;
+        margin-top: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .result-container {
+        margin-top: 24px;
+        display: none;
+      }
+
+      .result-video {
+        width: 100%;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-large);
+        margin-bottom: 16px;
+      }
+
+      .download-btn {
+        width: 100%;
+        background: var(--success);
+        color: white;
+        padding: 16px;
+        border: none;
+        border-radius: var(--border-radius-small);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: var(--shadow-medium);
+      }
+
+      .download-btn:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-outset);
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes containerFloat {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      @keyframes headerShine {
+        0% {
+          background-position: -200% center;
+        }
+        100% {
+          background-position: 200% center;
+        }
+      }
+
+      @keyframes titlePulse {
+        0%,
+        100% {
+          text-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        50% {
+          text-shadow: 0 0 20px rgba(102, 126, 234, 0.6),
+            0 0 30px rgba(102, 126, 234, 0.4);
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes iconPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      @keyframes progressStripes {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 20px 0;
+        }
+      }
+
+      @keyframes progressShine {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 1024px) {
+        .container {
+          margin: 10px;
+          padding: 20px;
+        }
+
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 20px;
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 5px;
+          padding: 16px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .subtitle {
+          font-size: 1rem;
+        }
+
+        .main-content {
+          padding: 16px;
+          gap: 16px;
+        }
+
+        .upload-panel,
+        .settings-panel {
+          padding: 20px;
+        }
+
+        .file-upload-area {
+          padding: 32px 16px;
+        }
+
+        .upload-icon {
+          font-size: 2.5rem;
+        }
+
+        .time-controls {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .format-options {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .btn {
+          padding: 14px 24px;
+          font-size: 0.95rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          margin: 0;
+          padding: 12px;
+          border-radius: 0;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .subtitle {
+          font-size: 0.9rem;
+        }
+
+        .main-content {
+          padding: 12px;
+          gap: 12px;
+        }
+
+        .upload-panel,
+        .settings-panel {
+          padding: 16px;
+        }
+
+        .panel-title {
+          font-size: 1.2rem;
+        }
+
+        .file-upload-area {
+          padding: 24px 12px;
+        }
+
+        .upload-icon {
+          font-size: 2rem;
+        }
+
+        .format-options {
+          grid-template-columns: 1fr;
+        }
+
+        .format-option {
+          padding: 12px 8px;
+        }
+
+        .btn {
+          padding: 12px 20px;
+          font-size: 0.9rem;
+        }
+
+        input[type='number'],
+        select {
+          padding: 12px 14px;
+          font-size: 14px;
+        }
+
+        /* 移动端裁剪区域优化 */
+        .crop-handle {
+          width: 20px;
+          height: 20px;
+          border: 4px solid white;
+        }
+
+        .crop-handle.nw {
+          top: -10px;
+          left: -10px;
+        }
+        .crop-handle.ne {
+          top: -10px;
+          right: -10px;
+        }
+        .crop-handle.sw {
+          bottom: -10px;
+          left: -10px;
+        }
+        .crop-handle.se {
+          bottom: -10px;
+          right: -10px;
+        }
+        .crop-handle.n {
+          top: -10px;
+        }
+        .crop-handle.s {
+          bottom: -10px;
+        }
+        .crop-handle.w {
+          left: -10px;
+        }
+        .crop-handle.e {
+          right: -10px;
+        }
+
+        .crop-selection {
+          border-width: 4px;
+          min-width: 80px;
+          min-height: 80px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎬 媒体裁剪工具</h1>
+        <p class="subtitle">
+          支持视频和图片裁剪处理，视频可指定时长和区域，图片可精确裁剪 -
+          基于FFmpeg WebAssembly和Cropper.js
+        </p>
+      </header>
+
+      <div class="main-content">
+        <!-- 上传面板 -->
+        <div class="upload-panel">
+          <h2 class="panel-title">📁 视频上传</h2>
+
+          <div class="file-upload-area" id="uploadArea">
+            <div class="upload-icon">🎥</div>
+            <p>点击或拖拽视频或图片文件到此处</p>
+            <p>
+              支持 MP4, MOV, AVI, WebM 等视频格式，以及 JPG, PNG, GIF 等图片格式
+            </p>
+          </div>
+
+          <input
+            type="file"
+            id="videoInput"
+            accept="video/*,image/*"
+            style="display: none"
+          />
+
+          <div class="video-preview" id="videoPreview" style="display: none">
+            <video id="previewVideo"></video>
+            <img
+              id="previewImage"
+              style="
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: none;
+              "
+            />
+            <!-- Cropper.js container overlays the video/image -->
+            <div
+              id="cropperContainer"
+              style="
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 10;
+              "
+            >
+              <img
+                id="cropperImage"
+                style="width: 100%; height: 100%; object-fit: contain"
+              />
+            </div>
+          </div>
+          <!-- 自定义视频控制条 -->
+          <div class="video-controls" id="videoControls" style="display: none">
+            <div class="progress-container-video">
+              <input
+                type="range"
+                id="videoProgress"
+                class="video-progress"
+                min="0"
+                max="100"
+                value="0"
+              />
+            </div>
+            <div class="controls-row">
+              <button class="control-btn" id="playPauseBtn">
+                <span class="play-icon">▶️</span>
+              </button>
+              <div class="time-display">
+                <span id="videoCurrentTime">00:00</span>
+                <span>/</span>
+                <span id="videoDuration">00:00</span>
+              </div>
+              <div class="volume-control">
+                <button class="control-btn" id="muteBtn">
+                  <span class="volume-icon">🔊</span>
+                </button>
+                <input
+                  type="range"
+                  id="volumeSlider"
+                  class="volume-slider"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
+              </div>
+              <div class="opacity-control">
+                <span class="opacity-label">🎭</span>
+                <input
+                  type="range"
+                  id="opacitySlider"
+                  class="opacity-slider"
+                  min="0"
+                  max="100"
+                  value="30"
+                  title="裁剪区域透明度"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 设置面板 -->
+        <div class="settings-panel">
+          <h2 class="panel-title">⚙️ 裁剪设置</h2>
+
+          <div class="form-group" id="timeRangeGroup">
+            <label>时间范围设置</label>
+            <div class="time-controls">
+              <div>
+                <label for="startTime">开始时间 (秒)</label>
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <input
+                    type="number"
+                    id="startTime"
+                    min="0"
+                    step="0.1"
+                    value="0"
+                    style="flex: 1"
+                  />
+                  <button
+                    class="btn btn-secondary"
+                    id="setStartTimeBtn"
+                    style="padding: 8px 12px; font-size: 0.8rem"
+                    disabled
+                  >
+                    选择当前时间
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label for="endTime">结束时间 (秒)</label>
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <input
+                    type="number"
+                    id="endTime"
+                    min="0"
+                    step="0.1"
+                    value="10"
+                    style="flex: 1"
+                  />
+                  <button
+                    class="btn btn-secondary"
+                    id="setEndTimeBtn"
+                    style="padding: 8px 12px; font-size: 0.8rem"
+                    disabled
+                  >
+                    选择当前时间
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="timeSliderGroup">
+            <label for="timeSlider">时间轴选择</label>
+            <input type="range" id="timeSlider" min="0" max="100" value="0" />
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+                margin-top: 8px;
+              "
+            >
+              <span id="currentTime">00:00</span>
+              <span id="totalTime">00:00</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>裁剪区域设置</label>
+            <p
+              style="
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-bottom: 16px;
+              "
+            >
+              使用下方的Cropper.js工具进行精确裁剪
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label>裁剪区域 (像素)</label>
+            <p
+              style="
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+                margin-bottom: 12px;
+                line-height: 1.4;
+              "
+            >
+              💡 <strong>尺寸限制：</strong>图片最大支持 4096x4096，视频最大支持
+              2048x2048
+            </p>
+            <div class="time-controls">
+              <div>
+                <label for="cropX">X 坐标</label>
+                <input type="number" id="cropX" min="0" value="0" />
+              </div>
+              <div>
+                <label for="cropY">Y 坐标</label>
+                <input type="number" id="cropY" min="0" value="0" />
+              </div>
+            </div>
+            <div class="time-controls">
+              <div>
+                <label for="cropWidth">宽度</label>
+                <input
+                  type="number"
+                  id="cropWidth"
+                  min="1"
+                  max="4096"
+                  value="640"
+                />
+              </div>
+              <div>
+                <label for="cropHeight">高度</label>
+                <input
+                  type="number"
+                  id="cropHeight"
+                  min="1"
+                  max="4096"
+                  value="360"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>输出格式</label>
+            <div class="format-options" id="formatOptions">
+              <!-- 视频格式 -->
+              <div
+                class="format-option selected video-format"
+                data-format="mp4"
+              >
+                <span class="format-icon">🎬</span>
+                <span class="format-name">MP4</span>
+              </div>
+              <div class="format-option video-format" data-format="webm">
+                <span class="format-icon">🌐</span>
+                <span class="format-name">WebM</span>
+              </div>
+              <div class="format-option video-format" data-format="gif">
+                <span class="format-icon">🎞️</span>
+                <span class="format-name">GIF</span>
+              </div>
+              <!-- 图片格式 -->
+              <div
+                class="format-option image-format"
+                data-format="jpg"
+                style="display: none"
+              >
+                <span class="format-icon">🖼️</span>
+                <span class="format-name">JPG</span>
+              </div>
+              <div
+                class="format-option image-format"
+                data-format="png"
+                style="display: none"
+              >
+                <span class="format-icon">🖼️</span>
+                <span class="format-name">PNG</span>
+              </div>
+              <div
+                class="format-option image-format"
+                data-format="webp"
+                style="display: none"
+              >
+                <span class="format-icon">🖼️</span>
+                <span class="format-name">WebP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="qualityGroup">
+            <label for="quality">视频质量</label>
+            <select id="quality">
+              <option value="23">高质量 (较大文件)</option>
+              <option value="28" selected>中等质量</option>
+              <option value="32">低质量 (较小文件)</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="gifGroup" style="display: none">
+            <label for="gifFps">GIF 帧率</label>
+            <select id="gifFps">
+              <option value="10">10 FPS</option>
+              <option value="15" selected>15 FPS</option>
+              <option value="20">20 FPS</option>
+              <option value="24">24 FPS</option>
+            </select>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-secondary" id="resetBtn">重置</button>
+            <button class="btn btn-primary" id="cropBtn" disabled>
+              开始裁剪
+            </button>
+          </div>
+
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">处理中...</div>
+          </div>
+
+          <div class="result-container" id="resultContainer">
+            <video class="result-video" id="resultVideo" controls></video>
+            <button class="download-btn" id="downloadBtn">
+              下载裁剪后的文件
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 裁剪弹框 -->
+    <!-- Modal removed - using Cropper.js directly -->
+
+    <script>
+      class VideoCropper {
+        constructor() {
+          this.ffmpeg = null
+          this.videoFile = null
+          this.videoElement = null
+          this.cropper = null
+          this.cropperImage = null
+          this.canvas = null
+          this.isImageFile = false // 标记是否为图片文件
+
+          this.init()
+        }
+
+        async init() {
+          await this.loadFFmpeg()
+          this.setupEventListeners()
+        }
+
+        async loadFFmpeg() {
+          try {
+            this.ffmpeg = FFmpeg.createFFmpeg({
+              log: true,
+            })
+            await this.ffmpeg.load()
+            console.log('FFmpeg loaded successfully')
+          } catch (error) {
+            console.error('Failed to load FFmpeg:', error)
+            alert('FFmpeg 加载失败，请刷新页面重试')
+          }
+        }
+
+        setupEventListeners() {
+          const uploadArea = document.getElementById('uploadArea')
+          const videoInput = document.getElementById('videoInput')
+          const cropBtn = document.getElementById('cropBtn')
+          const resetBtn = document.getElementById('resetBtn')
+          const downloadBtn = document.getElementById('downloadBtn')
+          const formatOptions = document.querySelectorAll('.format-option')
+
+          // 文件上传
+          uploadArea.addEventListener('click', () => videoInput.click())
+          uploadArea.addEventListener(
+            'dragover',
+            this.handleDragOver.bind(this)
+          )
+          uploadArea.addEventListener('drop', this.handleDrop.bind(this))
+          videoInput.addEventListener(
+            'change',
+            this.handleFileSelect.bind(this)
+          )
+
+          // 格式选择
+          formatOptions.forEach((option) => {
+            option.addEventListener('click', this.handleFormatSelect.bind(this))
+          })
+
+          // 按钮事件
+          cropBtn.addEventListener('click', this.startCropping.bind(this))
+          resetBtn.addEventListener('click', this.reset.bind(this))
+          downloadBtn.addEventListener('click', this.downloadResult.bind(this))
+
+          // 时间选择按钮
+          const setStartTimeBtn = document.getElementById('setStartTimeBtn')
+          const setEndTimeBtn = document.getElementById('setEndTimeBtn')
+          setStartTimeBtn.addEventListener(
+            'click',
+            this.setCurrentTimeAsStart.bind(this)
+          )
+          setEndTimeBtn.addEventListener(
+            'click',
+            this.setCurrentTimeAsEnd.bind(this)
+          )
+
+          // 时间控制
+          const timeSlider = document.getElementById('timeSlider')
+          const startTime = document.getElementById('startTime')
+          const endTime = document.getElementById('endTime')
+
+          timeSlider.addEventListener(
+            'input',
+            this.handleTimeSliderChange.bind(this)
+          )
+          startTime.addEventListener('input', this.updateTimeRange.bind(this))
+          endTime.addEventListener('input', this.updateTimeRange.bind(this))
+
+          // 裁剪区域输入
+          ;['cropX', 'cropY', 'cropWidth', 'cropHeight'].forEach((id) => {
+            document
+              .getElementById(id)
+              .addEventListener('input', this.updateCropFromInputs.bind(this))
+          })
+        }
+
+        // Cropper.js handles all crop interactions, no need for custom setup
+
+        handleDragOver(e) {
+          e.preventDefault()
+          e.currentTarget.classList.add('dragover')
+        }
+
+        handleDrop(e) {
+          e.preventDefault()
+          e.currentTarget.classList.remove('dragover')
+          const files = e.dataTransfer.files
+          if (files.length > 0) {
+            const file = files[0]
+            this.videoFile = file
+            // 检测文件类型
+            this.isImageFile = file.type.startsWith('image/')
+
+            if (this.isImageFile) {
+              this.loadImage(file)
+            } else {
+              this.loadVideo(file)
+            }
+
+            // 切换UI显示
+            this.toggleUIForFileType()
+          }
+        }
+
+        handleFileSelect(e) {
+          const file = e.target.files[0]
+          if (file) {
+            this.videoFile = file
+            // 检测文件类型
+            this.isImageFile = file.type.startsWith('image/')
+
+            if (this.isImageFile) {
+              this.loadImage(file)
+            } else {
+              this.loadVideo(file)
+            }
+
+            // 切换UI显示
+            this.toggleUIForFileType()
+          }
+        }
+
+        loadVideo(file) {
+          const url = URL.createObjectURL(file)
+
+          const videoPreview = document.getElementById('videoPreview')
+          const previewVideo = document.getElementById('previewVideo')
+          const previewImage = document.getElementById('previewImage')
+          const cropperContainer = document.getElementById('cropperContainer')
+          const cropperImage = document.getElementById('cropperImage')
+
+          previewVideo.src = url
+          videoPreview.style.display = 'block'
+          previewVideo.style.display = 'block'
+          previewImage.style.display = 'none'
+          cropperContainer.style.display = 'none'
+
+          previewVideo.addEventListener('loadedmetadata', () => {
+            // 检查视频尺寸限制
+            const maxDimension = 2048
+            if (
+              previewVideo.videoWidth > maxDimension ||
+              previewVideo.videoHeight > maxDimension
+            ) {
+              alert(
+                `视频尺寸过大！\n当前尺寸：${previewVideo.videoWidth}x${previewVideo.videoHeight}\n最大支持尺寸：${maxDimension}x${maxDimension}\n\n请选择较小尺寸的视频文件。`
+              )
+              // 清理资源
+              URL.revokeObjectURL(url)
+              previewVideo.src = ''
+              videoPreview.style.display = 'none'
+              return
+            }
+
+            this.setupVideoControls(previewVideo)
+            this.initializeCropper(previewVideo)
+            document.getElementById('cropBtn').disabled = false
+          })
+
+          this.videoElement = previewVideo
+          this.cropperImage = cropperImage
+        }
+
+        loadImage(file) {
+          const url = URL.createObjectURL(file)
+
+          const videoPreview = document.getElementById('videoPreview')
+          const previewVideo = document.getElementById('previewVideo')
+          const previewImage = document.getElementById('previewImage')
+          const cropperContainer = document.getElementById('cropperContainer')
+          const cropperImage = document.getElementById('cropperImage')
+
+          // 显示视频预览容器，隐藏视频元素，显示图片元素和裁剪容器
+          videoPreview.style.display = 'block'
+          previewVideo.style.display = 'none'
+          previewImage.style.display = 'block'
+          previewImage.src = url
+          cropperContainer.style.display = 'block'
+
+          // 直接加载图片到cropper
+          cropperImage.src = url
+          cropperImage.onload = () => {
+            // 检查图片尺寸限制
+            const maxDimension = 4096
+            if (
+              cropperImage.naturalWidth > maxDimension ||
+              cropperImage.naturalHeight > maxDimension
+            ) {
+              alert(
+                `图片尺寸过大！\n当前尺寸：${cropperImage.naturalWidth}x${cropperImage.naturalHeight}\n最大支持尺寸：${maxDimension}x${maxDimension}\n\n请选择较小尺寸的图片文件。`
+              )
+              // 清理资源
+              URL.revokeObjectURL(url)
+              cropperImage.src = ''
+              videoPreview.style.display = 'none'
+              cropperContainer.style.display = 'none'
+              return
+            }
+
+            this.initializeCropperForImage(cropperImage)
+            document.getElementById('cropBtn').disabled = false
+          }
+
+          this.cropperImage = cropperImage
+        }
+
+        setupVideoControls(video) {
+          const timeSlider = document.getElementById('timeSlider')
+          const currentTime = document.getElementById('currentTime')
+          const totalTime = document.getElementById('totalTime')
+          const endTime = document.getElementById('endTime')
+          const setStartTimeBtn = document.getElementById('setStartTimeBtn')
+          const setEndTimeBtn = document.getElementById('setEndTimeBtn')
+
+          const duration = video.duration
+          timeSlider.max = duration
+          endTime.value = Math.min(10, duration)
+          endTime.max = duration
+
+          totalTime.textContent = this.formatTime(duration)
+
+          // 启用当前时间按钮
+          setStartTimeBtn.disabled = false
+          setEndTimeBtn.disabled = false
+
+          video.addEventListener('timeupdate', () => {
+            timeSlider.value = video.currentTime
+            currentTime.textContent = this.formatTime(video.currentTime)
+          })
+
+          // 设置自定义视频控制条
+          this.setupCustomVideoControls(video)
+        }
+
+        setupCustomVideoControls(video) {
+          const videoControls = document.getElementById('videoControls')
+          const playPauseBtn = document.getElementById('playPauseBtn')
+          const videoProgress = document.getElementById('videoProgress')
+          const videoCurrentTime = document.getElementById('videoCurrentTime')
+          const videoDuration = document.getElementById('videoDuration')
+          const muteBtn = document.getElementById('muteBtn')
+          const volumeSlider = document.getElementById('volumeSlider')
+
+          // 显示自定义控制条
+          videoControls.style.display = 'block'
+
+          // 设置视频时长
+          videoDuration.textContent = this.formatTime(video.duration)
+          videoProgress.max = video.duration
+
+          // 播放/暂停按钮
+          playPauseBtn.addEventListener('click', () => {
+            if (video.paused) {
+              video.play()
+              playPauseBtn.querySelector('.play-icon').textContent = '⏸️'
+            } else {
+              video.pause()
+              playPauseBtn.querySelector('.play-icon').textContent = '▶️'
+            }
+          })
+
+          // 进度条控制
+          videoProgress.addEventListener('input', () => {
+            video.currentTime = videoProgress.value
+          })
+
+          // 视频时间更新
+          video.addEventListener('timeupdate', () => {
+            videoProgress.value = video.currentTime
+            videoCurrentTime.textContent = this.formatTime(video.currentTime)
+          })
+
+          // 音量控制
+          volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value / 100
+            this.updateVolumeIcon(video.volume, muteBtn)
+          })
+
+          // 静音按钮
+          muteBtn.addEventListener('click', () => {
+            if (video.muted) {
+              video.muted = false
+              volumeSlider.value = video.volume * 100
+            } else {
+              video.muted = true
+              volumeSlider.value = 0
+            }
+            this.updateVolumeIcon(video.muted ? 0 : video.volume, muteBtn)
+          })
+
+          // 视频结束时重置播放按钮
+          video.addEventListener('ended', () => {
+            playPauseBtn.querySelector('.play-icon').textContent = '▶️'
+          })
+
+          // 透明度控制
+          const opacitySlider = document.getElementById('opacitySlider')
+          const cropperContainer = document.getElementById('cropperContainer')
+
+          // 设置初始透明度
+          this.updateCropperOpacity(opacitySlider.value, cropperContainer)
+
+          opacitySlider.addEventListener('input', () => {
+            this.updateCropperOpacity(opacitySlider.value, cropperContainer)
+          })
+        }
+
+        updateVolumeIcon(volume, muteBtn) {
+          const volumeIcon = muteBtn.querySelector('.volume-icon')
+          if (volume === 0) {
+            volumeIcon.textContent = '🔇'
+          } else if (volume < 0.5) {
+            volumeIcon.textContent = '🔉'
+          } else {
+            volumeIcon.textContent = '🔊'
+          }
+        }
+
+        updateCropperOpacity(value, cropperContainer) {
+          // 将滑块值(0-100)转换为透明度(0-1)
+          const opacity = value / 100
+          cropperContainer.style.background = `rgba(0, 0, 0, ${opacity})`
+        }
+
+        initializeCropper(video) {
+          // 创建canvas来捕获视频帧
+          this.canvas = document.createElement('canvas')
+          const ctx = this.canvas.getContext('2d')
+
+          // 设置canvas尺寸为视频尺寸
+          this.canvas.width = video.videoWidth
+          this.canvas.height = video.videoHeight
+
+          // 捕获当前帧
+          ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
+
+          // 将canvas转换为图片并显示在cropper中
+          const dataURL = this.canvas.toDataURL('image/jpeg', 0.8)
+          this.cropperImage.src = dataURL
+
+          // 显示cropper容器
+          document.getElementById('cropperContainer').style.display = 'block'
+
+          // 初始化Cropper.js
+          if (this.cropper) {
+            this.cropper.destroy()
+          }
+
+          this.cropper = new Cropper(this.cropperImage, {
+            aspectRatio: NaN, // 允许自由裁剪
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.5,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            zoomOnWheel: false,
+            crop: (event) => {
+              // 更新裁剪参数输入框
+              const data = event.detail
+              document.getElementById('cropX').value = Math.round(data.x)
+              document.getElementById('cropY').value = Math.round(data.y)
+              document.getElementById('cropWidth').value = Math.round(
+                data.width
+              )
+              document.getElementById('cropHeight').value = Math.round(
+                data.height
+              )
+            },
+          })
+        }
+
+        initializeCropperForImage(image) {
+          // 初始化Cropper.js for image
+          if (this.cropper) {
+            this.cropper.destroy()
+          }
+
+          this.cropper = new Cropper(image, {
+            aspectRatio: NaN, // 允许自由裁剪
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.8,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            zoomOnWheel: false, // 禁用滚轮缩放
+            crop: (event) => {
+              // 更新裁剪参数输入框
+              const data = event.detail
+              document.getElementById('cropX').value = Math.round(data.x)
+              document.getElementById('cropY').value = Math.round(data.y)
+              document.getElementById('cropWidth').value = Math.round(
+                data.width
+              )
+              document.getElementById('cropHeight').value = Math.round(
+                data.height
+              )
+            },
+          })
+        }
+
+        toggleUIForFileType() {
+          const timeControls = document.querySelector('.time-controls')
+          const videoControls = document.getElementById('videoControls')
+          const timeRangeGroup = document.getElementById('timeRangeGroup')
+          const timeSliderGroup = document.getElementById('timeSliderGroup')
+          const videoFormatOptions = document.querySelectorAll('.video-format')
+          const imageFormatOptions = document.querySelectorAll('.image-format')
+          const qualityGroup = document.getElementById('qualityGroup')
+          const gifGroup = document.getElementById('gifGroup')
+
+          if (this.isImageFile) {
+            // 图片模式：隐藏时间控制，显示图片格式
+            timeControls.style.display = 'none'
+            videoControls.style.display = 'none'
+            timeRangeGroup.style.display = 'none'
+            timeSliderGroup.style.display = 'none'
+
+            videoFormatOptions.forEach((option) => {
+              option.style.display = 'none'
+              option.classList.remove('selected')
+            })
+
+            imageFormatOptions.forEach((option) => {
+              option.style.display = 'flex'
+            })
+
+            // 默认选择JPG格式
+            imageFormatOptions[0].classList.add('selected')
+
+            // 隐藏视频相关设置
+            qualityGroup.style.display = 'none'
+            gifGroup.style.display = 'none'
+          } else {
+            // 视频模式：显示时间控制，显示视频格式
+            timeControls.style.display = 'block'
+            timeRangeGroup.style.display = 'block'
+            timeSliderGroup.style.display = 'block'
+
+            videoFormatOptions.forEach((option) => {
+              option.style.display = 'flex'
+            })
+
+            imageFormatOptions.forEach((option) => {
+              option.style.display = 'none'
+              option.classList.remove('selected')
+            })
+
+            // 默认选择MP4格式
+            videoFormatOptions[0].classList.add('selected')
+
+            // 显示视频相关设置
+            qualityGroup.style.display = 'block'
+          }
+        }
+
+        handleFormatSelect(e) {
+          const formatOptions = document.querySelectorAll('.format-option')
+          formatOptions.forEach((option) => option.classList.remove('selected'))
+          e.currentTarget.classList.add('selected')
+
+          const format = e.currentTarget.dataset.format
+          const qualityGroup = document.getElementById('qualityGroup')
+          const gifGroup = document.getElementById('gifGroup')
+
+          if (format === 'gif') {
+            qualityGroup.style.display = 'none'
+            gifGroup.style.display = 'block'
+          } else {
+            qualityGroup.style.display = 'block'
+            gifGroup.style.display = 'none'
+          }
+        }
+
+        handleTimeSliderChange(e) {
+          if (this.videoElement) {
+            this.videoElement.currentTime = e.target.value
+          }
+        }
+
+        setCurrentTimeAsStart() {
+          if (this.videoElement && !this.isImageFile) {
+            const currentTime = this.videoElement.currentTime
+            document.getElementById('startTime').value = currentTime.toFixed(2)
+            this.updateTimeRange()
+          }
+        }
+
+        setCurrentTimeAsEnd() {
+          if (this.videoElement && !this.isImageFile) {
+            const currentTime = this.videoElement.currentTime
+            document.getElementById('endTime').value = currentTime.toFixed(2)
+            this.updateTimeRange()
+          }
+        }
+
+        updateTimeRange() {
+          const startTime = parseFloat(
+            document.getElementById('startTime').value
+          )
+          const endTime = parseFloat(document.getElementById('endTime').value)
+
+          if (startTime >= endTime) {
+            document.getElementById('endTime').value = startTime + 1
+          }
+        }
+
+        // All crop interaction methods removed - handled by Cropper.js
+
+        updateCropFromInputs() {
+          if (!this.cropper) return
+
+          const x = parseInt(document.getElementById('cropX').value) || 0
+          const y = parseInt(document.getElementById('cropY').value) || 0
+          const width =
+            parseInt(document.getElementById('cropWidth').value) || 100
+          const height =
+            parseInt(document.getElementById('cropHeight').value) || 100
+
+          // 更新Cropper.js的裁剪区域
+          this.cropper.setData({
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+          })
+        }
+
+        async startCropping() {
+          if (!this.videoFile) {
+            alert('请先上传文件')
+            return
+          }
+
+          // 如果是图片文件，使用Canvas进行裁剪
+          if (this.isImageFile) {
+            this.cropImage()
+            return
+          }
+
+          // 视频文件需要FFmpeg
+          if (!this.ffmpeg) {
+            alert('FFmpeg未加载完成，请稍后再试')
+            return
+          }
+
+          const progressContainer = document.getElementById('progressContainer')
+          const progressBar = document.getElementById('progressBar')
+          const progressText = document.getElementById('progressText')
+          const cropBtn = document.getElementById('cropBtn')
+
+          progressContainer.style.display = 'block'
+          cropBtn.disabled = true
+
+          try {
+            // 获取参数
+            const startTime = parseFloat(
+              document.getElementById('startTime').value
+            )
+            const endTime = parseFloat(document.getElementById('endTime').value)
+            const cropX = parseInt(document.getElementById('cropX').value)
+            const cropY = parseInt(document.getElementById('cropY').value)
+            const cropWidth = parseInt(
+              document.getElementById('cropWidth').value
+            )
+            const cropHeight = parseInt(
+              document.getElementById('cropHeight').value
+            )
+            const selectedFormat = document.querySelector(
+              '.format-option.selected'
+            ).dataset.format
+
+            // 检查视频裁剪尺寸，防止内存溢出
+            const maxDimension = 2048 // 视频最大尺寸限制
+            if (cropWidth > maxDimension || cropHeight > maxDimension) {
+              alert(
+                `裁剪尺寸过大 (${cropWidth}x${cropHeight})，最大支持 ${maxDimension}x${maxDimension}。请调整裁剪区域。`
+              )
+              progressContainer.style.display = 'none'
+              cropBtn.disabled = false
+              return
+            }
+
+            // 检查视频处理的内存使用量
+            const estimatedMemoryMB =
+              (cropWidth * cropHeight * 4) / (1024 * 1024)
+            if (estimatedMemoryMB > 128) {
+              // 视频处理内存限制更严格
+              const confirmed = confirm(
+                `视频裁剪尺寸较大 (${cropWidth}x${cropHeight}, 约${Math.round(
+                  estimatedMemoryMB
+                )}MB)，可能导致处理缓慢或内存不足。是否继续？`
+              )
+              if (!confirmed) {
+                progressContainer.style.display = 'none'
+                cropBtn.disabled = false
+                return
+              }
+            }
+
+            // 写入输入文件
+            const inputName = 'input.' + this.videoFile.name.split('.').pop()
+            await this.ffmpeg.FS(
+              'writeFile',
+              inputName,
+              new Uint8Array(await this.videoFile.arrayBuffer())
+            )
+
+            let outputName, ffmpegArgs
+
+            if (selectedFormat === 'gif') {
+              const gifFps = document.getElementById('gifFps').value
+              outputName = 'output.gif'
+              ffmpegArgs = [
+                '-i',
+                inputName,
+                '-ss',
+                startTime.toString(),
+                '-t',
+                (endTime - startTime).toString(),
+                '-vf',
+                `crop=${cropWidth}:${cropHeight}:${cropX}:${cropY},fps=${gifFps},scale=${cropWidth}:-1:flags=lanczos`,
+                '-y',
+                outputName,
+              ]
+            } else {
+              const quality = document.getElementById('quality').value
+              const extension = selectedFormat === 'webm' ? 'webm' : 'mp4'
+              outputName = `output.${extension}`
+
+              if (selectedFormat === 'webm') {
+                ffmpegArgs = [
+                  '-i',
+                  inputName,
+                  '-ss',
+                  startTime.toString(),
+                  '-t',
+                  (endTime - startTime).toString(),
+                  '-vf',
+                  `crop=${cropWidth}:${cropHeight}:${cropX}:${cropY}`,
+                  '-c:v',
+                  'libvpx-vp9',
+                  '-crf',
+                  quality,
+                  '-y',
+                  outputName,
+                ]
+              } else {
+                ffmpegArgs = [
+                  '-i',
+                  inputName,
+                  '-ss',
+                  startTime.toString(),
+                  '-t',
+                  (endTime - startTime).toString(),
+                  '-vf',
+                  `crop=${cropWidth}:${cropHeight}:${cropX}:${cropY}`,
+                  '-c:v',
+                  'libx264',
+                  '-crf',
+                  quality,
+                  '-y',
+                  outputName,
+                ]
+              }
+            }
+
+            // 设置进度回调
+            this.ffmpeg.setProgress(({ ratio }) => {
+              const percentage = Math.round(ratio * 100)
+              progressBar.style.width = percentage + '%'
+              progressText.textContent = `处理中... ${percentage}%`
+            })
+
+            // 执行FFmpeg命令
+            await this.ffmpeg.run(...ffmpegArgs)
+
+            // 读取输出文件
+            const data = this.ffmpeg.FS('readFile', outputName)
+            const blob = new Blob([data.buffer], {
+              type:
+                selectedFormat === 'gif'
+                  ? 'image/gif'
+                  : `video/${selectedFormat}`,
+            })
+
+            // 显示结果
+            this.showResult(blob, selectedFormat)
+
+            // 清理文件
+            this.ffmpeg.FS('unlink', inputName)
+            this.ffmpeg.FS('unlink', outputName)
+          } catch (error) {
+            console.error('Cropping failed:', error)
+            let errorMessage = '视频裁剪失败: ' + error.message
+            if (
+              error.message.includes('OOM') ||
+              error.message.includes('abort')
+            ) {
+              errorMessage =
+                '视频处理时内存不足，请尝试：\n1. 减小裁剪区域尺寸\n2. 缩短视频时长\n3. 选择较低的质量设置'
+            }
+            alert(errorMessage)
+            // 重置处理状态
+            this.resetProcessingState()
+          } finally {
+            progressContainer.style.display = 'none'
+            cropBtn.disabled = false
+          }
+        }
+
+        cropImage() {
+          if (!this.cropper) {
+            alert('请先选择裁剪区域')
+            return
+          }
+
+          const progressContainer = document.getElementById('progressContainer')
+          const progressBar = document.getElementById('progressBar')
+          const progressText = document.getElementById('progressText')
+          const cropBtn = document.getElementById('cropBtn')
+
+          progressContainer.style.display = 'block'
+          progressBar.style.width = '50%'
+          progressText.textContent = '处理中... 50%'
+          cropBtn.disabled = true
+
+          try {
+            // 获取选中的格式
+            const selectedFormat = document.querySelector(
+              '.format-option.selected'
+            ).dataset.format
+
+            // 获取裁剪数据
+            const cropData = this.cropper.getData()
+            const maxDimension = 4096 // 最大尺寸限制，防止内存溢出
+
+            // 计算安全的输出尺寸
+            let outputWidth = Math.round(cropData.width)
+            let outputHeight = Math.round(cropData.height)
+
+            // 如果尺寸过大，按比例缩放
+            if (outputWidth > maxDimension || outputHeight > maxDimension) {
+              const ratio = Math.min(
+                maxDimension / outputWidth,
+                maxDimension / outputHeight
+              )
+              outputWidth = Math.round(outputWidth * ratio)
+              outputHeight = Math.round(outputHeight * ratio)
+
+              console.warn(
+                `图片尺寸过大，已自动缩放至 ${outputWidth}x${outputHeight} 以防止内存溢出`
+              )
+            }
+
+            // 检查内存使用量（粗略估算）
+            const estimatedMemoryMB =
+              (outputWidth * outputHeight * 4) / (1024 * 1024)
+            if (estimatedMemoryMB > 256) {
+              // 超过256MB时警告
+              const confirmed = confirm(
+                `裁剪后的图片尺寸较大 (${outputWidth}x${outputHeight}, 约${Math.round(
+                  estimatedMemoryMB
+                )}MB)，可能导致内存不足。是否继续？`
+              )
+              if (!confirmed) {
+                progressContainer.style.display = 'none'
+                cropBtn.disabled = false
+                return
+              }
+            }
+
+            // 使用Cropper.js获取裁剪后的canvas，设置最大尺寸
+            const canvas = this.cropper.getCroppedCanvas({
+              width: outputWidth,
+              height: outputHeight,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high',
+            })
+
+            progressBar.style.width = '80%'
+            progressText.textContent = '处理中... 80%'
+
+            // 转换为blob
+            canvas.toBlob(
+              (blob) => {
+                progressBar.style.width = '100%'
+                progressText.textContent = '处理完成!'
+
+                // 显示结果
+                this.showResult(blob, selectedFormat)
+
+                setTimeout(() => {
+                  progressContainer.style.display = 'none'
+                  cropBtn.disabled = false
+                }, 500)
+              },
+              this.getMimeType(selectedFormat),
+              0.9
+            )
+          } catch (error) {
+            console.error('Image cropping failed:', error)
+            let errorMessage = '图片裁剪失败: ' + error.message
+            if (
+              error.message.includes('OOM') ||
+              error.message.includes('abort')
+            ) {
+              errorMessage =
+                '图片尺寸过大导致内存不足，请尝试裁剪更小的区域或使用更小的图片'
+            }
+            alert(errorMessage)
+            // 重置处理状态
+            this.resetProcessingState()
+            progressContainer.style.display = 'none'
+            cropBtn.disabled = false
+          }
+        }
+
+        getMimeType(format) {
+          switch (format) {
+            case 'png':
+              return 'image/png'
+            case 'webp':
+              return 'image/webp'
+            case 'jpg':
+            default:
+              return 'image/jpeg'
+          }
+        }
+
+        showResult(blob, format) {
+          const resultContainer = document.getElementById('resultContainer')
+          const resultVideo = document.getElementById('resultVideo')
+          const downloadBtn = document.getElementById('downloadBtn')
+
+          const url = URL.createObjectURL(blob)
+
+          // 判断是否为图片格式（包括GIF和其他图片格式）
+          const isImageFormat = ['gif', 'jpg', 'png', 'webp'].includes(format)
+
+          if (isImageFormat) {
+            // 对于图片格式，创建img元素
+            const img = document.createElement('img')
+            img.src = url
+            img.className = 'result-video'
+            img.style.width = '100%'
+            img.style.borderRadius = 'var(--border-radius)'
+            img.style.boxShadow = 'var(--shadow-large)'
+            img.style.marginBottom = '16px'
+
+            resultVideo.style.display = 'none'
+            if (resultContainer.querySelector('img')) {
+              resultContainer.removeChild(resultContainer.querySelector('img'))
+            }
+            resultContainer.insertBefore(img, downloadBtn)
+          } else {
+            // 对于视频格式
+            resultVideo.src = url
+            resultVideo.style.display = 'block'
+            if (resultContainer.querySelector('img')) {
+              resultContainer.removeChild(resultContainer.querySelector('img'))
+            }
+          }
+
+          resultContainer.style.display = 'block'
+
+          // 设置下载
+          this.resultBlob = blob
+          this.resultFormat = format
+        }
+
+        downloadResult() {
+          if (!this.resultBlob) return
+
+          const url = URL.createObjectURL(this.resultBlob)
+          const a = document.createElement('a')
+          a.href = url
+
+          // 根据文件类型设置下载文件名
+          const isImageFormat = ['gif', 'jpg', 'png', 'webp'].includes(
+            this.resultFormat
+          )
+          const fileName = isImageFormat
+            ? `cropped_image.${this.resultFormat}`
+            : `cropped_video.${this.resultFormat}`
+          a.download = fileName
+
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        }
+
+        resetProcessingState() {
+          // 重置进度条
+          const progressContainer = document.getElementById('progressContainer')
+          const progressBar = document.getElementById('progressBar')
+          const progressText = document.getElementById('progressText')
+
+          if (progressContainer) {
+            progressContainer.style.display = 'none'
+          }
+          if (progressBar) {
+            progressBar.style.width = '0%'
+          }
+          if (progressText) {
+            progressText.textContent = '准备处理...'
+          }
+
+          // 重新启用裁剪按钮
+          const cropBtn = document.getElementById('cropBtn')
+          if (cropBtn) {
+            cropBtn.disabled = false
+          }
+
+          // 清理可能的临时文件（如果有的话）
+          if (this.ffmpeg) {
+            try {
+              // 尝试清理可能残留的临时文件
+              const files = this.ffmpeg.FS('readdir', '/')
+              files.forEach((file) => {
+                if (file.startsWith('input_') || file.startsWith('output_')) {
+                  try {
+                    this.ffmpeg.FS('unlink', file)
+                  } catch (e) {
+                    // 忽略文件不存在的错误
+                  }
+                }
+              })
+            } catch (e) {
+              // 忽略清理错误
+            }
+          }
+        }
+
+        reset() {
+          // 重置文件相关属性
+          this.videoFile = null
+          this.isImageFile = false
+
+          // 重置所有输入
+          document.getElementById('startTime').value = 0
+          document.getElementById('endTime').value = 10
+          document.getElementById('cropX').value = 0
+          document.getElementById('cropY').value = 0
+          document.getElementById('cropWidth').value = 640
+          document.getElementById('cropHeight').value = 360
+
+          // 重置格式选择 - 显示视频格式，隐藏图片格式
+          document.querySelectorAll('.format-option').forEach((option) => {
+            option.classList.remove('selected')
+          })
+
+          // 显示视频格式选项
+          document.querySelectorAll('.video-format').forEach((option) => {
+            option.style.display = 'flex'
+          })
+
+          // 隐藏图片格式选项
+          document.querySelectorAll('.image-format').forEach((option) => {
+            option.style.display = 'none'
+          })
+
+          // 默认选择MP4
+          document
+            .querySelector('.format-option[data-format="mp4"]')
+            .classList.add('selected')
+
+          // 显示时间控制（恢复视频模式UI）
+          const timeControls = document.querySelector('.time-controls')
+          if (timeControls) {
+            timeControls.style.display = 'block'
+          }
+
+          // 隐藏视频预览和控制条
+          document.getElementById('videoPreview').style.display = 'none'
+          document.getElementById('videoControls').style.display = 'none'
+          document.getElementById('cropperContainer').style.display = 'none'
+
+          // 隐藏结果
+          document.getElementById('resultContainer').style.display = 'none'
+          document.getElementById('progressContainer').style.display = 'none'
+
+          // 清理视频元素
+          if (this.videoElement) {
+            this.videoElement.src = ''
+            this.videoElement = null
+          }
+
+          // 清理Cropper实例
+          if (this.cropper) {
+            this.cropper.destroy()
+            this.cropper = null
+          }
+
+          // 重置按钮状态
+          document.getElementById('cropBtn').disabled = true
+
+          // 重置透明度滑块
+          const opacitySlider = document.getElementById('opacitySlider')
+          if (opacitySlider) {
+            opacitySlider.value = 30
+          }
+
+          // 重置文件输入
+          const videoInput = document.getElementById('videoInput')
+          if (videoInput) {
+            videoInput.value = ''
+          }
+        }
+
+        formatTime(seconds) {
+          const mins = Math.floor(seconds / 60)
+          const secs = Math.floor(seconds % 60)
+          return `${mins.toString().padStart(2, '0')}:${secs
+            .toString()
+            .padStart(2, '0')}`
+        }
+
+        // 弹框相关方法
+        // Modal functionality removed - using Cropper.js directly
+
+        // setupModalCropSelection removed - using Cropper.js directly
+
+        // All modal drag/resize methods removed - using Cropper.js directly
+      }
+
+      // 初始化应用
+      document.addEventListener('DOMContentLoaded', () => {
+        new VideoCropper()
+      })
+    </script>
+  </body>
+</html>

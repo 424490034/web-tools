@@ -56,9 +56,18 @@
       link: "https://open.996day.com/pdf.html",
       buttonText: "开始导出"
     },
+    
+    {
+      "icon": "fas fa-cut",
+      "title": "媒体区域裁剪工具",
+      "description": "支持视频和图片区域裁剪处理，视频可指定时长和区域，图片可精确裁剪 - 基于FFmpeg WebAssembly和Cropper.js 🎬",
+      "emoji": "🎬",
+      "link": "https://open.996day.com/mediaCrop.html", // 假设的实际链接
+      "buttonText": "立即裁剪"
+    },
     {
       icon: "fas fa-cut",
-      title: "音视频剪辑",
+      title: "音视频时长剪辑",
       description: "在浏览器中直接剪辑音频和视频文件，支持MP3、MP4等多种格式。(๑•̀ω•́)ノ",
       emoji: "(๑•̀ω•́)ノ",
       link: "https://open.996day.com/jj.html",
