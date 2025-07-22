@@ -858,6 +858,9 @@
             <div class="format-option" data-format="svg">
               <div>SVG</div>
             </div>
+            <div class="format-option" data-format="gif">
+              <div>GIF</div>
+            </div>
           </div>
 
           <div class="quality-control">
@@ -873,7 +876,10 @@
               id="qualitySlider"
             />
             <p style="color: #aaa; font-size: 0.9rem">
-              提示：仅JPG/WEBP支持质量调整，PNG/SVG为无损格式
+              提示：仅JPG/WEBP支持质量调整，PNG/SVG/GIF为无损格式
+            </p>
+            <p style="color: #ff6b6b; font-size: 0.85rem; margin-top: 8px;">
+              ⚠️ GIF动画说明：GIF转GIF保持动画，GIF转其他格式仅保留第一帧
             </p>
           </div>
 
@@ -1085,6 +1091,13 @@
           updateFileList()
 
           try {
+            // 检查是否为GIF转其他格式的情况
+            const isGifToOther = fileInfo.file.type === 'image/gif' && currentFormat !== 'gif'
+            if (isGifToOther) {
+              fileInfo.status = '转换中...(动画将丢失)'
+              updateFileList()
+            }
+            
             const convertedBlob = await convertImage(
               fileInfo.file,
               currentFormat,
@@ -1098,7 +1111,12 @@
                 '.' +
                 currentFormat,
             }
-            fileInfo.status = '✓ 转换完成'
+            
+            if (isGifToOther) {
+              fileInfo.status = '✓ 转换完成(静态图片)'
+            } else {
+              fileInfo.status = '✓ 转换完成'
+            }
           } catch (error) {
             console.error(error)
             fileInfo.status = '✗ 转换失败'
@@ -1119,6 +1137,20 @@
       // 图片转换核心函数
       function convertImage(file, format, quality) {
         return new Promise((resolve, reject) => {
+          // 检查是否为GIF文件
+          const isGif = file.type === 'image/gif'
+          
+          // 如果是GIF转GIF，直接返回原文件以保持动画
+          if (isGif && format === 'gif') {
+            resolve(file)
+            return
+          }
+          
+          // 如果是GIF转其他格式，给出警告但继续处理（只转换第一帧）
+          if (isGif && format !== 'gif') {
+            console.warn('GIF动画将被转换为静态图片（仅保留第一帧）')
+          }
+
           const img = new Image()
           const reader = new FileReader()
 
@@ -1148,6 +1180,10 @@
                 case 'bmp':
                   mimeType = 'image/bmp'
                   break
+                case 'gif':
+                  // 对于非GIF源文件转GIF，使用静态转换
+                  mimeType = 'image/gif'
+                  break
                 case 'svg':
                   // SVG格式需要特殊处理
                   const svgData = createSVGFromCanvas(canvas)
@@ -1160,8 +1196,8 @@
 
               // 转换质量处理
               let qualityValue = quality / 100
-              if (format === 'png' || format === 'svg') {
-                // PNG和SVG格式不支持质量参数
+              if (format === 'png' || format === 'svg' || format === 'gif') {
+                // PNG、SVG和GIF格式不支持质量参数
                 qualityValue = undefined
               }
 
