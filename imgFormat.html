@@ -821,7 +821,7 @@
           <div class="file-upload-area" id="dropArea">
             <div class="upload-icon">📁</div>
             <p>拖放图片到此处 或 <u>点击选择文件</u></p>
-            <p>支持 JPG, PNG, WEBP, BMP, GIF 等格式</p>
+            <p>支持 JPG, PNG, WEBP, BMP, SVG, GIF 等格式</p>
             <input type="file" id="fileInput" accept="image/*" multiple />
           </div>
 
@@ -847,6 +847,9 @@
             <div class="format-option" data-format="bmp">
               <div>BMP</div>
             </div>
+            <div class="format-option" data-format="svg">
+              <div>SVG</div>
+            </div>
           </div>
 
           <div class="quality-control">
@@ -862,7 +865,7 @@
               id="qualitySlider"
             />
             <p style="color: #aaa; font-size: 0.9rem">
-              提示：仅JPG/WEBP支持质量调整，PNG为无损格式
+              提示：仅JPG/WEBP支持质量调整，PNG/SVG为无损格式
             </p>
           </div>
 
@@ -893,7 +896,7 @@
           </div>
           <div class="feature">
             <h3>格式全面支持</h3>
-            <p>支持JPG、PNG、WEBP、BMP等主流图片格式互转[2,7](@ref)。</p>
+            <p>支持JPG、PNG、WEBP、BMP、SVG等主流图片格式互转[2,7](@ref)。</p>
           </div>
           <div class="feature">
             <h3>大文件兼容</h3>
@@ -1137,14 +1140,20 @@
                 case 'bmp':
                   mimeType = 'image/bmp'
                   break
+                case 'svg':
+                  // SVG格式需要特殊处理
+                  const svgData = createSVGFromCanvas(canvas)
+                  const svgBlob = new Blob([svgData], { type: 'image/svg+xml' })
+                  resolve(svgBlob)
+                  return
                 default:
                   mimeType = 'image/jpeg'
               }
 
               // 转换质量处理
               let qualityValue = quality / 100
-              if (format === 'png') {
-                // PNG格式不支持质量参数
+              if (format === 'png' || format === 'svg') {
+                // PNG和SVG格式不支持质量参数
                 qualityValue = undefined
               }
 
@@ -1211,6 +1220,16 @@
         convertBtn.disabled = true
         downloadBtn.disabled = true
         updateFileList()
+      }
+
+      // 创建SVG从Canvas
+      function createSVGFromCanvas(canvas) {
+        const dataURL = canvas.toDataURL('image/png')
+        const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
+</svg>`
+        return svgContent
       }
 
       // 格式化文件大小
