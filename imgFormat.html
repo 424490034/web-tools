@@ -664,6 +664,7 @@
         padding: 20px;
         border-radius: 10px;
         border-left: 3px solid #4facfe;
+        color: #fff;
       }
 
       .feature h3 {
@@ -878,7 +879,7 @@
             <p style="color: #aaa; font-size: 0.9rem">
               提示：仅JPG/WEBP支持质量调整，PNG/SVG/GIF为无损格式
             </p>
-            <p style="color: #ff6b6b; font-size: 0.85rem; margin-top: 8px;">
+            <p style="color: #ff6b6b; font-size: 0.85rem; margin-top: 8px">
               ⚠️ GIF动画说明：GIF转GIF保持动画，GIF转其他格式仅保留第一帧
             </p>
           </div>
@@ -1092,12 +1093,13 @@
 
           try {
             // 检查是否为GIF转其他格式的情况
-            const isGifToOther = fileInfo.file.type === 'image/gif' && currentFormat !== 'gif'
+            const isGifToOther =
+              fileInfo.file.type === 'image/gif' && currentFormat !== 'gif'
             if (isGifToOther) {
               fileInfo.status = '转换中...(动画将丢失)'
               updateFileList()
             }
-            
+
             const convertedBlob = await convertImage(
               fileInfo.file,
               currentFormat,
@@ -1111,7 +1113,7 @@
                 '.' +
                 currentFormat,
             }
-            
+
             if (isGifToOther) {
               fileInfo.status = '✓ 转换完成(静态图片)'
             } else {
@@ -1139,13 +1141,13 @@
         return new Promise((resolve, reject) => {
           // 检查是否为GIF文件
           const isGif = file.type === 'image/gif'
-          
+
           // 如果是GIF转GIF，直接返回原文件以保持动画
           if (isGif && format === 'gif') {
             resolve(file)
             return
           }
-          
+
           // 如果是GIF转其他格式，给出警告但继续处理（只转换第一帧）
           if (isGif && format !== 'gif') {
             console.warn('GIF动画将被转换为静态图片（仅保留第一帧）')
