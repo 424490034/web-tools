@@ -782,17 +782,47 @@
 
       /* 工具筛选动画 */
       .tool-section {
-        transition: opacity 0.4s ease, transform 0.4s ease;
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+        will-change: opacity, transform;
       }
 
       .tool-section.filtering-out {
         opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+        transform: translateY(-15px) scale(0.98);
+        visibility: hidden;
+        pointer-events: none;
       }
 
       .tool-section.filtering-in {
         opacity: 1;
         transform: translateY(0) scale(1);
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      /* 工具容器稳定性优化 */
+      .timeline-track {
+        transition: min-height 0.3s ease;
+        position: relative;
+      }
+
+      /* 进入视图动画 */
+      .tool-section.in-view {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* 防止布局抖动的额外优化 */
+      .tool-section {
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transform-style: preserve-3d;
+      }
+
+      /* 优化GPU加速 */
+      .tool-content-wrapper {
+        will-change: transform;
+        transform: translateZ(0);
       }
 
       /* 分类计数器样式 */

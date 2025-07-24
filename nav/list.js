@@ -139,14 +139,18 @@
     
     currentCategory = category;
     const filteredTools = category === 'all' ? tools : tools.filter(tool => tool.category === category);
+    const timelineTrack = document.querySelector("#timelineTrack");
+    
+    // 保存当前容器高度，防止抖动
+    const currentHeight = timelineTrack.offsetHeight;
+    timelineTrack.style.minHeight = currentHeight + 'px';
+    
+    // 获取当前所有工具卡片
+    const currentSections = document.querySelectorAll('.tool-section');
     
     // 添加淡出动画
-    const currentSections = document.querySelectorAll('.tool-section');
     currentSections.forEach((section, index) => {
       section.classList.add('filtering-out');
-      setTimeout(() => {
-        section.style.display = 'none';
-      }, 200);
     });
     
     // 延迟渲染新工具，等待淡出动画完成
@@ -154,16 +158,20 @@
       renderTools(filteredTools);
       updateCategoryButtons();
       
+      // 重置容器最小高度
+      setTimeout(() => {
+        timelineTrack.style.minHeight = 'auto';
+      }, 100);
+      
       // 添加淡入动画
       const newSections = document.querySelectorAll('.tool-section');
       newSections.forEach((section, index) => {
-        section.style.display = 'flex';
         section.classList.add('filtering-in');
         setTimeout(() => {
           section.classList.remove('filtering-out', 'filtering-in');
         }, 400);
       });
-    }, 250);
+    }, 300);
   }
 
   // 渲染工具函数
@@ -184,6 +192,10 @@
       section.className = "tool-section";
       section.id = `tool-${index}`;
       section.setAttribute('data-category', tool.category);
+      
+      // 初始状态设为隐藏，准备淡入动画
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(20px)';
       
       // 创建卡片HTML结构
       section.innerHTML = `
@@ -215,23 +227,31 @@
   function initializeAnimations() {
     const toolSections = document.querySelectorAll('.tool-section');
     
-    // 添加进入视图时的动画
+    // 为新渲染的工具卡片添加渐进式淡入动画
+    toolSections.forEach((section, index) => {
+      // 设置过渡效果
+      section.style.transition = `opacity 0.4s ease ${index * 0.05}s, transform 0.4s ease ${index * 0.05}s`;
+      
+      // 延迟触发淡入动画
+      setTimeout(() => {
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
+      }, 50 + index * 30);
+    });
+    
+    // 添加进入视图时的动画观察器（用于滚动时的动画）
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            entry.target.classList.add('in-view');
           }
         });
       },
       { threshold: 0.1 }
     );
     
-    toolSections.forEach((section, index) => {
-      section.style.opacity = '0';
-      section.style.transform = 'translateY(30px)';
-      section.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+    toolSections.forEach((section) => {
       observer.observe(section);
     });
   }
