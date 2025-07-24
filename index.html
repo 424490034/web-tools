@@ -782,21 +782,41 @@
 
       /* 工具筛选动画 */
       .tool-section {
-        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+        transition: opacity 0.3s ease, transform 0.3s ease;
         will-change: opacity, transform;
       }
 
       .tool-section.filtering-out {
-        opacity: 0;
-        transform: translateY(-15px) scale(0.98);
-        visibility: hidden;
+        opacity: 0.3;
+        transform: translateY(-10px) scale(0.95);
         pointer-events: none;
+      }
+
+      /* 确保工具卡片背景在筛选时保持可见 */
+      .tool-section.filtering-out .tool-content-wrapper {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0.8;
+      }
+
+      /* 确保图标和按钮在筛选时保持可见 */
+      .tool-section.filtering-out .tool-icon-large {
+        opacity: 0.6;
+      }
+
+      .tool-section.filtering-out .tool-link {
+        opacity: 0.7;
+      }
+
+      .tool-section.filtering-out .tool-details h3,
+      .tool-section.filtering-out .tool-details p {
+        opacity: 0.5;
       }
 
       .tool-section.filtering-in {
         opacity: 1;
         transform: translateY(0) scale(1);
-        visibility: visible;
         pointer-events: auto;
       }
 
