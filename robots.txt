@@ -1,0 +1,46 @@
+# Robots.txt for 多功能工具箱
+# 允许所有搜索引擎爬虫访问
+
+User-agent: *
+Allow: /
+
+# 网站地图位置
+Sitemap: https://www.996day.com/sitemap.xml
+
+# 优先抓取的页面
+Allow: /index.html
+Allow: /name.html
+Allow: /record.html
+Allow: /tape.html
+Allow: /color.html
+Allow: /imgFormat.html
+Allow: /pdf.html
+Allow: /mediaCrop.html
+Allow: /jj.html
+Allow: /screenshot.html
+Allow: /format.html
+Allow: /merge.html
+Allow: /player.html
+
+# 允许访问静态资源
+Allow: /nav/
+Allow: /player/
+Allow: /format/
+Allow: /videoFormat/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.wasm
+Allow: /*.ttf
+
+# 爬取延迟（秒）
+Crawl-delay: 1
+
+# 特定搜索引擎的设置
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: Baiduspider
+Crawl-delay: 2

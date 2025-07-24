@@ -1,0 +1,71 @@
+{
+  "name": "多功能在线工具箱",
+  "short_name": "工具箱",
+  "description": "免费在线工具集合，提供中文姓名生成、屏幕录制、图片处理、音视频编辑等实用工具",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4a6cf7",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity", "tools"],
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "中文姓名生成器",
+      "short_name": "姓名生成",
+      "description": "随机生成中文姓名",
+      "url": "/name.html",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "屏幕录制",
+      "short_name": "录屏",
+      "description": "在线屏幕录制工具",
+      "url": "/record.html",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "图片压缩",
+      "short_name": "压缩图片",
+      "description": "智能压缩图片文件",
+      "url": "https://tinypng.com/",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "音视频剪辑",
+      "short_name": "剪辑",
+      "description": "音视频时长剪辑工具",
+      "url": "/jj.html",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    }
+  ]
+}

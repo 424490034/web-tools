@@ -1,271 +1,1477 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
   <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- 基础SEO标签 -->
+    <title>
+      多功能在线工具箱 - 中文姓名生成器、屏幕录制、图片压缩、音视频剪辑工具集合
+    </title>
     <meta
-      name="viewport"
-      content="initial-scale=1.0, user-scalable=no, width=device-width"
+      name="description"
+      content="免费在线工具集合，提供中文姓名生成器、屏幕录制、快捷录音、图片压缩转换、音视频剪辑合并等30+实用工具。纯前端运行，保护隐私安全，无需注册下载。"
     />
-    <title>轨迹回放与录制（WebM → MP4）</title>
+    <meta
+      name="keywords"
+      content="在线工具,免费工具,中文姓名生成器,屏幕录制,图片压缩,音视频剪辑,格式转换,前端工具,浏览器工具,隐私安全,无需下载"
+    />
+    <meta name="author" content="多功能工具箱" />
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+
+    <!-- Open Graph 标签 -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="多功能在线工具箱 - 免费实用的浏览器工具集合"
+    />
+    <meta
+      property="og:description"
+      content="提供中文姓名生成、屏幕录制、图片处理、音视频编辑等30+免费在线工具，纯前端运行保护隐私"
+    />
+    <meta property="og:url" content="https://www.996day.com/index.html" />
+    <meta property="og:site_name" content="多功能工具箱" />
+    <meta property="og:locale" content="zh_CN" />
+
+    <!-- Twitter Card 标签 -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="多功能在线工具箱 - 免费实用工具集合" />
+    <meta
+      name="twitter:description"
+      content="中文姓名生成、屏幕录制、图片处理、音视频编辑等免费在线工具"
+    />
+
+    <!-- 移动端优化 -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- 搜索引擎验证 -->
+    <meta name="baidu-site-verification" content="" />
+    <meta name="google-site-verification" content="" />
+
+    <!-- Canonical链接 -->
+    <link rel="canonical" href="https://www.996day.com/index.html" />
+
+    <!-- 语言和地区 -->
+    <link
+      rel="alternate"
+      hreflang="zh-CN"
+      href="https://www.996day.com/index.html"
+    />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://www.996day.com/index.html"
+    />
+
+    <!-- 网站图标 -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- DNS预解析 -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="//hm.baidu.com" />
+
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="./nav/list3.js" as="script" />
+    <link rel="preload" href="./title.js" as="script" />
+
+    <!-- 其他SEO标签 -->
+    <meta name="theme-color" content="#4a6cf7" />
+    <meta name="msapplication-TileColor" content="#4a6cf7" />
+    <meta name="application-name" content="多功能工具箱" />
+    <meta name="apple-mobile-web-app-title" content="多功能工具箱" />
+
+    <!-- 网站地图和RSS -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <!-- 结构化数据 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "多功能在线工具箱",
+        "description": "免费在线工具集合，提供中文姓名生成器、屏幕录制、图片压缩、音视频剪辑等实用工具",
+        "url": "https://www.996day.com/index.html",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "CNY"
+        },
+        "featureList": [
+          "中文姓名生成器",
+          "在线屏幕录制",
+          "快捷录音工具",
+          "颜色转换工具",
+          "图片压缩",
+          "图片格式转换",
+          "图片转PDF",
+          "媒体区域裁剪",
+          "音视频时长剪辑",
+          "音视频截图",
+          "音视频格式转换",
+          "音视频合并",
+          "视频播放器"
+        ],
+        "browserRequirements": "现代浏览器支持",
+        "softwareVersion": "1.0",
+        "datePublished": "2024-01-01",
+        "dateModified": "2024-12-19",
+        "inLanguage": "zh-CN",
+        "isAccessibleForFree": true,
+        "creator": {
+          "@type": "Organization",
+          "name": "多功能工具箱"
+        }
+      }
+    </script>
     <link
       rel="stylesheet"
-      href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <style>
-      html,
-      body,
-      #container {
+      :root {
+        /* 浅色主题变量 */
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --card-bg: #f8f9fa;
+        --border-color: #e0e0e0;
+        --primary-color: #4a6cf7;
+        --hover-color: #3a56e0;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --section-bg: #f1f5f9;
+        --theme-icon: '🌙';
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+      }
+
+      /* 深色主题变量 */
+      .dark-theme {
+        --bg-color: #1a1a1a;
+        --text-color: #f0f0f0;
+        --card-bg: #2d2d2d;
+        --border-color: #444444;
+        --primary-color: #6c8eff;
+        --hover-color: #5a7ce6;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --section-bg: #252525;
+        --theme-icon: '☀️';
+        --glass-bg: rgba(40, 40, 40, 0.7);
+        --glass-border: rgba(70, 70, 70, 0.2);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-image: radial-gradient(
+          circle at 10% 20%,
+          rgba(var(--primary-color-rgb), 0.05) 0%,
+          rgba(var(--primary-color-rgb), 0.02) 90%
+        );
+        overflow-x: hidden;
+      }
+
+      /* 提取RGB值用于背景渐变 */
+      :root {
+        --primary-color-rgb: 74, 108, 247;
+      }
+
+      .dark-theme {
+        --primary-color-rgb: 108, 142, 255;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* 视差背景元素 */
+      .parallax-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
         height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .parallax-shape {
+        position: absolute;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), transparent);
+        opacity: 0.3;
+        filter: blur(60px);
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+      }
+
+      .shape-1 {
+        width: 500px;
+        height: 500px;
+        top: -150px;
+        left: -100px;
+        background: radial-gradient(
+          circle at 30% 30%,
+          var(--primary-color),
+          transparent 70%
+        );
+      }
+
+      .shape-2 {
+        width: 400px;
+        height: 400px;
+        bottom: 10%;
+        right: -50px;
+        background: radial-gradient(
+          circle at 70% 70%,
+          var(--primary-color),
+          transparent 70%
+        );
+      }
+
+      .shape-3 {
+        width: 300px;
+        height: 300px;
+        top: 40%;
+        left: 10%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          var(--primary-color),
+          transparent 70%
+        );
+      }
+
+      .shape-4 {
+        width: 200px;
+        height: 200px;
+        top: 20%;
+        right: 15%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          var(--primary-color),
+          transparent 70%
+        );
+      }
+
+      .shape-5 {
+        width: 150px;
+        height: 150px;
+        bottom: 20%;
+        left: 20%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          var(--primary-color),
+          transparent 70%
+        );
+      }
+
+      /* 头部样式 - 毛玻璃效果 */
+      header {
+        background-color: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 20px 0;
+        box-shadow: var(--glass-shadow);
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: 0 2px 10px rgba(var(--primary-color-rgb), 0.2);
+      }
+
+      .logo p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .theme-switch {
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border: 1px solid var(--glass-border);
+        border-radius: 50px;
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .theme-switch:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .theme-switch::after {
+        content: var(--theme-icon);
+      }
+
+      /* 主内容区 */
+      main {
+        flex: 1;
+        padding: 40px 0;
+        position: relative;
+      }
+
+      .intro {
+        text-align: center;
+        margin-bottom: 60px;
+        transform: translateZ(0);
+        transition: transform 0.3s ease;
+      }
+
+      .intro h2 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        position: relative;
+        display: inline-block;
+      }
+
+      .intro h2::after {
+        content: ' (๑•̀ㅂ•́)و✧';
+        font-size: 1.2rem;
+        opacity: 0.7;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      .intro p {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 1.1rem;
+        opacity: 0.9;
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        padding: 15px 25px;
+        border-radius: 15px;
+        box-shadow: var(--glass-shadow);
+        border: 1px solid var(--glass-border);
+      }
+
+      /* 工具网格布局 */
+      .tools-timeline {
+        position: relative;
+        margin-top: 50px;
+        padding: 30px 0;
+        overflow: hidden;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+      }
+
+      .tools-timeline.in-view {
+        opacity: 1;
+      }
+
+      .tools-timeline:not(.in-view) {
+        opacity: 0.7;
+      }
+
+      .timeline-track {
+        position: relative;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        padding-bottom: 30px;
+        overflow-y: visible;
+      }
+
+      .tool-section {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        margin-bottom: 20px;
+      }
+
+      .tool-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 15px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 2;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--glass-shadow);
+        border: 1px solid var(--glass-border);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        min-height: 280px;
+      }
+
+      .tool-content-wrapper:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(var(--primary-color-rgb), 0.2);
+      }
+
+      .tool-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin-bottom: 10px;
+      }
+
+      .tool-icon-large {
+        font-size: 3.5rem;
+        color: var(--primary-color);
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 8px 12px rgba(var(--primary-color-rgb), 0.3));
+        transition: all 0.5s ease;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+
+      .tool-icon-bg {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at center,
+          rgba(var(--primary-color-rgb), 0.15),
+          transparent 70%
+        );
+        filter: blur(20px);
+        z-index: 0;
+      }
+
+      .tool-details {
+        width: 100%;
+        text-align: center;
+        transform: translateZ(0);
+      }
+
+      .tool-details h3 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+        position: relative;
+        display: inline-block;
+        text-align: center;
+        line-height: 1.3;
+      }
+
+      .tool-details h3::after {
+        content: attr(data-emoji);
+        font-size: 1rem;
+        opacity: 0.7;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      .tool-details p {
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        opacity: 0.9;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 2.8em;
+      }
+
+      .tool-link {
+        display: inline-block;
+        padding: 8px 16px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+        width: 100%;
+        max-width: 120px;
+      }
+
+      .tool-link::after {
+        content: ' →';
+        opacity: 0;
+        transform: translateX(-10px);
+        display: inline-block;
+        transition: all 0.3s;
+      }
+
+      .tool-link:hover {
+        background: var(--hover-color);
+        padding-right: 30px;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.4);
+      }
+
+      .tool-link:hover::after {
+        opacity: 1;
+        transform: translateX(5px);
+      }
+
+      /* 时间线导航样式已移除 */
+
+      /* 页脚样式 */
+      footer {
+        background-color: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 30px 0;
+        margin-top: auto;
+        border-top: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+      }
+
+      .footer-content {
+        text-align: center;
+        padding: 20px 0;
+      }
+
+      .content-section {
+        font-size: 0.9rem;
+        color: var(--text-color);
+        opacity: 0.8;
+        line-height: 1.8;
+      }
+
+      .subp {
+        margin-bottom: 8px;
+      }
+
+      .subp_a {
+        color: var(--primary-color);
+        text-decoration: none;
+        position: relative;
+        transition: all 0.3s;
+      }
+
+      .subp_a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--primary-color);
+        transition: width 0.3s;
+      }
+
+      .subp_a:hover {
+        text-decoration: none;
+      }
+
+      .subp_a:hover::after {
         width: 100%;
       }
 
-      .input-card .btn {
-        margin-right: 1.2rem;
-        width: 9rem;
+      /* 淡出动画 */
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
       }
 
-      .input-card .btn:last-child {
-        margin-right: 0;
+      .fade-out {
+        animation: fadeOut 0.5s forwards;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 1024px) {
+        .timeline-track {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+
+        .tool-content-wrapper {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+          padding: 18px;
+          min-height: 260px;
+        }
+
+        .tool-details {
+          max-width: 100%;
+        }
+
+        .tool-icon-large {
+          font-size: 3rem;
+        }
+
+        .tool-details h3 {
+          font-size: 1.2rem;
+        }
+
+        .tool-details p {
+          font-size: 0.8rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header-content {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .intro h2 {
+          font-size: 1.8rem;
+        }
+
+        .theme-switch {
+          align-self: center;
+        }
+
+        .parallax-shape {
+          opacity: 0.15;
+        }
+
+        .timeline-track {
+          grid-template-columns: 1fr;
+          gap: 15px;
+          height: auto;
+          min-height: 80vh;
+        }
+
+        .tool-section {
+          padding: 0 10px;
+        }
+
+        .tool-content-wrapper {
+          padding: 15px;
+          min-height: 240px;
+        }
+
+        .tool-icon-large {
+          font-size: 3rem;
+        }
+
+        .tool-details h3 {
+          font-size: 1.1rem;
+        }
+
+        .tool-details p {
+          font-size: 0.8rem;
+          -webkit-line-clamp: 2;
+        }
+
+        .tool-link {
+          font-size: 0.8rem;
+          padding: 6px 12px;
+          max-width: 100px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .intro p {
+          font-size: 0.95rem;
+          padding: 12px 15px;
+        }
+
+        .tool-content-wrapper {
+          padding: 12px;
+          min-height: 220px;
+        }
+
+        .tool-icon-large {
+          font-size: 2.5rem;
+        }
+
+        .tool-details h3 {
+          font-size: 1rem;
+        }
+
+        .tool-details p {
+          font-size: 0.75rem;
+        }
+
+        .tool-link {
+          font-size: 0.75rem;
+          padding: 5px 10px;
+          max-width: 90px;
+        }
+      }
+
+      /* 卡片加载动画 */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .tool-card {
+        animation: fadeInUp 0.6s ease backwards;
+      }
+
+      /* 侧边栏快捷导航已移除 */
+
+      /* 鼠标跟随效果 */
+      .cursor-follower {
+        position: fixed;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at center,
+          rgba(var(--primary-color-rgb), 0.15),
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity 0.3s ease,
+          transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform, opacity;
+      }
+
+      /* 面包屑导航样式 */
+      .breadcrumb {
+        padding: 10px 0;
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      .breadcrumb ol {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .breadcrumb li {
+        display: flex;
+        align-items: center;
+      }
+
+      .breadcrumb li:not(:last-child)::after {
+        content: '/';
+        margin-left: 8px;
+        opacity: 0.6;
+      }
+
+      .breadcrumb a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: opacity 0.3s;
+      }
+
+      .breadcrumb a:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+      }
+
+      /* 工具分类导航样式 */
+      .tool-categories {
+        margin-top: 40px;
+        padding: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+      }
+
+      .tool-categories h3 {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+      }
+
+      .tool-categories ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .tool-categories li {
+        display: inline-block;
+      }
+
+      .tool-categories a {
+        display: inline-block;
+        padding: 8px 16px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
+      }
+
+      .tool-categories a:hover {
+        background: var(--hover-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+      }
+
+      /* 屏幕阅读器专用隐藏类 */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* 淡出动画 - 仅用于特定元素，不用于工具卡片 */
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+
+      /* 修改淡出类，不再阻止交互 */
+      .fade-out {
+        animation: fadeOut 0.5s forwards;
+        /* 移除pointer-events: none，允许继续交互 */
+      }
+
+      /* 页脚导航样式 */
+      .footer-nav {
+        margin-bottom: 20px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .footer-nav h4 {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        font-size: 1rem;
+      }
+
+      .footer-nav ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .footer-nav li {
+        display: inline-block;
+      }
+
+      .footer-nav a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        transition: all 0.3s;
+      }
+
+      .footer-nav a:hover {
+        color: var(--primary-color);
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      /* FAQ部分样式 */
+      .faq-section {
+        margin-bottom: 20px;
+      }
+
+      /* 响应式优化 - 面包屑和分类导航 */
+      @media (max-width: 768px) {
+        .breadcrumb {
+          font-size: 0.8rem;
+        }
+
+        .tool-categories {
+          margin-top: 30px;
+          padding: 15px;
+        }
+
+        .tool-categories ul {
+          gap: 10px;
+        }
+
+        .tool-categories a {
+          padding: 6px 12px;
+          font-size: 0.8rem;
+        }
+
+        .footer-nav ul {
+          gap: 15px;
+        }
+
+        .footer-nav a {
+          font-size: 0.85rem;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="container"></div>
-    <div class="input-card">
-      <h4>轨迹控制</h4>
-      <div class="input-item">
-        <input
-          type="button"
-          class="btn"
-          value="开始动画"
-          onclick="startAnimation()"
-        />
-        <input
-          type="button"
-          class="btn"
-          value="暂停动画"
-          onclick="pauseAnimation()"
-        />
-      </div>
-      <div class="input-item">
-        <input
-          type="button"
-          class="btn"
-          value="继续动画"
-          onclick="resumeAnimation()"
-        />
-        <input
-          type="button"
-          class="btn"
-          value="停止动画"
-          onclick="stopAnimation()"
-        />
-      </div>
+    <!-- 视差背景元素 -->
+    <div class="parallax-bg">
+      <div class="parallax-shape shape-1"></div>
+      <div class="parallax-shape shape-2"></div>
+      <div class="parallax-shape shape-3"></div>
+      <div class="parallax-shape shape-4"></div>
+      <div class="parallax-shape shape-5"></div>
     </div>
 
-    <!-- 1. 引入 FFmpeg.wasm -->
-    <script src="./ffmpeg.min.js"></script>
-    <script
-      type="text/javascript"
-      src="https://webapi.amap.com/maps?v=2.0&key=03437a6ddeb44bd6ef16e80b1bf10bcf&plugin=AMap.PlaceSearch,AMap.Scale,AMap.OverView,AMap.ToolBar,AMap.MapType,AMap.Geolocation,AMap.Geocoder,AMap.MoveAnimation,AMap.Driving,AMap.AutoComplete,AMap.MoveAnimation,AMap.TileLayer.Traffic,AMap.ToolBar"
-    ></script>
+    <!-- 侧边栏快捷导航已移除 -->
 
+    <!-- 鼠标跟随效果 -->
+    <div class="cursor-follower"></div>
+
+    <header role="banner">
+      <div class="container">
+        <!-- 面包屑导航 -->
+        <nav aria-label="面包屑导航" class="breadcrumb">
+          <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+            <li
+              itemprop="itemListElement"
+              itemscope
+              itemtype="https://schema.org/ListItem"
+            >
+              <a itemprop="item" href="/">
+                <span itemprop="name">首页</span>
+              </a>
+              <meta itemprop="position" content="1" />
+            </li>
+            <li
+              itemprop="itemListElement"
+              itemscope
+              itemtype="https://schema.org/ListItem"
+            >
+              <span itemprop="name">工具箱</span>
+              <meta itemprop="position" content="2" />
+            </li>
+          </ol>
+        </nav>
+
+        <div class="header-content">
+          <div class="logo">
+            <h1>多功能工具箱 <span class="emoji">ʕ•ᴥ•ʔ</span></h1>
+            <p>
+              纯前端工具集合 | 不依赖服务器 |
+              基于现代浏览器开发(移动端推荐使用chrome浏览器)
+            </p>
+          </div>
+          <div
+            class="theme-switch"
+            id="themeSwitch"
+            role="button"
+            aria-label="切换主题模式"
+          ></div>
+        </div>
+      </div>
+    </header>
+
+    <main role="main">
+      <div class="container">
+        <section class="intro" aria-labelledby="intro-heading">
+          <h2 id="intro-heading">高效工具集合</h2>
+          <p>
+            所有工具均在浏览器中运行，不依赖服务器处理，保护您的隐私安全。点击下方卡片即可使用相应工具。
+          </p>
+        </section>
+
+        <section class="tools-timeline" aria-labelledby="tools-heading">
+          <h2 id="tools-heading" class="sr-only">在线工具列表</h2>
+          <div
+            class="timeline-track"
+            id="timelineTrack"
+            role="grid"
+            aria-label="工具网格"
+          >
+            <!-- 工具部分将通过JavaScript动态生成 -->
+          </div>
+        </section>
+
+        <!-- 工具分类导航 -->
+        <nav class="tool-categories" aria-label="工具分类">
+          <h3>工具分类</h3>
+          <ul>
+            <li><a href="#name-tools">文本工具</a></li>
+            <li><a href="#media-tools">媒体工具</a></li>
+            <li><a href="#image-tools">图片工具</a></li>
+            <li><a href="#video-tools">视频工具</a></li>
+            <li><a href="#audio-tools">音频工具</a></li>
+          </ul>
+        </nav>
+      </div>
+    </main>
+
+    <footer role="contentinfo">
+      <div class="container">
+        <!-- FAQ结构化数据 -->
+        <section
+          class="faq-section"
+          itemscope
+          itemtype="https://schema.org/FAQPage"
+        >
+          <h3 class="sr-only">常见问题</h3>
+          <div
+            itemscope
+            itemprop="mainEntity"
+            itemtype="https://schema.org/Question"
+          >
+            <meta itemprop="name" content="这些工具是否免费使用？" />
+            <div
+              itemscope
+              itemprop="acceptedAnswer"
+              itemtype="https://schema.org/Answer"
+            >
+              <meta
+                itemprop="text"
+                content="是的，所有工具都是完全免费的，无需注册或付费。"
+              />
+            </div>
+          </div>
+          <div
+            itemscope
+            itemprop="mainEntity"
+            itemtype="https://schema.org/Question"
+          >
+            <meta itemprop="name" content="工具是否安全？" />
+            <meta
+              itemprop="acceptedAnswer"
+              itemscope
+              itemtype="https://schema.org/Answer"
+            />
+            <meta
+              itemprop="text"
+              content="所有工具都在浏览器本地运行，不会上传您的文件到服务器，完全保护您的隐私。"
+            />
+          </div>
+          <div
+            itemscope
+            itemprop="mainEntity"
+            itemtype="https://schema.org/Question"
+          >
+            <meta itemprop="name" content="支持哪些浏览器？" />
+            <meta
+              itemprop="acceptedAnswer"
+              itemscope
+              itemtype="https://schema.org/Answer"
+            />
+            <meta
+              itemprop="text"
+              content="支持所有现代浏览器，包括Chrome、Firefox、Safari、Edge等。移动端推荐使用Chrome浏览器。"
+            />
+          </div>
+        </section>
+
+        <!-- 网站导航 -->
+        <nav class="footer-nav" aria-label="页脚导航">
+          <h4>快速导航</h4>
+          <ul>
+            <li><a href="/sitemap.xml" rel="nofollow">网站地图</a></li>
+            <li><a href="/robots.txt" rel="nofollow">Robots</a></li>
+            <li><a href="#tools-heading">工具列表</a></li>
+            <li><a href="#intro-heading">关于我们</a></li>
+          </ul>
+        </nav>
+
+        <div class="footer-content">
+          <div class="content-section">
+            <p class="subp">
+              版权所有ICP证:
+              <a
+                class="subp_a"
+                href="https://beian.miit.gov.cn"
+                target="_blank"
+                rel="noopener noreferrer"
+                >蜀ICP备19030136号</a
+              ><br />
+              <a
+                class="subp_a"
+                href="https://www.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >工信部</a
+              >
+            </p>
+            <p class="subp">
+              <small
+                >最后更新时间:
+                <time datetime="2024-12-19">2024年12月19日</time></small
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script src="./nav/list3.js"></script>
     <script>
-      const { createFFmpeg, fetchFile } = FFmpeg
-      const ffmpeg = createFFmpeg({ log: true })
-      let mediaRecorder = null
-      let recordedChunks = []
-      let isRecording = false
-      let animationInProgress = false
-      let timer = null
+      // 动态生成工具卡片的函数
+      function createToolCard(tool, index) {
+        const section = document.createElement('div')
+        section.className = 'tool-section'
+        section.style.animationDelay = `${index * 0.1}s`
 
-      async function startRecording() {
-        try {
-          const stream = await navigator.mediaDevices.getDisplayMedia({
-            video: { mediaSource: 'screen' },
-            audio: false,
-            selfBrowserSurface: 'include',
-            preferCurrentTab: true,
-          })
-
-          mediaRecorder = new MediaRecorder(stream, {
-            // 这里仍然用 webm 录制
-            mimeType: 'video/webm;codecs=h264',
-            bitsPerSecond: 5000000,
-          })
-
-          recordedChunks = []
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) recordedChunks.push(e.data)
-          }
-
-          mediaRecorder.onstop = async () => {
-            // 2. 拼接成 WebM Blob
-            const webmBlob = new Blob(recordedChunks, { type: 'video/webm' })
-
-            // 3. 确保 FFmpeg 加载好
-            if (!ffmpeg.isLoaded()) {
-              await ffmpeg.load()
-            }
-
-            // 4. 写入虚拟文件系统
-            ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob))
-
-            // 5. 调用 FFmpeg 转码
-            //    -c:v copy 如果只是容器转换，不重编码也可；也可指定编码参数
-            await ffmpeg.run(
-              '-i',
-              'input.webm',
-              '-c:v',
-              'copy',
-              '-c:a',
-              'aac',
-              'output.mp4'
-            )
-
-            // 6. 读取转码后的文件
-            const data = ffmpeg.FS('readFile', 'output.mp4')
-            const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' })
-
-            // 7. 生成下载链接并点击下载
-            const url = URL.createObjectURL(mp4Blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = 'recording.mp4'
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            URL.revokeObjectURL(url)
-
-            // 清理 FFmpeg FS
-            ffmpeg.FS('unlink', 'input.webm')
-            ffmpeg.FS('unlink', 'output.mp4')
-          }
-
-          mediaRecorder.start()
-          isRecording = true
-          stream.getVideoTracks()[0].onended = () => stopRecording()
-        } catch (err) {
-          console.error('Error starting recording:', err)
-          alert('屏幕录制已取消或发生错误')
-        }
-      }
-
-      function stopRecording() {
-        if (mediaRecorder && isRecording) {
-          mediaRecorder.stop()
-          isRecording = false
-          if (mediaRecorder.stream) {
-            mediaRecorder.stream.getTracks().forEach((t) => t.stop())
-          }
-        }
-      }
-
-      AMap.plugin('AMap.MoveAnimation', function () {
-        var infoWindow = new AMap.InfoWindow({
-          offset: new AMap.Pixel(0, -40),
-          closeButton: false,
-        })
-        var marker, timer
-        var lineArr = [
-          [116.478935, 39.997761],
-          [116.478939, 39.997825],
-          [116.478912, 39.998549],
-          [116.478912, 39.998549],
-          [116.478998, 39.998555],
-          [116.478998, 39.998555],
-          [116.479282, 39.99856],
-          [116.479658, 39.998528],
-          [116.480151, 39.998453],
-          [116.480784, 39.998302],
-          [116.480784, 39.998302],
-          [116.481149, 39.998184],
-          [116.481573, 39.997997],
-          [116.481863, 39.997846],
-          [116.482072, 39.997718],
-          [116.482362, 39.997718],
-          [116.483633, 39.998935],
-          [116.48367, 39.998968],
-          [116.484648, 39.999861],
+        // 随机选择一个emoji
+        const emojis = [
+          '✨',
+          '🚀',
+          '⚡',
+          '🎯',
+          '💡',
+          '🔥',
+          '🌟',
+          '💫',
+          '🎨',
+          '🛠️',
         ]
-        var map = new AMap.Map('container', {
-          resizeEnable: true,
-          center: [116.397428, 39.90923],
-          zoom: 20,
-        })
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)]
 
-        var satelliteLayer = new AMap.TileLayer.Satellite({
-          zIndex: 12,
-          autoRefresh: true,
-          opacity: 1,
-          map,
-        })
+        // 创建卡片HTML结构
+        section.innerHTML = `
+          <article class="tool-content-wrapper" itemscope itemtype="https://schema.org/SoftwareApplication">
+            <div class="tool-visual">
+              <div class="tool-icon-bg"></div>
+              <i class="${tool.icon} tool-icon-large" aria-hidden="true"></i>
+            </div>
+            <div class="tool-details">
+              <h3 data-emoji="${emoji}" itemprop="name">${tool.title}</h3>
+              <p itemprop="description">${tool.description}</p>
+              <meta itemprop="applicationCategory" content="UtilitiesApplication" />
+              <meta itemprop="operatingSystem" content="Web Browser" />
+              <meta itemprop="offers" itemscope itemtype="https://schema.org/Offer" />
+              <meta itemprop="price" content="0" />
+              <meta itemprop="priceCurrency" content="CNY" />
+              <a href="${tool.link}" class="tool-link" target="_blank" rel="noopener noreferrer" itemprop="url" aria-label="使用${tool.title}工具">${tool.buttonText}</a>
+            </div>
+          </article>
+        `
 
-        marker = new AMap.Marker({
-          map,
-          position: lineArr[0],
-          icon: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-          offset: new AMap.Pixel(-13, -26),
-        })
-        infoWindow.open(map, marker.getPosition())
+        return section
+      }
 
-        var polyline = new AMap.Polyline({
-          map,
-          path: lineArr,
-          showDir: true,
-          strokeColor: '#28F',
-          strokeWeight: 6,
-        })
-        var passedPolyline = new AMap.Polyline({
-          map,
-          strokeColor: '#AF5',
-          strokeWeight: 6,
-        })
+      // 主题切换功能
+      const themeSwitch = document.getElementById('themeSwitch')
+      const body = document.body
 
-        marker.on('moving', function (e) {
-          clearTimeout(timer)
-          passedPolyline.setPath(e.passedPath)
-          map.setCenter(e.target.getPosition(), true)
+      // 检查用户之前是否设置了主题偏好
+      const userTheme = localStorage.getItem('theme')
+      const systemPrefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches
 
-          var pos = e.target.getPosition()
-          infoWindow.setContent(
-            `经度: ${pos.lng.toFixed(6)}<br>纬度: ${pos.lat.toFixed(6)}`
-          )
-          infoWindow.open(map, pos)
+      // 根据时间自动设置初始主题
+      function setInitialTheme() {
+        const now = new Date()
+        const hours = now.getHours()
+        const isNightTime = hours < 6 || hours >= 18
 
-          // 2秒无新动画帧自动停止录制
-          timer = setTimeout(() => stopRecording(), 2000)
-        })
-
-        map.setFitView()
-
-        window.startAnimation = async function () {
-          if (animationInProgress) return
-          if (!confirm('需要授权屏幕录制，请点击允许')) return
-
-          await startRecording()
-          document.querySelector('.input-card').style.display = 'none'
-          animationInProgress = true
-          marker.moveAlong(
-            lineArr,
-            { duration: 500, autoRotation: true },
-            () => {
-              animationInProgress = false
-            }
-          )
+        // 如果用户之前设置过主题，优先使用用户设置
+        if (userTheme) {
+          body.classList.toggle('dark-theme', userTheme === 'dark')
+          return
         }
 
-        window.pauseAnimation = () => marker.pauseMove()
-        window.resumeAnimation = () => marker.resumeMove()
-        window.stopAnimation = () => {
-          stopRecording()
-          document.querySelector('.input-card').style.display = ''
-          marker.stopMove()
-          infoWindow.close()
-          animationInProgress = false
+        // 否则根据时间设置主题
+        body.classList.toggle('dark-theme', isNightTime)
+      }
+
+      // 页面加载时设置主题
+      setInitialTheme()
+
+      // 切换主题
+      themeSwitch.addEventListener('click', () => {
+        const isDark = body.classList.contains('dark-theme')
+        body.classList.toggle('dark-theme', !isDark)
+
+        // 保存用户选择
+        localStorage.setItem('theme', isDark ? 'light' : 'dark')
+      })
+
+      // 监听系统主题变化
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', (e) => {
+          // 只有用户没有设置偏好时才跟随系统变化
+          if (!userTheme) {
+            body.classList.toggle('dark-theme', e.matches)
+          }
+        })
+
+      // 增强的视差滚动效果
+      function updateParallax() {
+        const scrollY = window.scrollY
+        const scrollX = window.scrollX
+        const windowHeight = window.innerHeight
+        const windowWidth = window.innerWidth
+        const shapes = document.querySelectorAll('.parallax-shape')
+        const intro = document.querySelector('.intro')
+        const header = document.querySelector('header')
+        const timelineTrack = document.querySelector('.timeline-track')
+        const currentToolIndex = parseInt(
+          document.querySelector('.timeline-dot.active')?.dataset.index || 0
+        )
+
+        // 计算滚动百分比
+        const scrollPercent =
+          scrollY / (document.body.scrollHeight - windowHeight)
+
+        // 获取当前工具索引作为额外的视差因子
+        const toolFactor =
+          currentToolIndex /
+          (document.querySelectorAll('.tool-section').length - 1)
+
+        // 视差背景移动 - 每个形状有不同的移动速度和方向，并受当前工具索引影响
+        shapes[0].style.transform = `translate3d(${
+          scrollX * -0.05 - toolFactor * 50
+        }px, ${scrollY * 0.3}px, 0) rotate(${
+          scrollY * 0.02 + toolFactor * 5
+        }deg)`
+        shapes[1].style.transform = `translate3d(${
+          scrollX * 0.08 + toolFactor * 30
+        }px, ${scrollY * -0.2}px, 0) rotate(${
+          scrollY * -0.01 - toolFactor * 3
+        }deg)`
+        shapes[2].style.transform = `translate3d(${
+          scrollX * -0.06 + toolFactor * 20
+        }px, ${scrollY * 0.15}px, 0) rotate(${
+          scrollY * 0.015 + toolFactor * 2
+        }deg)`
+        shapes[3].style.transform = `translate3d(${
+          scrollX * 0.04 - toolFactor * 40
+        }px, ${scrollY * -0.1}px, 0) rotate(${
+          scrollY * -0.02 - toolFactor * 4
+        }deg)`
+        shapes[4].style.transform = `translate3d(${
+          scrollX * -0.03 - toolFactor * 25
+        }px, ${scrollY * 0.05}px, 0) rotate(${
+          scrollY * 0.01 + toolFactor * 3
+        }deg)`
+
+        // 介绍文字的视差效果
+        intro.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`
+
+        // 根据滚动位置和当前工具索引调整背景形状的不透明度
+        shapes.forEach((shape, index) => {
+          // 为每个形状计算不同的不透明度变化
+          const opacityChange =
+            Math.sin(
+              (scrollPercent + toolFactor * 0.5) * Math.PI * (index + 1)
+            ) *
+              0.2 +
+            0.3
+          shape.style.opacity = opacityChange.toFixed(2)
+        })
+
+        // 移动端 header 折叠效果
+        if (window.innerWidth <= 768) {
+          if (scrollY > 50) {
+            header.classList.add('header-collapsed')
+          } else {
+            header.classList.remove('header-collapsed')
+          }
+        }
+
+        // 检查时间线是否在视口中，并添加高亮效果
+        const timelineRect = document
+          .querySelector('.tools-timeline')
+          .getBoundingClientRect()
+        if (timelineRect.top < windowHeight && timelineRect.bottom > 0) {
+          document.querySelector('.tools-timeline').classList.add('in-view')
+        } else {
+          document.querySelector('.tools-timeline').classList.remove('in-view')
+        }
+      }
+
+      // 初始化视差效果
+      updateParallax()
+
+      // 监听滚动事件
+      window.addEventListener('scroll', updateParallax)
+      window.addEventListener('resize', updateParallax)
+
+      // 增强的鼠标跟随效果
+      const cursorFollower = document.querySelector('.cursor-follower')
+      let mouseX = 0,
+        mouseY = 0
+      let cursorX = 0,
+        cursorY = 0
+
+      function updateCursor() {
+        // 平滑跟随效果
+        const diffX = mouseX - cursorX
+        const diffY = mouseY - cursorY
+
+        cursorX += diffX * 0.1
+        cursorY += diffY * 0.1
+
+        cursorFollower.style.left = `${cursorX}px`
+        cursorFollower.style.top = `${cursorY}px`
+
+        requestAnimationFrame(updateCursor)
+      }
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX
+        mouseY = e.clientY
+
+        // 立即显示
+        cursorFollower.style.opacity = '1'
+
+        // 检测是否悬停在可交互元素上
+        const target = e.target
+        if (
+          target.tagName === 'A' ||
+          target.tagName === 'BUTTON' ||
+          target.classList.contains('timeline-dot') ||
+          target.classList.contains('timeline-arrow')
+        ) {
+          cursorFollower.style.transform = 'translate(-50%, -50%) scale(0.7)'
+        } else {
+          cursorFollower.style.transform = 'translate(-50%, -50%) scale(1)'
         }
       })
+
+      document.addEventListener('mouseenter', () => {
+        cursorFollower.style.opacity = '1'
+      })
+
+      document.addEventListener('mouseleave', () => {
+        cursorFollower.style.opacity = '0'
+      })
+
+      // 启动鼠标跟随动画
+      updateCursor()
+
+      // 工具部分动画
+      document.addEventListener('DOMContentLoaded', () => {
+        // 为每个工具部分添加进入视图时的动画
+        const toolSections = document.querySelectorAll('.tool-section')
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.style.opacity = '1'
+                entry.target.style.transform = 'translateY(0)'
+              }
+            })
+          },
+          { threshold: 0.1 }
+        )
+
+        toolSections.forEach((section) => {
+          section.style.opacity = '0'
+          section.style.transform = 'translateY(30px)'
+          section.style.transition = 'opacity 0.6s ease, transform 0.6s ease'
+          observer.observe(section)
+        })
+
+        // 移除工具链接点击时的淡出动画效果，保持卡片可见
+        // 如果需要在新窗口打开链接，可以添加target="_blank"属性
+        const toolLinks = document.querySelectorAll('.tool-link')
+        toolLinks.forEach((link) => {
+          // 确保所有链接都在新窗口打开
+          link.setAttribute('target', '_blank')
+        })
+
+        // 侧边栏功能已移除
+      })
     </script>
+    <script>
+      var _hmt = _hmt || []
+      ;(function () {
+        var hm = document.createElement('script')
+        hm.src = 'https://hm.baidu.com/hm.js?485da93d3180b17d631385000c18e8d5'
+        var s = document.getElementsByTagName('script')[0]
+        s.parentNode.insertBefore(hm, s)
+      })()
+    </script>
+    <script src="./title.js"></script>
   </body>
 </html>

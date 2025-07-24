@@ -5,7 +5,7 @@
       title: "中文姓名生成器",
       description: "随机生成中文姓名，可用于游戏角色、写作素材等场景，包含常见姓氏和名字组合。(๑•̀ㅂ•́)و✧",
       emoji: "(๑•̀ㅂ•́)و✧",
-      link: "https://open.996day.com/name.html",
+      link: "https://www.996day.com/name.html",
       buttonText: "立即使用"
     },
     {
@@ -13,7 +13,7 @@
       title: "在线屏幕录制",
       description: "直接在浏览器中录制屏幕活动，支持全屏或指定标签页录制，无需安装任何软件。(●'◡'●)",
       emoji: "(●'◡'●)",
-      link: "https://open.996day.com/record.html",
+      link: "https://www.996day.com/record.html",
       buttonText: "开始录制"
     },
     {
@@ -21,7 +21,7 @@
         "title": "快捷录音",
         "description": "直接在浏览器中录音，录音存储在本地保护隐私。支持移动端浏览器，提供WebM（推荐）和MP3格式下载。(｡･ω･｡)",
       emoji: "(｡･ω･｡)",
-        "link": "https://open.996day.com/tape.html",
+        "link": "https://www.996day.com/tape.html",
         "buttonText": "开始录音"
     },
     {
@@ -29,7 +29,7 @@
       title: "颜色卡",
       description: "获取颜色或者进行颜色RGB/RGBA/HEX/HSL互转。ヾ(≧▽≦*)o",
       emoji: "ヾ(≧▽≦*)o",
-      link: "https://open.996day.com/color.html",
+      link: "https://www.996day.com/color.html",
       buttonText: "开始使用"
     },
     {
@@ -45,7 +45,7 @@
       title: "图片格式转换",
       description: "支持JPG、PNG、WEBP、GIF等多种格式互相转换，保留EXIF信息。(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
       emoji: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
-      link: "https://open.996day.com/imgFormat.html",
+      link: "https://www.996day.com/imgFormat.html",
       buttonText: "转换图片"
     },
     {
@@ -53,7 +53,7 @@
       title: "图片转pdf",
       description: "支持JPG、PNG、WEBP、GIF等多种格式图片导出为pdf。(≧∇≦)ﾉ",
       emoji: "(≧∇≦)ﾉ",
-      link: "https://open.996day.com/pdf.html",
+      link: "https://www.996day.com/pdf.html",
       buttonText: "开始导出"
     },
     
@@ -62,7 +62,7 @@
       "title": "媒体区域裁剪工具",
       "description": "支持视频和图片区域裁剪处理，视频可指定时长和区域，图片可精确裁剪 - 基于FFmpeg WebAssembly和Cropper.js 🎬",
       "emoji": "🎬",
-      "link": "https://open.996day.com/mediaCrop.html", // 假设的实际链接
+      "link": "https://www.996day.com/mediaCrop.html", // 假设的实际链接
       "buttonText": "立即裁剪"
     },
     {
@@ -70,7 +70,7 @@
       title: "音视频时长剪辑",
       description: "在浏览器中直接剪辑音频和视频文件，支持MP3、MP4等多种格式。(๑•̀ω•́)ノ",
       emoji: "(๑•̀ω•́)ノ",
-      link: "https://open.996day.com/jj.html",
+      link: "https://www.996day.com/jj.html",
       buttonText: "开始剪辑"
     },
     {
@@ -78,7 +78,7 @@
       title: "音视频截图",
       description: "在浏览器中直接截图视频文件，支持MP4多种格式。(✿◠‿◠)",
       emoji: "(✿◠‿◠)",
-      link: "https://open.996day.com/screenshot.html",
+      link: "https://www.996day.com/screenshot.html",
       buttonText: "开始截图"
     },
     {
@@ -86,7 +86,7 @@
       title: "音视频格式转换",
       description: "将音视频文件转换为不同格式，支持MP3、WAV、MP4、MOV等常用格式。(～￣▽￣)～",
       emoji: "(～￣▽￣)～",
-      link: "https://open.996day.com/format.html",
+      link: "https://www.996day.com/format.html",
       buttonText: "转换格式"
     },
     {
@@ -94,7 +94,7 @@
       title: "音视频合并",
       description: "将多个音频或视频文件合并为一个文件，支持调整顺序和添加过渡效果。(｡◕‿◕｡)",
       emoji: "(｡◕‿◕｡)",
-      link: "https://open.996day.com/merge.html",
+      link: "https://www.996day.com/merge.html",
       buttonText: "合并文件"
     },
     {
@@ -102,7 +102,7 @@
       title: "视频播放器",
       description: "支持多选、M3U8直播、FLV流媒体及主流视频格式。(●ˇ∀ˇ●)",
       emoji: "(●ˇ∀ˇ●)",
-      link: "https://open.996day.com/player.html",
+      link: "https://www.996day.com/player.html",
       buttonText: "前往播放"
     }
   ];
