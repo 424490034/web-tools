@@ -780,6 +780,39 @@
         animation: fadeInUp 0.6s ease backwards;
       }
 
+      /* 工具筛选动画 */
+      .tool-section {
+        transition: opacity 0.4s ease, transform 0.4s ease;
+      }
+
+      .tool-section.filtering-out {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+
+      .tool-section.filtering-in {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      /* 分类计数器样式 */
+      .category-count {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 5px;
+        font-weight: bold;
+      }
+
+      .tool-categories a:not(.active) .category-count {
+        background: var(--primary-color);
+        color: white;
+        opacity: 0.7;
+      }
+
       /* 侧边栏快捷导航已移除 */
 
       /* 鼠标跟随效果 */
@@ -872,21 +905,42 @@
       }
 
       .tool-categories a {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         padding: 8px 16px;
-        background: var(--primary-color);
-        color: white;
+        background: var(--card-bg);
+        color: var(--text-color);
         text-decoration: none;
         border-radius: 20px;
         font-size: 0.85rem;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
+        box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.2);
+        border: 2px solid transparent;
       }
 
       .tool-categories a:hover {
-        background: var(--hover-color);
+        background: var(--primary-color);
+        color: white;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+      }
+
+      .tool-categories a.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--hover-color);
+        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+      }
+
+      .tool-categories a i {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .tool-categories a.active i,
+      .tool-categories a:hover i {
+        opacity: 1;
       }
 
       /* 屏幕阅读器专用隐藏类 */
@@ -1079,11 +1133,7 @@
         <nav class="tool-categories" aria-label="工具分类">
           <h3>工具分类</h3>
           <ul>
-            <li><a href="#name-tools">文本工具</a></li>
-            <li><a href="#media-tools">媒体工具</a></li>
-            <li><a href="#image-tools">图片工具</a></li>
-            <li><a href="#video-tools">视频工具</a></li>
-            <li><a href="#audio-tools">音频工具</a></li>
+            <!-- 分类按钮将通过JavaScript动态生成 -->
           </ul>
         </nav>
       </div>
@@ -1189,7 +1239,7 @@
         </div>
       </div>
     </footer>
-    <script src="./nav/list3.js"></script>
+    <script src="./nav/list.js"></script>
     <script>
       // 动态生成工具卡片的函数
       function createToolCard(tool, index) {
