@@ -117,6 +117,15 @@
       link: "https://www.996day.com/player.html",
       buttonText: "前往播放",
       category: "video-tools"
+    },
+    {
+      icon: "fas fa-tree",
+      title: "心灵树洞",
+      description: "安全的情感倾诉空间，你的话语不会被保存，只会随风飘散在森林中。(｡◕‿◕｡)",
+      emoji: "(｡◕‿◕｡)",
+      link: "https://www.996day.com/su.html",
+      buttonText: "进入树洞",
+      category: "text-tools"
     }
   ];
 
