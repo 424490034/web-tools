@@ -4,12 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>在线Excel编辑器</title>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/x-data-spreadsheet@1.1.9/dist/xspreadsheet.css"
-    />
-    <script src="https://unpkg.com/x-data-spreadsheet@1.1.9/dist/xspreadsheet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="./excel/xspreadsheet.css" />
+    <script src="./excel/xspreadsheet.js"></script>
+    <script src="./excel/xlsx.full.min.js"></script>
 
     <style>
       * {
@@ -318,7 +315,9 @@
         <button class="btn btn-success" onclick="saveAsJson()">
           保存为Excel
         </button>
-        <button class="btn" onclick="exportAsExcelWithPrompt()">导出Excel</button>
+        <button class="btn" onclick="exportAsExcelWithPrompt()">
+          导出Excel
+        </button>
         <button class="btn" onclick="exportAsCSVWithPrompt()">导出CSV</button>
         <button class="btn" onclick="addSheet()">新建工作表</button>
         <button class="btn btn-warning" onclick="clearData()">清除</button>
@@ -957,13 +956,16 @@
 
           // 获取用户自定义文件名
           const defaultFileName = currentFileName || '新建电子表格'
-          const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
-          
+          const userFileName = prompt(
+            '请输入文件名（不需要扩展名）:',
+            defaultFileName
+          )
+
           if (userFileName === null) {
             // 用户取消了操作
             return
           }
-          
+
           if (userFileName.trim() === '') {
             alert('文件名不能为空')
             return
@@ -981,25 +983,28 @@
           alert('请先创建或加载一个电子表格')
           return
         }
-        
+
         const defaultFileName = currentFileName || '新建电子表格'
-        const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
-        
+        const userFileName = prompt(
+          '请输入文件名（不需要扩展名）:',
+          defaultFileName
+        )
+
         if (userFileName === null) {
           // 用户取消了操作
           return
         }
-        
+
         if (userFileName.trim() === '') {
           alert('文件名不能为空')
           return
         }
-        
+
         exportAsExcel(userFileName.trim())
       }
 
       // 导出为Excel格式（使用SheetJS）
-       function exportAsExcel(customFileName) {
+      function exportAsExcel(customFileName) {
         if (!spreadsheet) {
           alert('请先创建或加载一个电子表格')
           return
@@ -1009,8 +1014,7 @@
           // 动态加载XLSX库
           if (typeof XLSX === 'undefined') {
             const script = document.createElement('script')
-            script.src =
-              'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+            script.src = './excel/xlsx.full.min.js'
             script.onload = function () {
               exportAsExcel(customFileName)
             }
@@ -1075,21 +1079,21 @@
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
           })
 
-          const fileName = customFileName ? `${customFileName}.xlsx` : `${
-            currentFileName || 'spreadsheet'
-          }_${new Date().getTime()}.xlsx`
-          
+          const fileName = customFileName
+            ? `${customFileName}.xlsx`
+            : `${currentFileName || 'spreadsheet'}_${new Date().getTime()}.xlsx`
+
           // 使用更兼容的方式导出Excel文件
           const wbout = XLSX.write(workbook, {
             bookType: 'xlsx',
             type: 'array',
-            compression: true
+            compression: true,
           })
-          
+
           const blob = new Blob([wbout], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8',
           })
-          
+
           const link = document.createElement('a')
           const url = URL.createObjectURL(blob)
           link.setAttribute('href', url)
@@ -1112,20 +1116,23 @@
           alert('请先创建或加载一个电子表格')
           return
         }
-        
+
         const defaultFileName = currentFileName || '新建电子表格'
-        const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
-        
+        const userFileName = prompt(
+          '请输入文件名（不需要扩展名）:',
+          defaultFileName
+        )
+
         if (userFileName === null) {
           // 用户取消了操作
           return
         }
-        
+
         if (userFileName.trim() === '') {
           alert('文件名不能为空')
           return
         }
-        
+
         exportAsCSV(userFileName.trim())
       }
 
@@ -1212,12 +1219,14 @@
           // 添加BOM以确保UTF-8编码正确识别
           const BOM = '\uFEFF'
           const blob = new Blob([BOM + csvContent], {
-            type: 'text/csv;charset=utf-8'
+            type: 'text/csv;charset=utf-8',
           })
           const link = document.createElement('a')
           const url = URL.createObjectURL(blob)
           link.setAttribute('href', url)
-          const fileName = customFileName ? `${customFileName}.csv` : `${sheet.name}_${new Date().getTime()}.csv`
+          const fileName = customFileName
+            ? `${customFileName}.csv`
+            : `${sheet.name}_${new Date().getTime()}.csv`
           link.setAttribute('download', fileName)
           link.style.visibility = 'hidden'
           document.body.appendChild(link)
