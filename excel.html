@@ -315,9 +315,11 @@
           <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" />
           <label for="fileInput">打开</label>
         </div>
-        <button class="btn btn-success" onclick="saveAsJson()">保存</button>
-        <button class="btn" onclick="exportAsExcel()">导出Excel</button>
-        <button class="btn" onclick="exportAsCSV()">导出CSV</button>
+        <button class="btn btn-success" onclick="saveAsJson()">
+          保存为Excel
+        </button>
+        <button class="btn" onclick="exportAsExcelWithPrompt()">导出Excel</button>
+        <button class="btn" onclick="exportAsCSVWithPrompt()">导出CSV</button>
         <button class="btn" onclick="addSheet()">新建工作表</button>
         <button class="btn btn-warning" onclick="clearData()">清除</button>
       </div>
@@ -432,9 +434,7 @@
             updateStats()
           } catch (error) {
             alert(
-              '文件读取失败: ' +
-                error.message +
-                '\n\n请检查文件格式是否正确。'
+              '文件读取失败: ' + error.message + '\n\n请检查文件格式是否正确。'
             )
             showWelcomePanel()
           }
@@ -514,8 +514,6 @@
             cols[i] = { width: 100 }
           }
 
-
-
           const sheetData = {
             name: sheetName || `工作表${index + 1}`,
             rows: rows,
@@ -541,8 +539,6 @@
 
           sheets.push(sheetData)
         })
-
-
 
         // 确保至少有一个工作表
         if (sheets.length === 0) {
@@ -758,23 +754,23 @@
             },
             // 字体选项
             font: {
-              'Arial': 'Arial',
-              'Helvetica': 'Helvetica',
-              'Times': 'Times',
-              'Courier': 'Courier',
-              'Verdana': 'Verdana',
-              'Georgia': 'Georgia',
-              'Palatino': 'Palatino',
-              'Garamond': 'Garamond',
+              Arial: 'Arial',
+              Helvetica: 'Helvetica',
+              Times: 'Times',
+              Courier: 'Courier',
+              Verdana: 'Verdana',
+              Georgia: 'Georgia',
+              Palatino: 'Palatino',
+              Garamond: 'Garamond',
               'Comic Sans MS': 'Comic Sans MS',
               'Trebuchet MS': 'Trebuchet MS',
               'Arial Black': 'Arial Black',
-              'Impact': 'Impact',
-              'Calibri': 'Calibri',
-              '微软雅黑': '微软雅黑',
-              '宋体': '宋体',
-              '黑体': '黑体',
-              '楷体': '楷体',
+              Impact: 'Impact',
+              Calibri: 'Calibri',
+              微软雅黑: '微软雅黑',
+              宋体: '宋体',
+              黑体: '黑体',
+              楷体: '楷体',
             },
           })
         }
@@ -843,35 +839,50 @@
 
       function addSheet() {
         if (!spreadsheet) {
-          // 如果没有电子表格，创建一个新的
-          initSpreadsheet([
-            {
-              name: '工作表1',
-              rows: { 0: { cells: { 0: { text: '', style: 0 } } } },
-              cols: { 0: { width: 100 } },
-              merges: [],
-              styles: [
-                {
-                  align: 'left',
-                  valign: 'middle',
-                  textwrap: false,
-                  strike: false,
-                  underline: false,
-                  color: '#000000',
-                  bgcolor: '#ffffff',
-                  bold: false,
-                  italic: false,
-                  font: { name: 'Arial', size: 10 },
-                  format: 'normal',
-                },
-              ],
-              freeze: 'A1',
-            },
-          ])
-        } else {
-          alert('请通过工作表标签栏右键菜单添加新工作表')
+          alert('请先创建或加载一个电子表格')
+          return
         }
-        updateStats()
+
+        try {
+          // 获取当前数据
+          const currentData = spreadsheet.getData()
+          const newSheetIndex = currentData.length + 1
+
+          // 创建新工作表数据
+          const newSheet = {
+            name: `工作表${newSheetIndex}`,
+            rows: { 0: { cells: { 0: { text: '', style: 0 } } } },
+            cols: { 0: { width: 100 } },
+            merges: [],
+            styles: [
+              {
+                align: 'left',
+                valign: 'middle',
+                textwrap: false,
+                strike: false,
+                underline: false,
+                color: '#000000',
+                bgcolor: '#ffffff',
+                bold: false,
+                italic: false,
+                font: { name: 'Arial', size: 10 },
+                format: 'normal',
+              },
+            ],
+            freeze: 'A1',
+          }
+
+          // 添加新工作表到数据中
+          currentData.push(newSheet)
+
+          // 重新加载数据
+          spreadsheet.loadData(currentData)
+
+          alert(`已添加新工作表：工作表${newSheetIndex}`)
+          updateStats()
+        } catch (error) {
+          alert('添加工作表失败，请通过工作表标签栏右键菜单手动添加')
+        }
       }
 
       function clearData() {
@@ -880,10 +891,33 @@
           return
         }
 
-        alert('请使用 Ctrl+A 选择所有单元格，然后按 Delete 键清空数据')
+        if (confirm('确定要清除当前工作表的所有数据吗？此操作不可撤销。')) {
+          try {
+            // 获取当前数据
+            const currentData = spreadsheet.getData()
+            const activeSheetIndex = 0 // 默认清除第一个工作表
+
+            if (currentData && currentData[activeSheetIndex]) {
+              // 重置当前工作表的数据
+              currentData[activeSheetIndex].rows = {
+                0: { cells: { 0: { text: '', style: 0 } } },
+              }
+
+              // 重新加载数据
+              spreadsheet.loadData(currentData)
+
+              alert('数据已清除')
+              updateStats()
+            }
+          } catch (error) {
+            alert(
+              '清除数据失败，请使用 Ctrl+A 选择所有单元格，然后按 Delete 键手动清空'
+            )
+          }
+        }
       }
 
-      // 保存为JSON格式
+      // 保存为Excel格式
       function saveAsJson() {
         if (!spreadsheet) {
           alert('请先创建或加载一个电子表格')
@@ -891,33 +925,81 @@
         }
 
         try {
+          // 获取当前数据并显示调试信息
           const data = spreadsheet.getData()
-          const jsonString = JSON.stringify(data, null, 2)
+          console.log('当前电子表格数据:', data)
 
-          const blob = new Blob([jsonString], {
-            type: 'application/json;charset=utf-8;',
+          if (!data || !Array.isArray(data) || data.length === 0) {
+            alert('没有可导出的数据，请先在电子表格中输入一些内容')
+            return
+          }
+
+          // 检查是否有实际的单元格数据
+          let hasData = false
+          data.forEach((sheet) => {
+            if (sheet && sheet.rows) {
+              Object.values(sheet.rows).forEach((row) => {
+                if (row && row.cells) {
+                  Object.values(row.cells).forEach((cell) => {
+                    if (cell && cell.text && cell.text.trim() !== '') {
+                      hasData = true
+                    }
+                  })
+                }
+              })
+            }
           })
-          const link = document.createElement('a')
-          const url = URL.createObjectURL(blob)
-          link.setAttribute('href', url)
-          link.setAttribute(
-            'download',
-            `${currentFileName || 'spreadsheet'}_${new Date().getTime()}.json`
-          )
-          link.style.visibility = 'hidden'
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
 
-          alert('文件已保存为JSON格式')
+          if (!hasData) {
+            alert('电子表格中没有数据，请先输入一些内容再保存')
+            return
+          }
+
+          // 获取用户自定义文件名
+          const defaultFileName = currentFileName || '新建电子表格'
+          const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
+          
+          if (userFileName === null) {
+            // 用户取消了操作
+            return
+          }
+          
+          if (userFileName.trim() === '') {
+            alert('文件名不能为空')
+            return
+          }
+
+          exportAsExcel(userFileName.trim())
         } catch (error) {
           alert('保存失败: ' + error.message)
-          // 保存失败
         }
       }
 
+      // 导出Excel（带文件名提示）
+      function exportAsExcelWithPrompt() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+        
+        const defaultFileName = currentFileName || '新建电子表格'
+        const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
+        
+        if (userFileName === null) {
+          // 用户取消了操作
+          return
+        }
+        
+        if (userFileName.trim() === '') {
+          alert('文件名不能为空')
+          return
+        }
+        
+        exportAsExcel(userFileName.trim())
+      }
+
       // 导出为Excel格式（使用SheetJS）
-      function exportAsExcel() {
+       function exportAsExcel(customFileName) {
         if (!spreadsheet) {
           alert('请先创建或加载一个电子表格')
           return
@@ -930,52 +1012,125 @@
             script.src =
               'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
             script.onload = function () {
-              exportAsExcel()
+              exportAsExcel(customFileName)
             }
             document.head.appendChild(script)
             return
           }
 
           const data = spreadsheet.getData()
+
+          if (!data || !Array.isArray(data) || data.length === 0) {
+            alert('没有可导出的数据')
+            return
+          }
+
           const workbook = XLSX.utils.book_new()
 
-          data.forEach((sheet) => {
+          data.forEach((sheet, sheetIndex) => {
+            if (!sheet || !sheet.rows) {
+              return
+            }
+
             const wsData = []
-            const maxRow = Math.max(...Object.keys(sheet.rows).map(Number), -1)
-            const maxCol = Math.max(
-              ...Object.values(sheet.rows).flatMap((row) =>
-                Object.keys(row.cells).map(Number)
-              ),
-              -1
+            const rowKeys = Object.keys(sheet.rows || {}).filter(
+              (key) => !isNaN(Number(key))
             )
 
-            for (let r = 0; r <= maxRow; r++) {
-              const row = []
-              for (let c = 0; c <= maxCol; c++) {
-                const cell = sheet.rows[r]?.cells[c]
-                row.push(cell ? cell.text : '')
+            if (rowKeys.length === 0) {
+              // 如果没有数据，创建一个空行
+              wsData.push([''])
+            } else {
+              const maxRow = Math.max(...rowKeys.map(Number), -1)
+
+              // 计算最大列数
+              let maxCol = -1
+              Object.entries(sheet.rows).forEach(([rowKey, row]) => {
+                if (!isNaN(Number(rowKey)) && row && row.cells) {
+                  const colKeys = Object.keys(row.cells)
+                    .filter((key) => !isNaN(Number(key)))
+                    .map(Number)
+                  if (colKeys.length > 0) {
+                    maxCol = Math.max(maxCol, ...colKeys)
+                  }
+                }
+              })
+
+              if (maxCol === -1) maxCol = 0
+
+              for (let r = 0; r <= maxRow; r++) {
+                const row = []
+                for (let c = 0; c <= maxCol; c++) {
+                  const cell = sheet.rows[r]?.cells?.[c]
+                  row.push(
+                    cell && cell.text !== undefined ? String(cell.text) : ''
+                  )
+                }
+                wsData.push(row)
               }
-              wsData.push(row)
             }
 
             const worksheet = XLSX.utils.aoa_to_sheet(wsData)
-            XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
+            const sheetName = sheet.name || `工作表${sheetIndex + 1}`
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
           })
 
-          const fileName = `${
+          const fileName = customFileName ? `${customFileName}.xlsx` : `${
             currentFileName || 'spreadsheet'
           }_${new Date().getTime()}.xlsx`
-          XLSX.writeFile(workbook, fileName)
+          
+          // 使用更兼容的方式导出Excel文件
+          const wbout = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array',
+            compression: true
+          })
+          
+          const blob = new Blob([wbout], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
+          })
+          
+          const link = document.createElement('a')
+          const url = URL.createObjectURL(blob)
+          link.setAttribute('href', url)
+          link.setAttribute('download', fileName)
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
 
           alert('Excel文件已导出: ' + fileName)
         } catch (error) {
           alert('导出失败: ' + error.message)
-          // 导出失败
         }
       }
 
+      // 导出CSV（带文件名提示）
+      function exportAsCSVWithPrompt() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+        
+        const defaultFileName = currentFileName || '新建电子表格'
+        const userFileName = prompt('请输入文件名（不需要扩展名）:', defaultFileName)
+        
+        if (userFileName === null) {
+          // 用户取消了操作
+          return
+        }
+        
+        if (userFileName.trim() === '') {
+          alert('文件名不能为空')
+          return
+        }
+        
+        exportAsCSV(userFileName.trim())
+      }
+
       // 导出为CSV格式
-      function exportAsCSV() {
+      function exportAsCSV(customFileName) {
         if (!spreadsheet) {
           alert('请先创建或加载一个电子表格')
           return
@@ -983,25 +1138,55 @@
 
         try {
           const data = spreadsheet.getData()
-          const currentSheetIndex = 0  // 默认使用第一个工作表
+          if (!data || !Array.isArray(data) || data.length === 0) {
+            alert('没有可导出的数据')
+            return
+          }
+
+          const currentSheetIndex = 0 // 默认使用第一个工作表
           const sheet = data[currentSheetIndex]
 
+          if (!sheet || !sheet.rows) {
+            alert('工作表数据无效')
+            return
+          }
+
           const wsData = []
-          const maxRow = Math.max(...Object.keys(sheet.rows).map(Number), -1)
-          const maxCol = Math.max(
-            ...Object.values(sheet.rows).flatMap((row) =>
-              Object.keys(row.cells).map(Number)
-            ),
-            -1
+          const rowKeys = Object.keys(sheet.rows || {}).filter(
+            (key) => !isNaN(Number(key))
           )
 
-          for (let r = 0; r <= maxRow; r++) {
-            const row = []
-            for (let c = 0; c <= maxCol; c++) {
-              const cell = sheet.rows[r]?.cells[c]
-              row.push(cell ? cell.text : '')
+          if (rowKeys.length === 0) {
+            // 如果没有数据，创建一个空行
+            wsData.push([''])
+          } else {
+            const maxRow = Math.max(...rowKeys.map(Number), -1)
+
+            // 计算最大列数
+            let maxCol = -1
+            Object.entries(sheet.rows).forEach(([rowKey, row]) => {
+              if (!isNaN(Number(rowKey)) && row && row.cells) {
+                const colKeys = Object.keys(row.cells)
+                  .filter((key) => !isNaN(Number(key)))
+                  .map(Number)
+                if (colKeys.length > 0) {
+                  maxCol = Math.max(maxCol, ...colKeys)
+                }
+              }
+            })
+
+            if (maxCol === -1) maxCol = 0
+
+            for (let r = 0; r <= maxRow; r++) {
+              const row = []
+              for (let c = 0; c <= maxCol; c++) {
+                const cell = sheet.rows[r]?.cells?.[c]
+                row.push(
+                  cell && cell.text !== undefined ? String(cell.text) : ''
+                )
+              }
+              wsData.push(row)
             }
-            wsData.push(row)
           }
 
           // 转换为CSV格式
@@ -1024,20 +1209,21 @@
             )
             .join('\n')
 
-          const blob = new Blob([csvContent], {
-            type: 'text/csv;charset=utf-8;',
+          // 添加BOM以确保UTF-8编码正确识别
+          const BOM = '\uFEFF'
+          const blob = new Blob([BOM + csvContent], {
+            type: 'text/csv;charset=utf-8'
           })
           const link = document.createElement('a')
           const url = URL.createObjectURL(blob)
           link.setAttribute('href', url)
-          link.setAttribute(
-            'download',
-            `${sheet.name}_${new Date().getTime()}.csv`
-          )
+          const fileName = customFileName ? `${customFileName}.csv` : `${sheet.name}_${new Date().getTime()}.csv`
+          link.setAttribute('download', fileName)
           link.style.visibility = 'hidden'
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
+          URL.revokeObjectURL(url)
 
           alert('CSV文件已导出')
         } catch (error) {
@@ -1138,7 +1324,17 @@
       // 窗口大小变化时重新调整电子表格大小
       window.addEventListener('resize', function () {
         if (spreadsheet) {
-          spreadsheet.resize()
+          try {
+            // x-spreadsheet可能没有resize方法，使用重新渲染替代
+            const container = document.getElementById('spreadsheet-content')
+            if (container && container.firstChild) {
+              // 触发重新计算容器尺寸
+              container.style.height =
+                container.parentElement.clientHeight + 'px'
+            }
+          } catch (error) {
+            // 忽略resize错误
+          }
         }
       })
 
