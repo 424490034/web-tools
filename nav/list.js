@@ -126,6 +126,15 @@
       link: "https://www.996day.com/su.html",
       buttonText: "进入树洞",
       category: "text-tools"
+    },
+    {
+      icon: "fas fa-table",
+      title: "在线Excel编辑器",
+      description: "功能强大的在线Excel编辑器，支持多工作表、公式计算、格式设置，可读取、编辑和保存Excel文件。(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+      emoji: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+      link: "https://www.996day.com/excel.html",
+      buttonText: "开始编辑",
+      category: "text-tools"
     }
   ];
 

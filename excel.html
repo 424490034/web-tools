@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>在线Excel编辑器</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/x-data-spreadsheet@1.1.9/dist/xspreadsheet.css"
+    />
+    <script src="https://unpkg.com/x-data-spreadsheet@1.1.9/dist/xspreadsheet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', 'Calibri', Arial, sans-serif;
+        background: #f3f3f3;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 100%;
+        margin: 0;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background: #217346;
+        padding: 12px 20px;
+        color: white;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #1e5f3a;
+        flex-shrink: 0;
+      }
+
+      .header .excel-icon {
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 4px;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #217346;
+        font-size: 16px;
+      }
+
+      .header h1 {
+        font-size: 18px;
+        font-weight: 400;
+        margin: 0;
+      }
+
+      .toolbar {
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #d1d5db;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: 48px;
+        flex-shrink: 0;
+      }
+
+      .btn {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 400;
+        transition: all 0.1s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: white;
+        color: #333;
+        min-height: 24px;
+      }
+
+      .btn:hover {
+        background: #e5f3ff;
+        border-color: #0078d4;
+      }
+
+      .btn:active {
+        background: #deecf9;
+      }
+
+      .btn-primary {
+        background: #0078d4;
+        color: white;
+        border-color: #106ebe;
+      }
+
+      .btn-primary:hover {
+        background: #106ebe;
+      }
+
+      .btn-success {
+        background: #107c10;
+        color: white;
+        border-color: #0e6e0e;
+      }
+
+      .btn-success:hover {
+        background: #0e6e0e;
+      }
+
+      .btn-warning {
+        background: #d83b01;
+        color: white;
+        border-color: #c33401;
+      }
+
+      .btn-warning:hover {
+        background: #c33401;
+      }
+
+      .file-input {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+      }
+
+      .file-input input[type='file'] {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .file-input label {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 2px;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 400;
+        font-size: 12px;
+        transition: all 0.1s ease;
+        min-height: 24px;
+      }
+
+      .file-input label:hover {
+        background: #e5f3ff;
+        border-color: #0078d4;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .stats {
+        display: flex;
+        gap: 12px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #d1d5db;
+        font-size: 11px;
+        flex-shrink: 0;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 4px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 2px;
+        text-align: center;
+        min-width: 80px;
+      }
+
+      .stat-card h4 {
+        color: #333;
+        font-size: 12px;
+        margin-bottom: 2px;
+        font-weight: 400;
+      }
+
+      .stat-card p {
+        color: #666;
+        font-weight: 400;
+        font-size: 10px;
+      }
+
+      .spreadsheet-container {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .info-panel {
+        background: #f8f9fa;
+        padding: 40px;
+        text-align: center;
+        border: 1px solid #d1d5db;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .info-panel h3 {
+        color: #333;
+        margin-bottom: 16px;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .info-panel p {
+        color: #666;
+        line-height: 1.5;
+        font-size: 12px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loading::after {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 自定义x-spreadsheet样式 */
+      .x-spreadsheet {
+        height: 100% !important;
+        font-family: 'Calibri', Arial, sans-serif !important;
+      }
+
+      .x-spreadsheet .x-spreadsheet-sheet {
+        border: none !important;
+      }
+
+      .x-spreadsheet .x-spreadsheet-table {
+        font-size: 11px !important;
+      }
+
+      .x-spreadsheet .x-spreadsheet-table .x-spreadsheet-table-cell {
+        border-color: #d1d5db !important;
+      }
+
+      .x-spreadsheet .x-spreadsheet-table .x-spreadsheet-table-cell.selected {
+        border-color: #0078d4 !important;
+      }
+
+      @media (max-width: 768px) {
+        .toolbar {
+          flex-wrap: wrap;
+        }
+
+        .stats {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="excel-icon">X</div>
+        <h1>Microsoft Excel</h1>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="createNewSpreadsheet()">
+          新建
+        </button>
+        <div class="file-input">
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" />
+          <label for="fileInput">打开</label>
+        </div>
+        <button class="btn btn-success" onclick="saveAsJson()">保存</button>
+        <button class="btn" onclick="exportAsExcel()">导出Excel</button>
+        <button class="btn" onclick="exportAsCSV()">导出CSV</button>
+        <button class="btn" onclick="addSheet()">新建工作表</button>
+        <button class="btn btn-warning" onclick="clearData()">清除</button>
+      </div>
+
+      <div class="content">
+        <div class="stats" id="stats" style="display: none">
+          <div class="stat-card">
+            <h4 id="rowCount">0</h4>
+            <p>总行数</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="colCount">0</h4>
+            <p>总列数</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="sheetCount">0</h4>
+            <p>工作表数量</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="cellCount">0</h4>
+            <p>总单元格数</p>
+          </div>
+        </div>
+
+        <div class="spreadsheet-container">
+          <div id="spreadsheet-content">
+            <div class="info-panel">
+              <h3>开始使用</h3>
+              <p>
+                点击"新建"按钮创建新的电子表格，或选择Excel/JSON文件来加载工作簿
+              </p>
+              <div
+                style="
+                  margin-top: 20px;
+                  text-align: left;
+                  max-width: 400px;
+                  margin-left: auto;
+                  margin-right: auto;
+                "
+              >
+                <p style="margin-bottom: 8px">• 直接在页面新建电子表格</p>
+                <p style="margin-bottom: 8px">
+                  • 支持Excel(.xlsx/.xls/.csv)和JSON格式
+                </p>
+                <p style="margin-bottom: 8px">• 多工作表编辑</p>
+                <p style="margin-bottom: 8px">• 实时单元格编辑</p>
+                <p style="margin-bottom: 8px">• 添加行和列</p>
+                <p style="margin-bottom: 8px">• 导出Excel和CSV格式</p>
+                <p style="margin-bottom: 8px">• 支持公式计算</p>
+                <p style="margin-bottom: 8px">• 单元格格式设置</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let spreadsheet = null
+      let workbookData = null
+      let currentFileName = null
+
+      // 文件输入处理
+      document
+        .getElementById('fileInput')
+        .addEventListener('change', handleFile)
+
+      function handleFile(e) {
+        const file = e.target.files[0]
+        if (!file) return
+
+        currentFileName = file.name.replace(/\.[^/.]+$/, '')
+        const fileExtension = file.name.split('.').pop().toLowerCase()
+        const reader = new FileReader()
+
+        reader.onload = function (e) {
+          try {
+            document.getElementById('spreadsheet-content').innerHTML =
+              '<div class="loading">正在加载文件...</div>'
+
+            if (fileExtension === 'json') {
+              // 处理JSON文件
+              const jsonData = JSON.parse(e.target.result)
+              workbookData = jsonData
+            } else {
+              // 处理Excel文件
+
+              // 检查XLSX库是否已加载
+              if (typeof XLSX === 'undefined') {
+                throw new Error('XLSX库未加载，请刷新页面重试')
+              }
+
+              const data = new Uint8Array(e.target.result)
+
+              if (data.length === 0) {
+                throw new Error('文件为空或无法读取')
+              }
+
+              const workbook = XLSX.read(data, { type: 'array' })
+
+              workbookData = convertWorkbookToXSpreadsheet(workbook)
+            }
+
+            // 检查数据是否有效
+            if (!workbookData || workbookData.length === 0) {
+              throw new Error('文件内容为空或格式不正确')
+            }
+
+            // 初始化x-spreadsheet
+            initSpreadsheet(workbookData)
+
+            updateStats()
+          } catch (error) {
+            alert(
+              '文件读取失败: ' +
+                error.message +
+                '\n\n请检查文件格式是否正确。'
+            )
+            showWelcomePanel()
+          }
+        }
+
+        if (fileExtension === 'json') {
+          reader.readAsText(file)
+        } else {
+          reader.readAsArrayBuffer(file)
+        }
+      }
+
+      // 将Excel工作簿转换为x-spreadsheet格式
+      function convertWorkbookToXSpreadsheet(workbook) {
+        // 检查workbook是否有效
+        if (!workbook || !workbook.SheetNames || !workbook.Sheets) {
+          throw new Error('工作簿数据无效或为空')
+        }
+
+        const sheets = []
+
+        workbook.SheetNames.forEach((sheetName, index) => {
+          const worksheet = workbook.Sheets[sheetName]
+
+          // 检查worksheet是否有效
+          if (!worksheet) {
+            return
+          }
+
+          // 使用range来获取工作表的范围
+          const range = worksheet['!ref']
+            ? XLSX.utils.decode_range(worksheet['!ref'])
+            : { s: { r: 0, c: 0 }, e: { r: 0, c: 0 } }
+
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: '',
+            range: range,
+          })
+
+          // 转换为x-spreadsheet格式
+          const rows = {}
+          const cols = {}
+
+          // 确保至少有一行数据
+          const minRows = Math.max(jsonData ? jsonData.length : 0, 1)
+          const minCols = 1
+
+          if (jsonData && Array.isArray(jsonData) && jsonData.length > 0) {
+            jsonData.forEach((row, rowIndex) => {
+              const cells = {}
+              if (Array.isArray(row) && row.length > 0) {
+                row.forEach((cell, colIndex) => {
+                  // 确保单元格对象完整
+                  cells[colIndex] = {
+                    text:
+                      cell === null || cell === undefined ? '' : String(cell),
+                    style: 0,
+                  }
+                })
+              }
+              // 确保每行至少有一个单元格
+              if (Object.keys(cells).length === 0) {
+                cells[0] = { text: '', style: 0 }
+              }
+              rows[rowIndex] = { cells: cells }
+            })
+          }
+
+          // 确保至少有一行
+          if (Object.keys(rows).length === 0) {
+            rows[0] = { cells: { 0: { text: '', style: 0 } } }
+          }
+
+          // 设置默认列宽
+          for (let i = 0; i < 26; i++) {
+            cols[i] = { width: 100 }
+          }
+
+
+
+          const sheetData = {
+            name: sheetName || `工作表${index + 1}`,
+            rows: rows,
+            cols: cols,
+            merges: [],
+            styles: [
+              {
+                align: 'left',
+                valign: 'middle',
+                textwrap: false,
+                strike: false,
+                underline: false,
+                color: '#000000',
+                bgcolor: '#ffffff',
+                bold: false,
+                italic: false,
+                font: { name: 'Arial', size: 10 },
+                format: 'normal',
+              },
+            ],
+            freeze: 'A1',
+          }
+
+          sheets.push(sheetData)
+        })
+
+
+
+        // 确保至少有一个工作表
+        if (sheets.length === 0) {
+          sheets.push({
+            name: '工作表1',
+            rows: { 0: { cells: { 0: { text: '', style: 0 } } } },
+            cols: { 0: { width: 100 } },
+            merges: [],
+            styles: [
+              {
+                align: 'left',
+                valign: 'middle',
+                textwrap: false,
+                strike: false,
+                underline: false,
+                color: '#000000',
+                bgcolor: '#ffffff',
+                bold: false,
+                italic: false,
+                font: { name: 'Arial', size: 10 },
+                format: 'normal',
+              },
+            ],
+            freeze: 'A1',
+          })
+        }
+
+        return sheets
+      }
+
+      // 创建新的电子表格
+      function createNewSpreadsheet() {
+        const defaultData = [
+          {
+            name: '工作表1',
+            rows: { 0: { cells: { 0: { text: '', style: 0 } } } },
+            cols: { 0: { width: 100 } },
+            merges: [],
+            styles: [
+              {
+                align: 'left',
+                valign: 'middle',
+                textwrap: false,
+                strike: false,
+                underline: false,
+                color: '#000000',
+                bgcolor: '#ffffff',
+                bold: false,
+                italic: false,
+                font: { name: 'Arial', size: 10 },
+                format: 'normal',
+              },
+            ],
+            freeze: 'A1',
+          },
+        ]
+
+        workbookData = defaultData
+        currentFileName = '新建电子表格'
+        initSpreadsheet(defaultData)
+        updateStats()
+      }
+
+      function initSpreadsheet(data) {
+        const container2 = document.getElementsByClassName(
+          'spreadsheet-container'
+        )[0]
+
+        const container = document.getElementById('spreadsheet-content')
+        container.innerHTML = ''
+
+        // 确保容器有足够的高度
+        const containerHeight = Math.max(container2.clientHeight - 60, 600)
+        const containerWidth = Math.max(container2.clientWidth, 800)
+
+        // 设置中文语言包（必须在初始化之前设置）
+        if (typeof x_spreadsheet !== 'undefined' && x_spreadsheet.locale) {
+          x_spreadsheet.locale('zh-cn', {
+            toolbar: {
+              undo: '撤销',
+              redo: '重做',
+              print: '打印',
+              paintformat: '格式刷',
+              clearformat: '清除格式',
+              format: '格式',
+              fontName: '字体',
+              fontSize: '字号',
+              fontBold: '粗体',
+              fontItalic: '斜体',
+              fontStrike: '删除线',
+              fontUnderline: '下划线',
+              fontColor: '字体颜色',
+              fillColor: '填充颜色',
+              border: '边框',
+              merge: '合并单元格',
+              align: '对齐',
+              valign: '垂直对齐',
+              textwrap: '自动换行',
+              freeze: '冻结',
+              autofilter: '筛选',
+              formula: '函数',
+              more: '更多',
+              // 对齐选项
+              left: '左对齐',
+              center: '居中对齐',
+              right: '右对齐',
+              top: '顶部对齐',
+              middle: '中间对齐',
+              bottom: '底部对齐',
+              // 边框选项
+              'border-all': '所有边框',
+              'border-inside': '内部边框',
+              'border-horizontal': '水平边框',
+              'border-vertical': '垂直边框',
+              'border-outside': '外部边框',
+              'border-left': '左边框',
+              'border-top': '上边框',
+              'border-right': '右边框',
+              'border-bottom': '下边框',
+              'border-none': '无边框',
+              // 格式选项
+              'format-normal': '常规',
+              'format-text': '文本',
+              'format-number': '数字',
+              'format-percent': '百分比',
+              'format-rmb': '人民币',
+              'format-usd': '美元',
+              'format-eur': '欧元',
+              'format-date': '日期',
+              'format-time': '时间',
+              'format-datetime': '日期时间',
+            },
+            contextmenu: {
+              copy: '复制',
+              cut: '剪切',
+              paste: '粘贴',
+              pasteValue: '粘贴数值',
+              pasteFormat: '粘贴格式',
+              hide: '隐藏',
+              insertRow: '插入行',
+              insertColumn: '插入列',
+              deleteSheet: '删除工作表',
+              deleteRow: '删除行',
+              deleteColumn: '删除列',
+              deleteCell: '删除单元格',
+              deleteCellText: '删除内容',
+              validation: '数据验证',
+              cellprintarea: '设置打印区域',
+              cellnonprintarea: '取消打印区域',
+              editable: '编辑',
+              readonly: '只读',
+            },
+            format: {
+              normal: '常规',
+              text: '文本',
+              number: '数字',
+              percent: '百分比',
+              rmb: '人民币',
+              usd: '美元',
+              eur: '欧元',
+              date: '日期',
+              time: '时间',
+              datetime: '日期时间',
+              duration: '持续时间',
+            },
+            formula: {
+              sum: '求和',
+              average: '平均值',
+              max: '最大值',
+              min: '最小值',
+              concat: '连接',
+              _if: '条件',
+              and: '与',
+              or: '或',
+            },
+            validation: {
+              required: '必填',
+              notBlank: '不能为空',
+              number: '数字',
+              integer: '整数',
+              decimal: '小数',
+              list: '列表',
+              date: '日期',
+              phone: '手机号',
+              email: '邮箱',
+            },
+            error: {
+              pasteForMergedCell: '无法对合并单元格执行此操作',
+            },
+            calendar: {
+              weeks: ['日', '一', '二', '三', '四', '五', '六'],
+              months: [
+                '一月',
+                '二月',
+                '三月',
+                '四月',
+                '五月',
+                '六月',
+                '七月',
+                '八月',
+                '九月',
+                '十月',
+                '十一月',
+                '十二月',
+              ],
+            },
+            button: {
+              next: '下一步',
+              cancel: '取消',
+              remove: '删除',
+              save: '保存',
+              ok: '确定',
+            },
+            // 字体选项
+            font: {
+              'Arial': 'Arial',
+              'Helvetica': 'Helvetica',
+              'Times': 'Times',
+              'Courier': 'Courier',
+              'Verdana': 'Verdana',
+              'Georgia': 'Georgia',
+              'Palatino': 'Palatino',
+              'Garamond': 'Garamond',
+              'Comic Sans MS': 'Comic Sans MS',
+              'Trebuchet MS': 'Trebuchet MS',
+              'Arial Black': 'Arial Black',
+              'Impact': 'Impact',
+              'Calibri': 'Calibri',
+              '微软雅黑': '微软雅黑',
+              '宋体': '宋体',
+              '黑体': '黑体',
+              '楷体': '楷体',
+            },
+          })
+        }
+
+        const options = {
+          mode: 'edit',
+          showToolbar: true,
+          showGrid: true,
+          showContextmenu: true,
+          view: {
+            height: () => containerHeight,
+            width: () => containerWidth,
+          },
+          row: {
+            len: 100,
+            height: 25,
+          },
+          col: {
+            len: 26,
+            width: 100,
+            indexWidth: 60,
+            minWidth: 60,
+          },
+          // 添加中文本地化配置
+          locale: 'zh-cn',
+        }
+
+        spreadsheet = x_spreadsheet(container, options)
+
+        // 如果有数据，在初始化后加载
+        if (data && data.length > 0) {
+          spreadsheet.loadData(data)
+        }
+
+        // 监听数据变化
+        spreadsheet.on('cell-selected', (cell, ri, ci) => {
+          updateStats()
+        })
+
+        spreadsheet.on('cell-edited', (text, ri, ci) => {
+          updateStats()
+        })
+
+        document.getElementById('stats').style.display = 'flex'
+      }
+
+      function showWelcomePanel() {
+        document.getElementById('spreadsheet-content').innerHTML = `
+                <div class="info-panel">
+                    <h3>开始使用</h3>
+                    <p>点击"新建"按钮创建新的电子表格，或选择Excel/JSON文件来加载工作簿</p>
+                    <div style="margin-top: 20px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <p style="margin-bottom: 8px;">• 直接在页面新建电子表格</p>
+                        <p style="margin-bottom: 8px;">• 支持Excel(.xlsx/.xls/.csv)和JSON格式</p>
+                        <p style="margin-bottom: 8px;">• 多工作表编辑</p>
+                        <p style="margin-bottom: 8px;">• 实时单元格编辑</p>
+                        <p style="margin-bottom: 8px;">• 添加行和列</p>
+                        <p style="margin-bottom: 8px;">• 保存和导出功能</p>
+                        <p style="margin-bottom: 8px;">• 支持公式计算</p>
+                        <p style="margin-bottom: 8px;">• 单元格格式设置</p>
+                    </div>
+                </div>
+            `
+        document.getElementById('stats').style.display = 'none'
+      }
+
+      function addSheet() {
+        if (!spreadsheet) {
+          // 如果没有电子表格，创建一个新的
+          initSpreadsheet([
+            {
+              name: '工作表1',
+              rows: { 0: { cells: { 0: { text: '', style: 0 } } } },
+              cols: { 0: { width: 100 } },
+              merges: [],
+              styles: [
+                {
+                  align: 'left',
+                  valign: 'middle',
+                  textwrap: false,
+                  strike: false,
+                  underline: false,
+                  color: '#000000',
+                  bgcolor: '#ffffff',
+                  bold: false,
+                  italic: false,
+                  font: { name: 'Arial', size: 10 },
+                  format: 'normal',
+                },
+              ],
+              freeze: 'A1',
+            },
+          ])
+        } else {
+          alert('请通过工作表标签栏右键菜单添加新工作表')
+        }
+        updateStats()
+      }
+
+      function clearData() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+
+        alert('请使用 Ctrl+A 选择所有单元格，然后按 Delete 键清空数据')
+      }
+
+      // 保存为JSON格式
+      function saveAsJson() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+
+        try {
+          const data = spreadsheet.getData()
+          const jsonString = JSON.stringify(data, null, 2)
+
+          const blob = new Blob([jsonString], {
+            type: 'application/json;charset=utf-8;',
+          })
+          const link = document.createElement('a')
+          const url = URL.createObjectURL(blob)
+          link.setAttribute('href', url)
+          link.setAttribute(
+            'download',
+            `${currentFileName || 'spreadsheet'}_${new Date().getTime()}.json`
+          )
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+
+          alert('文件已保存为JSON格式')
+        } catch (error) {
+          alert('保存失败: ' + error.message)
+          // 保存失败
+        }
+      }
+
+      // 导出为Excel格式（使用SheetJS）
+      function exportAsExcel() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+
+        try {
+          // 动态加载XLSX库
+          if (typeof XLSX === 'undefined') {
+            const script = document.createElement('script')
+            script.src =
+              'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+            script.onload = function () {
+              exportAsExcel()
+            }
+            document.head.appendChild(script)
+            return
+          }
+
+          const data = spreadsheet.getData()
+          const workbook = XLSX.utils.book_new()
+
+          data.forEach((sheet) => {
+            const wsData = []
+            const maxRow = Math.max(...Object.keys(sheet.rows).map(Number), -1)
+            const maxCol = Math.max(
+              ...Object.values(sheet.rows).flatMap((row) =>
+                Object.keys(row.cells).map(Number)
+              ),
+              -1
+            )
+
+            for (let r = 0; r <= maxRow; r++) {
+              const row = []
+              for (let c = 0; c <= maxCol; c++) {
+                const cell = sheet.rows[r]?.cells[c]
+                row.push(cell ? cell.text : '')
+              }
+              wsData.push(row)
+            }
+
+            const worksheet = XLSX.utils.aoa_to_sheet(wsData)
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
+          })
+
+          const fileName = `${
+            currentFileName || 'spreadsheet'
+          }_${new Date().getTime()}.xlsx`
+          XLSX.writeFile(workbook, fileName)
+
+          alert('Excel文件已导出: ' + fileName)
+        } catch (error) {
+          alert('导出失败: ' + error.message)
+          // 导出失败
+        }
+      }
+
+      // 导出为CSV格式
+      function exportAsCSV() {
+        if (!spreadsheet) {
+          alert('请先创建或加载一个电子表格')
+          return
+        }
+
+        try {
+          const data = spreadsheet.getData()
+          const currentSheetIndex = 0  // 默认使用第一个工作表
+          const sheet = data[currentSheetIndex]
+
+          const wsData = []
+          const maxRow = Math.max(...Object.keys(sheet.rows).map(Number), -1)
+          const maxCol = Math.max(
+            ...Object.values(sheet.rows).flatMap((row) =>
+              Object.keys(row.cells).map(Number)
+            ),
+            -1
+          )
+
+          for (let r = 0; r <= maxRow; r++) {
+            const row = []
+            for (let c = 0; c <= maxCol; c++) {
+              const cell = sheet.rows[r]?.cells[c]
+              row.push(cell ? cell.text : '')
+            }
+            wsData.push(row)
+          }
+
+          // 转换为CSV格式
+          const csvContent = wsData
+            .map((row) =>
+              row
+                .map((cell) => {
+                  // 处理包含逗号、引号或换行符的单元格
+                  if (
+                    typeof cell === 'string' &&
+                    (cell.includes(',') ||
+                      cell.includes('"') ||
+                      cell.includes('\n'))
+                  ) {
+                    return '"' + cell.replace(/"/g, '""') + '"'
+                  }
+                  return cell
+                })
+                .join(',')
+            )
+            .join('\n')
+
+          const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+          })
+          const link = document.createElement('a')
+          const url = URL.createObjectURL(blob)
+          link.setAttribute('href', url)
+          link.setAttribute(
+            'download',
+            `${sheet.name}_${new Date().getTime()}.csv`
+          )
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+
+          alert('CSV文件已导出')
+        } catch (error) {
+          alert('导出失败: ' + error.message)
+          // 导出失败
+        }
+      }
+
+      function updateStats() {
+        if (!spreadsheet) {
+          document.getElementById('stats').style.display = 'none'
+          return
+        }
+
+        try {
+          const data = spreadsheet.getData()
+          if (!data || !Array.isArray(data)) {
+            document.getElementById('stats').style.display = 'none'
+            return
+          }
+
+          let totalRows = 0
+          let totalCols = 0
+          let totalCells = 0
+
+          data.forEach((sheet) => {
+            if (!sheet || !sheet.rows) return
+
+            const rows = Object.keys(sheet.rows)
+            if (rows.length === 0) return
+
+            const maxRow = Math.max(...rows.map(Number), -1) + 1
+
+            const cellKeys = Object.values(sheet.rows)
+              .filter((row) => row && row.cells)
+              .flatMap((row) => Object.keys(row.cells).map(Number))
+
+            const maxCol =
+              cellKeys.length > 0 ? Math.max(...cellKeys, -1) + 1 : 0
+
+            totalRows += maxRow
+            totalCols = Math.max(totalCols, maxCol)
+            totalCells += Object.values(sheet.rows)
+              .filter((row) => row && row.cells)
+              .reduce((sum, row) => sum + Object.keys(row.cells).length, 0)
+          })
+
+          document.getElementById('rowCount').textContent = totalRows
+          document.getElementById('colCount').textContent = totalCols
+          document.getElementById('sheetCount').textContent = data.length
+          document.getElementById('cellCount').textContent = totalCells
+
+          document.getElementById('stats').style.display = 'flex'
+        } catch (error) {
+          // 统计更新失败
+          document.getElementById('stats').style.display = 'none'
+        }
+      }
+
+      // 键盘快捷键
+      document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey) {
+          switch (e.key) {
+            case 's':
+              e.preventDefault()
+              saveAsJson()
+              break
+            case 'o':
+              e.preventDefault()
+              document.getElementById('fileInput').click()
+              break
+            case 'n':
+              e.preventDefault()
+              createNewSpreadsheet()
+              break
+            case 'e':
+              e.preventDefault()
+              exportAsExcel()
+              break
+          }
+        }
+      })
+
+      // 拖拽上传
+      document.addEventListener('dragover', function (e) {
+        e.preventDefault()
+      })
+
+      document.addEventListener('drop', function (e) {
+        e.preventDefault()
+        const files = e.dataTransfer.files
+        if (files.length > 0) {
+          document.getElementById('fileInput').files = files
+          handleFile({ target: { files: files } })
+        }
+      })
+
+      // 窗口大小变化时重新调整电子表格大小
+      window.addEventListener('resize', function () {
+        if (spreadsheet) {
+          spreadsheet.resize()
+        }
+      })
+
+      // 初始化时显示欢迎面板
+      showWelcomePanel()
+
+      // 页面加载完成后自动创建新电子表格
+      window.addEventListener('load', function () {
+        // 可以选择在页面加载时自动创建新电子表格
+        // createNewSpreadsheet()
+      })
+    </script>
+  </body>
+</html>
