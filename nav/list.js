@@ -115,7 +115,7 @@
       description: "将视频文件中的音频和视频轨道分离，支持指定时间范围和多种格式输出。(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
       emoji: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
       link: "https://www.996day.com/split.html",
-      buttonText: "分离音视频",
+      buttonText: "开始分离",
       category: "media-tools"
     },
     {
