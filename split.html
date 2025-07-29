@@ -799,6 +799,123 @@
         }
       }
 
+      /* 预览弹窗样式 */
+      .preview-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .preview-content {
+        background: var(--primary-bg);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 90vw;
+        max-height: 90vh;
+        box-shadow: 20px 20px 60px var(--shadow-dark),
+          -20px -20px 60px var(--shadow-light);
+        position: relative;
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: scale(0.8) translateY(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .preview-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--accent-color);
+        margin: 0;
+      }
+
+      .close-btn {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 4px 4px 8px var(--shadow-dark),
+          -4px -4px 8px var(--shadow-light);
+      }
+
+      .close-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+      }
+
+      .preview-media {
+        width: 100%;
+        max-width: 800px;
+        max-height: 600px;
+        border-radius: 15px;
+        box-shadow: inset 8px 8px 16px var(--shadow-dark),
+          inset -8px -8px 16px var(--shadow-light);
+      }
+
+      .preview-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-left: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 4px 4px 8px var(--shadow-dark),
+          -4px -4px 8px var(--shadow-light);
+      }
+
+      .preview-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+      }
+
       /* 时间段管理样式 */
       .time-segments-section {
         margin-bottom: 25px;
@@ -1271,6 +1388,18 @@
       <footer>
         <p>🔧 基于 FFmpeg.wasm 技术 | 🌐 完全在浏览器中运行，保护您的隐私</p>
       </footer>
+</div>
+    </div>
+
+    <!-- 预览弹窗 -->
+    <div id="previewModal" class="preview-modal">
+      <div class="preview-content">
+        <div class="preview-header">
+          <h3 class="preview-title" id="previewTitle">文件预览</h3>
+          <button class="close-btn" id="closePreview">×</button>
+        </div>
+        <div id="previewContainer"></div>
+      </div>
     </div>
 
     <script>
@@ -1697,6 +1826,11 @@
         segmentBlobs.forEach((segmentData, index) => {
           const segmentDiv = document.createElement('div')
           segmentDiv.className = 'download-segment'
+          
+          // 检查是否支持预览
+          const videoSupportsPreview = isPreviewSupported('video', videoFormat)
+          const audioSupportsPreview = isPreviewSupported('audio', audioFormat)
+          
           segmentDiv.innerHTML = `
             <div class="segment-header">
               <h4>片段 ${index + 1}</h4>
@@ -1713,6 +1847,9 @@
                 <button class="btn-success download-btn" data-type="video" data-index="${index}">
                   📥 下载视频
                 </button>
+                ${videoSupportsPreview ? `<button class="preview-btn" data-type="video" data-index="${index}">
+                  👁️ 预览
+                </button>` : ''}
               </div>
               <div class="download-item">
                 <div class="download-title">🎵 音频文件</div>
@@ -1722,6 +1859,9 @@
                 <button class="btn-success download-btn" data-type="audio" data-index="${index}">
                   📥 下载音频
                 </button>
+                ${audioSupportsPreview ? `<button class="preview-btn" data-type="audio" data-index="${index}">
+                  👁️ 预览
+                </button>` : ''}
               </div>
             </div>
           `
@@ -1734,6 +1874,21 @@
             const type = e.target.getAttribute('data-type')
             const index = parseInt(e.target.getAttribute('data-index'))
             downloadSegmentFile(
+              segmentBlobs[index],
+              type,
+              videoFormat,
+              audioFormat,
+              index + 1
+            )
+          })
+        })
+        
+        // 添加预览按钮事件监听
+        document.querySelectorAll('.preview-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const type = e.target.getAttribute('data-type')
+            const index = parseInt(e.target.getAttribute('data-index'))
+            previewFile(
               segmentBlobs[index],
               type,
               videoFormat,
@@ -1824,8 +1979,113 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
       }
 
+      // 检查文件格式是否支持预览
+      function isPreviewSupported(type, format) {
+        if (type === 'video') {
+          // 浏览器支持的视频格式
+          const supportedVideoFormats = ['mp4', 'webm', 'ogg']
+          return supportedVideoFormats.includes(format.toLowerCase())
+        } else if (type === 'audio') {
+          // 浏览器支持的音频格式
+          const supportedAudioFormats = ['mp3', 'wav', 'ogg', 'm4a', 'aac']
+          return supportedAudioFormats.includes(format.toLowerCase())
+        }
+        return false
+      }
+
+      // 预览文件
+      function previewFile(segmentData, type, videoFormat, audioFormat, segmentNumber) {
+        const blob = type === 'video' ? segmentData.videoBlob : segmentData.audioBlob
+        const format = type === 'video' ? videoFormat : audioFormat
+        const url = URL.createObjectURL(blob)
+        
+        const previewModal = document.getElementById('previewModal')
+        const previewTitle = document.getElementById('previewTitle')
+        const previewContainer = document.getElementById('previewContainer')
+        
+        // 设置标题
+        previewTitle.textContent = `${type === 'video' ? '视频' : '音频'}预览 - 片段${segmentNumber}`
+        
+        // 清空容器
+        previewContainer.innerHTML = ''
+        
+        // 创建媒体元素
+        let mediaElement
+        if (type === 'video') {
+          mediaElement = document.createElement('video')
+          mediaElement.controls = true
+          mediaElement.autoplay = false
+        } else {
+          mediaElement = document.createElement('audio')
+          mediaElement.controls = true
+          mediaElement.autoplay = false
+        }
+        
+        mediaElement.src = url
+        mediaElement.className = 'preview-media'
+        
+        // 添加错误处理
+        mediaElement.onerror = function() {
+          previewContainer.innerHTML = '<p style="text-align: center; color: var(--danger-color); padding: 40px;">❌ 预览失败，该格式可能不被浏览器支持</p>'
+        }
+        
+        previewContainer.appendChild(mediaElement)
+        
+        // 显示弹窗
+        previewModal.style.display = 'flex'
+        
+        // 清理URL（当弹窗关闭时）
+        const cleanup = () => {
+          URL.revokeObjectURL(url)
+          if (mediaElement) {
+            mediaElement.pause()
+            mediaElement.src = ''
+          }
+        }
+        
+        // 存储清理函数以便关闭时调用
+        previewModal._cleanup = cleanup
+      }
+
+      // 初始化预览弹窗事件
+      function initPreviewModal() {
+        const previewModal = document.getElementById('previewModal')
+        const closeBtn = document.getElementById('closePreview')
+        
+        // 关闭按钮事件
+        closeBtn.addEventListener('click', closePreviewModal)
+        
+        // 点击背景关闭
+        previewModal.addEventListener('click', (e) => {
+          if (e.target === previewModal) {
+            closePreviewModal()
+          }
+        })
+        
+        // ESC键关闭
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && previewModal.style.display === 'flex') {
+            closePreviewModal()
+          }
+        })
+      }
+
+      // 关闭预览弹窗
+      function closePreviewModal() {
+        const previewModal = document.getElementById('previewModal')
+        
+        // 执行清理函数
+        if (previewModal._cleanup) {
+          previewModal._cleanup()
+          previewModal._cleanup = null
+        }
+        
+        previewModal.style.display = 'none'
+      }
+
       // 初始化
       initEvents()
+      initPreviewModal()
     </script>
   </body>
 </html>
