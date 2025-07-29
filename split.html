@@ -233,8 +233,7 @@
         transform: translateY(-5px) scale(1.02);
         box-shadow: inset 10px 10px 20px var(--shadow-dark),
           inset -10px -10px 20px var(--shadow-light),
-          0 15px 40px rgba(102, 126, 234, 0.25),
-          0 5px 15px rgba(0, 0, 0, 0.1);
+          0 15px 40px rgba(102, 126, 234, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
       }
 
       .file-upload.dragover {
@@ -248,7 +247,8 @@
       }
 
       @keyframes dragPulse {
-        0%, 100% {
+        0%,
+        100% {
           border-color: var(--success-color);
         }
         50% {
@@ -270,7 +270,8 @@
       }
 
       @keyframes iconFloat {
-        0%, 100% {
+        0%,
+        100% {
           transform: translateY(0);
         }
         50% {
@@ -362,7 +363,8 @@
         font-size: 0.95rem;
       }
 
-      input, select {
+      input,
+      select {
         width: 100%;
         padding: 14px 18px;
         background: var(--primary-bg);
@@ -376,7 +378,8 @@
         transition: all 0.3s ease;
       }
 
-      input:focus, select:focus {
+      input:focus,
+      select:focus {
         outline: none;
         box-shadow: inset 8px 8px 16px var(--shadow-dark),
           inset -8px -8px 16px var(--shadow-light),
@@ -1083,7 +1086,14 @@
           </div>
 
           <div class="video-preview" id="originalPreview">
-            <p style="text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 1.1rem;">
+            <p
+              style="
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--text-secondary);
+                font-size: 1.1rem;
+              "
+            >
               📺 视频预览区
             </p>
           </div>
@@ -1092,32 +1102,64 @@
         <!-- 设置面板 -->
         <div class="panel">
           <div class="panel-title" data-icon="⚙️">分离设置</div>
-          
+
           <!-- 时间段管理 -->
           <div class="time-segments-section">
             <div class="section-header">
               <h4>🎯 时间段设置</h4>
-              <div class="current-time-display" id="currentTimeDisplay">当前时间: 00:00</div>
+              <div class="current-time-display" id="currentTimeDisplay">
+                当前时间: 00:00
+              </div>
             </div>
-            
+
             <div class="time-input-form">
               <div class="form-group">
                 <label for="newStartTime">开始时间 (秒)</label>
                 <div class="input-with-button">
-                  <input type="number" id="newStartTime" value="0" min="0" step="0.1" placeholder="0" />
-                  <button type="button" class="get-time-btn" id="getStartTimeBtn" title="获取当前播放时间">📍</button>
+                  <input
+                    type="number"
+                    id="newStartTime"
+                    value="0"
+                    min="0"
+                    step="0.1"
+                    placeholder="开始时间"
+                  />
+                  <button
+                    type="button"
+                    class="get-time-btn"
+                    id="getStartTimeBtn"
+                    title="获取当前播放时间"
+                  >
+                    📍
+                  </button>
                 </div>
               </div>
               <div class="form-group">
                 <label for="newEndTime">结束时间 (秒)</label>
                 <div class="input-with-button">
-                  <input type="number" id="newEndTime" value="" min="0" step="0.1" placeholder="结束时间" />
-                  <button type="button" class="get-time-btn" id="getEndTimeBtn" title="获取当前播放时间">📍</button>
+                  <input
+                    type="number"
+                    id="newEndTime"
+                    value=""
+                    min="0"
+                    step="0.1"
+                    placeholder="结束时间"
+                  />
+                  <button
+                    type="button"
+                    class="get-time-btn"
+                    id="getEndTimeBtn"
+                    title="获取当前播放时间"
+                  >
+                    📍
+                  </button>
                 </div>
               </div>
-              <button type="button" class="add-segment-btn" id="addSegmentBtn">➕ 添加时间段</button>
+              <button type="button" class="add-segment-btn" id="addSegmentBtn">
+                ➕ 添加时间段
+              </button>
             </div>
-            
+
             <div class="segments-list" id="segmentsList">
               <div class="segments-header">
                 <span>📋 时间段列表</span>
@@ -1205,7 +1247,7 @@
       <div class="error-message" id="errorMessage"></div>
 
       <!-- 下载区域 -->
-      <div class="download-section" id="downloadSection" style="display: none;">
+      <div class="download-section" id="downloadSection" style="display: none">
         <div class="download-segments" id="downloadSegments">
           <!-- 动态生成的片段下载项 -->
         </div>
@@ -1221,7 +1263,8 @@
           <li>处理完成后可分别下载视频和音频文件</li>
         </ol>
         <p>
-          💡 提示：支持指定时间范围分离，留空结束时间将处理完整视频。支持多种输出格式和质量选项。
+          💡
+          提示：支持指定时间范围分离，留空结束时间将处理完整视频。支持多种输出格式和质量选项。
         </p>
       </div>
 
@@ -1231,96 +1274,96 @@
     </div>
 
     <script>
-      let ffmpeg = null;
-      let inputFile = null;
-      let videoUrl = null;
-      let videoBlob = null;
-      let audioBlob = null;
+      let ffmpeg = null
+      let inputFile = null
+      let videoUrl = null
+      let videoBlob = null
+      let audioBlob = null
 
       // 时间段管理
-      let timeSegments = [];
-      let currentVideo = null;
+      let timeSegments = []
+      let currentVideo = null
 
       // DOM 元素
-      const uploadArea = document.getElementById('uploadArea');
-      const videoInput = document.getElementById('videoInput');
-      const originalPreview = document.getElementById('originalPreview');
-      const startTimeInput = document.getElementById('newStartTime');
-      const endTimeInput = document.getElementById('newEndTime');
-      const getStartTimeBtn = document.getElementById('getStartTimeBtn');
-      const getEndTimeBtn = document.getElementById('getEndTimeBtn');
-      const addSegmentBtn = document.getElementById('addSegmentBtn');
-      const segmentsList = document.getElementById('segmentsList');
-      const segmentsCount = document.getElementById('segmentsCount');
-      const currentTimeDisplay = document.getElementById('currentTimeDisplay');
-      const videoFormatSelect = document.getElementById('videoFormat');
-      const audioFormatSelect = document.getElementById('audioFormat');
-      const videoQualitySelect = document.getElementById('videoQuality');
-      const audioBitrateSelect = document.getElementById('audioBitrate');
-      const processBtn = document.getElementById('processBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const progressFill = document.getElementById('progressFill');
-      const progressText = document.getElementById('progressText');
-      const statusMessage = document.getElementById('statusMessage');
-      const errorMessage = document.getElementById('errorMessage');
-      const downloadSection = document.getElementById('downloadSection');
-      const downloadSegments = document.getElementById('downloadSegments');
+      const uploadArea = document.getElementById('uploadArea')
+      const videoInput = document.getElementById('videoInput')
+      const originalPreview = document.getElementById('originalPreview')
+      const startTimeInput = document.getElementById('newStartTime')
+      const endTimeInput = document.getElementById('newEndTime')
+      const getStartTimeBtn = document.getElementById('getStartTimeBtn')
+      const getEndTimeBtn = document.getElementById('getEndTimeBtn')
+      const addSegmentBtn = document.getElementById('addSegmentBtn')
+      const segmentsList = document.getElementById('segmentsList')
+      const segmentsCount = document.getElementById('segmentsCount')
+      const currentTimeDisplay = document.getElementById('currentTimeDisplay')
+      const videoFormatSelect = document.getElementById('videoFormat')
+      const audioFormatSelect = document.getElementById('audioFormat')
+      const videoQualitySelect = document.getElementById('videoQuality')
+      const audioBitrateSelect = document.getElementById('audioBitrate')
+      const processBtn = document.getElementById('processBtn')
+      const resetBtn = document.getElementById('resetBtn')
+      const progressFill = document.getElementById('progressFill')
+      const progressText = document.getElementById('progressText')
+      const statusMessage = document.getElementById('statusMessage')
+      const errorMessage = document.getElementById('errorMessage')
+      const downloadSection = document.getElementById('downloadSection')
+      const downloadSegments = document.getElementById('downloadSegments')
 
       // 初始化事件
       function initEvents() {
         // 文件上传事件
-        videoInput.addEventListener('change', handleFileUpload);
+        videoInput.addEventListener('change', handleFileUpload)
         uploadArea.addEventListener('click', (e) => {
           // 只有在没有文件时才触发文件选择
           if (!inputFile && e.target === uploadArea) {
-            videoInput.click();
+            videoInput.click()
           }
-        });
+        })
 
         // 拖拽事件
         uploadArea.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          uploadArea.classList.add('dragover');
-        });
+          e.preventDefault()
+          uploadArea.classList.add('dragover')
+        })
 
         uploadArea.addEventListener('dragleave', (e) => {
-          e.preventDefault();
-          uploadArea.classList.remove('dragover');
-        });
+          e.preventDefault()
+          uploadArea.classList.remove('dragover')
+        })
 
         uploadArea.addEventListener('drop', (e) => {
-          e.preventDefault();
-          uploadArea.classList.remove('dragover');
+          e.preventDefault()
+          uploadArea.classList.remove('dragover')
 
           if (e.dataTransfer.files.length) {
-            videoInput.files = e.dataTransfer.files;
-            handleFileUpload({ target: { files: e.dataTransfer.files } });
+            videoInput.files = e.dataTransfer.files
+            handleFileUpload({ target: { files: e.dataTransfer.files } })
           }
-        });
+        })
 
         // 按钮事件
-        processBtn.addEventListener('click', processVideo);
-        resetBtn.addEventListener('click', resetAll);
-        
+        processBtn.addEventListener('click', processVideo)
+        resetBtn.addEventListener('click', resetAll)
+
         // 时间段管理事件
-        getStartTimeBtn.addEventListener('click', () => getCurrentTime('start'));
-        getEndTimeBtn.addEventListener('click', () => getCurrentTime('end'));
-        addSegmentBtn.addEventListener('click', addTimeSegment);
+        getStartTimeBtn.addEventListener('click', () => getCurrentTime('start'))
+        getEndTimeBtn.addEventListener('click', () => getCurrentTime('end'))
+        addSegmentBtn.addEventListener('click', addTimeSegment)
       }
 
       // 处理文件上传
       function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const file = event.target.files[0]
+        if (!file) return
 
         // 检查文件类型
         if (!file.type.match('video.*')) {
-          showError('❌ 请上传视频文件', errorMessage);
-          return;
+          showError('❌ 请上传视频文件', errorMessage)
+          return
         }
 
-        inputFile = file;
-        videoUrl = URL.createObjectURL(file);
+        inputFile = file
+        videoUrl = URL.createObjectURL(file)
 
         // 显示视频预览
         originalPreview.innerHTML = `
@@ -1331,266 +1374,306 @@
           <p style="text-align: center; padding: 15px 0; color: var(--text-secondary); font-weight: 500;">
             📁 ${file.name} (${formatFileSize(file.size)})
           </p>
-        `;
+        `
 
         // 获取视频元素引用
-        currentVideo = originalPreview.querySelector('video');
-        
+        currentVideo = originalPreview.querySelector('video')
+
         // 获取视频时长并设置默认结束时间
         currentVideo.addEventListener('loadedmetadata', () => {
           if (!endTimeInput.value) {
-            endTimeInput.value = Math.floor(currentVideo.duration);
+            endTimeInput.value = Math.floor(currentVideo.duration)
           }
-        });
-        
+        })
+
         // 监听时间更新
-        currentVideo.addEventListener('timeupdate', updateCurrentTime);
+        currentVideo.addEventListener('timeupdate', updateCurrentTime)
 
         // 启用处理按钮
-        processBtn.disabled = false;
-        downloadSection.style.display = 'none';
-        statusMessage.textContent = '✨ 请设置分离参数并开始处理';
+        processBtn.disabled = false
+        downloadSection.style.display = 'none'
+        statusMessage.textContent = '✨ 请设置分离参数并开始处理'
       }
 
       // 时间段管理功能
       function updateCurrentTime() {
         if (currentVideo) {
-          const currentTime = currentVideo.currentTime;
-          const minutes = Math.floor(currentTime / 60);
-          const seconds = Math.floor(currentTime % 60);
-          currentTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          const currentTime = currentVideo.currentTime
+          const minutes = Math.floor(currentTime / 60)
+          const seconds = Math.floor(currentTime % 60)
+          currentTimeDisplay.textContent = `${minutes
+            .toString()
+            .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
         }
       }
 
       function getCurrentTime(type) {
         if (!currentVideo) {
-          showError('❌ 请先上传视频文件', errorMessage);
-          return;
+          showError('❌ 请先上传视频文件', errorMessage)
+          return
         }
-        
-        const currentTime = Math.floor(currentVideo.currentTime);
-        
+
+        const currentTime = Math.floor(currentVideo.currentTime)
+
         if (type === 'start') {
-          startTimeInput.value = currentTime;
-          statusMessage.textContent = `⏰ 已设置开始时间: ${formatTime(currentTime)}`;
+          startTimeInput.value = currentTime
+          statusMessage.textContent = `⏰ 已设置开始时间: ${formatTime(
+            currentTime
+          )}`
         } else if (type === 'end') {
-          endTimeInput.value = currentTime;
-          statusMessage.textContent = `⏰ 已设置结束时间: ${formatTime(currentTime)}`;
+          endTimeInput.value = currentTime
+          statusMessage.textContent = `⏰ 已设置结束时间: ${formatTime(
+            currentTime
+          )}`
         }
       }
 
       function addTimeSegment() {
-        const startTime = parseFloat(startTimeInput.value);
-        const endTime = parseFloat(endTimeInput.value);
-        
+        const startTime = parseFloat(startTimeInput.value)
+        const endTime = parseFloat(endTimeInput.value)
+
         if (isNaN(startTime) || isNaN(endTime)) {
-          showError('❌ 请输入有效的开始和结束时间', errorMessage);
-          return;
+          showError('❌ 请输入有效的开始和结束时间', errorMessage)
+          return
         }
-        
+
         if (startTime >= endTime) {
-          showError('❌ 开始时间必须小于结束时间', errorMessage);
-          return;
+          showError('❌ 开始时间必须小于结束时间', errorMessage)
+          return
         }
-        
+
         if (currentVideo && endTime > currentVideo.duration) {
-          showError('❌ 结束时间不能超过视频总时长', errorMessage);
-          return;
+          showError('❌ 结束时间不能超过视频总时长', errorMessage)
+          return
         }
-        
+
         // 检查时间段重叠
-        const hasOverlap = timeSegments.some(segment => 
-          (startTime < segment.end && endTime > segment.start)
-        );
-        
+        const hasOverlap = timeSegments.some(
+          (segment) => startTime < segment.end && endTime > segment.start
+        )
+
         if (hasOverlap) {
           if (!confirm('⚠️ 检测到时间段重叠，是否继续添加？')) {
-            return;
+            return
           }
         }
-        
+
         const segment = {
           id: Date.now(),
           start: startTime,
           end: endTime,
-          duration: endTime - startTime
-        };
-        
-        timeSegments.push(segment);
-        updateSegmentsList();
-        
+          duration: endTime - startTime,
+        }
+
+        timeSegments.push(segment)
+        updateSegmentsList()
+
         // 清空输入框
-        startTimeInput.value = '';
-        endTimeInput.value = '';
-        
-        statusMessage.textContent = `✅ 已添加时间段: ${formatTime(startTime)} - ${formatTime(endTime)}`;
+        startTimeInput.value = ''
+        endTimeInput.value = ''
+
+        statusMessage.textContent = `✅ 已添加时间段: ${formatTime(
+          startTime
+        )} - ${formatTime(endTime)}`
       }
 
       function removeTimeSegment(id) {
-        timeSegments = timeSegments.filter(segment => segment.id !== id);
-        updateSegmentsList();
-        statusMessage.textContent = '🗑️ 已删除时间段';
+        timeSegments = timeSegments.filter((segment) => segment.id !== id)
+        updateSegmentsList()
+        statusMessage.textContent = '🗑️ 已删除时间段'
       }
 
       function updateSegmentsList() {
-        segmentsCount.textContent = `${timeSegments.length} 个片段`;
-        
-        const segmentsContainer = document.getElementById('segmentsContainer');
-        
+        segmentsCount.textContent = `${timeSegments.length} 个片段`
+
+        const segmentsContainer = document.getElementById('segmentsContainer')
+
         if (timeSegments.length === 0) {
-          segmentsContainer.innerHTML = '<div class="empty-segments"><p>🎬 暂无时间段，请添加要分离的时间段</p></div>';
-          processBtn.disabled = true;
-          return;
+          segmentsContainer.innerHTML =
+            '<div class="empty-segments"><p>🎬 暂无时间段，请添加要分离的时间段</p></div>'
+          processBtn.disabled = true
+          return
         }
-        
+
         // 按开始时间排序
-        timeSegments.sort((a, b) => a.start - b.start);
-        
-        segmentsContainer.innerHTML = timeSegments.map((segment, index) => `
+        timeSegments.sort((a, b) => a.start - b.start)
+
+        segmentsContainer.innerHTML = timeSegments
+          .map(
+            (segment, index) => `
           <div class="segment-item" data-id="${segment.id}">
             <div class="segment-info">
               <div class="segment-title">片段 ${index + 1}</div>
-              <div class="segment-time">${formatTime(segment.start)} - ${formatTime(segment.end)}</div>
-              <div class="segment-duration">(时长: ${formatTime(segment.duration)})</div>
+              <div class="segment-time">${formatTime(
+                segment.start
+              )} - ${formatTime(segment.end)}</div>
+              <div class="segment-duration">(时长: ${formatTime(
+                segment.duration
+              )})</div>
             </div>
             <div class="segment-actions">
-              <button class="segment-delete-btn" onclick="removeTimeSegment(${segment.id})" title="删除片段">
+              <button class="segment-delete-btn" onclick="removeTimeSegment(${
+                segment.id
+              })" title="删除片段">
                 🗑️ 删除
               </button>
             </div>
           </div>
-        `).join('');
-        
+        `
+          )
+          .join('')
+
         // 启用处理按钮
         if (inputFile) {
-          processBtn.disabled = false;
+          processBtn.disabled = false
         }
       }
 
       function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        const minutes = Math.floor(seconds / 60)
+        const secs = Math.floor(seconds % 60)
+        return `${minutes}:${secs.toString().padStart(2, '0')}`
       }
 
       // 处理视频分离
       async function processVideo() {
         if (!inputFile) {
-          showError('❌ 请先上传视频文件', errorMessage);
-          return;
+          showError('❌ 请先上传视频文件', errorMessage)
+          return
         }
-        
+
         if (timeSegments.length === 0) {
-          showError('❌ 请至少添加一个时间段', errorMessage);
-          return;
+          showError('❌ 请至少添加一个时间段', errorMessage)
+          return
         }
 
         try {
-          statusMessage.textContent = '🚀 正在加载FFmpeg引擎...';
-          statusMessage.classList.add('processing');
-          errorMessage.textContent = '';
-          processBtn.disabled = true;
-          downloadVideoBtn.disabled = true;
-          downloadAudioBtn.disabled = true;
-          downloadSection.style.display = 'none';
+          statusMessage.textContent = '🚀 正在加载FFmpeg引擎...'
+          statusMessage.classList.add('processing')
+          errorMessage.textContent = ''
+          processBtn.disabled = true
+          downloadVideoBtn.disabled = true
+          downloadAudioBtn.disabled = true
+          downloadSection.style.display = 'none'
 
           // 初始化FFmpeg
           if (!ffmpeg) {
-            const { createFFmpeg, fetchFile } = FFmpeg;
+            const { createFFmpeg, fetchFile } = FFmpeg
             ffmpeg = createFFmpeg({
               log: true,
-            });
+            })
 
             // 监听进度
             ffmpeg.setProgress(({ ratio }) => {
-              const percent = Math.floor(ratio * 100);
-              progressFill.style.width = `${percent}%`;
-              progressText.textContent = `🎯 处理中: ${percent}%`;
-            });
+              const percent = Math.floor(ratio * 100)
+              progressFill.style.width = `${percent}%`
+              progressText.textContent = `🎯 处理中: ${percent}%`
+            })
 
-            await ffmpeg.load();
+            await ffmpeg.load()
           }
 
-          const { fetchFile } = FFmpeg;
-          const videoFormat = videoFormatSelect.value;
-          const audioFormat = audioFormatSelect.value;
-          const videoQuality = videoQualitySelect.value;
-          const audioBitrate = audioBitrateSelect.value;
+          const { fetchFile } = FFmpeg
+          const videoFormat = videoFormatSelect.value
+          const audioFormat = audioFormatSelect.value
+          const videoQuality = videoQualitySelect.value
+          const audioBitrate = audioBitrateSelect.value
 
           // 写入视频文件到虚拟文件系统
-          const inputName = 'input.' + inputFile.name.split('.').pop();
-          ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
+          const inputName = 'input.' + inputFile.name.split('.').pop()
+          ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile))
 
           // 处理多个时间段
-          const segmentBlobs = [];
-          
-          statusMessage.textContent = `🎬 正在处理 ${timeSegments.length} 个时间段...`;
-          
+          const segmentBlobs = []
+
+          statusMessage.textContent = `🎬 正在处理 ${timeSegments.length} 个时间段...`
+
           for (let i = 0; i < timeSegments.length; i++) {
-            const segment = timeSegments[i];
-            const segmentVideoName = `video_segment_${i}.${videoFormat}`;
-            const segmentAudioName = `audio_segment_${i}.${audioFormat}`;
-            
-            statusMessage.textContent = `🎬 正在处理第 ${i + 1}/${timeSegments.length} 个片段...`;
-            
+            const segment = timeSegments[i]
+            const segmentVideoName = `video_segment_${i}.${videoFormat}`
+            const segmentAudioName = `audio_segment_${i}.${audioFormat}`
+
+            statusMessage.textContent = `🎬 正在处理第 ${i + 1}/${
+              timeSegments.length
+            } 个片段...`
+
             // 处理视频片段
-            const videoArgs = ['-i', inputName, '-ss', segment.start.toString(), '-t', segment.duration.toString(), '-an'];
-            
+            const videoArgs = [
+              '-i',
+              inputName,
+              '-ss',
+              segment.start.toString(),
+              '-t',
+              segment.duration.toString(),
+              '-an',
+            ]
+
             // 设置视频质量
             if (videoQuality === 'original') {
-              videoArgs.push('-c:v', 'copy');
+              videoArgs.push('-c:v', 'copy')
             } else {
-              videoArgs.push('-c:v', 'libx264');
-              const crfMap = { high: '18', medium: '23', low: '28' };
-              videoArgs.push('-crf', crfMap[videoQuality]);
+              videoArgs.push('-c:v', 'libx264')
+              const crfMap = { high: '18', medium: '23', low: '28' }
+              videoArgs.push('-crf', crfMap[videoQuality])
             }
-            
-            videoArgs.push(segmentVideoName);
-            await ffmpeg.run(...videoArgs);
-            
+
+            videoArgs.push(segmentVideoName)
+            await ffmpeg.run(...videoArgs)
+
             // 处理音频片段
-            const audioArgs = ['-i', inputName, '-ss', segment.start.toString(), '-t', segment.duration.toString(), '-vn'];
-            audioArgs.push('-c:a', getAudioCodec(audioFormat));
-            audioArgs.push('-b:a', `${audioBitrate}k`);
-            audioArgs.push(segmentAudioName);
-            
-            await ffmpeg.run(...audioArgs);
-            
+            const audioArgs = [
+              '-i',
+              inputName,
+              '-ss',
+              segment.start.toString(),
+              '-t',
+              segment.duration.toString(),
+              '-vn',
+            ]
+            audioArgs.push('-c:a', getAudioCodec(audioFormat))
+            audioArgs.push('-b:a', `${audioBitrate}k`)
+            audioArgs.push(segmentAudioName)
+
+            await ffmpeg.run(...audioArgs)
+
             // 读取片段文件
-            const videoData = ffmpeg.FS('readFile', segmentVideoName);
-            const audioData = ffmpeg.FS('readFile', segmentAudioName);
-            
-            const videoBlob = new Blob([videoData.buffer], { type: `video/${videoFormat}` });
-            const audioBlob = new Blob([audioData.buffer], { type: `audio/${audioFormat}` });
-            
+            const videoData = ffmpeg.FS('readFile', segmentVideoName)
+            const audioData = ffmpeg.FS('readFile', segmentAudioName)
+
+            const videoBlob = new Blob([videoData.buffer], {
+              type: `video/${videoFormat}`,
+            })
+            const audioBlob = new Blob([audioData.buffer], {
+              type: `audio/${audioFormat}`,
+            })
+
             segmentBlobs.push({
               index: i,
               segment: segment,
               videoBlob: videoBlob,
-              audioBlob: audioBlob
-            });
-            
+              audioBlob: audioBlob,
+            })
+
             // 清理临时文件
-            ffmpeg.FS('unlink', segmentVideoName);
-            ffmpeg.FS('unlink', segmentAudioName);
+            ffmpeg.FS('unlink', segmentVideoName)
+            ffmpeg.FS('unlink', segmentAudioName)
           }
 
           // 生成下载区域
-          generateDownloadArea(segmentBlobs, videoFormat, audioFormat);
+          generateDownloadArea(segmentBlobs, videoFormat, audioFormat)
 
           // 显示下载区域
-          downloadSection.style.display = 'flex';
+          downloadSection.style.display = 'flex'
 
-          statusMessage.textContent = `🎉 多时间段音视频分离完成！共处理 ${timeSegments.length} 个片段`;
-          statusMessage.classList.remove('processing');
-          progressText.textContent = '✅ 处理完成';
-          progressFill.style.width = '100%';
-
+          statusMessage.textContent = `🎉 多时间段音视频分离完成！共处理 ${timeSegments.length} 个片段`
+          statusMessage.classList.remove('processing')
+          progressText.textContent = '✅ 处理完成'
+          progressFill.style.width = '100%'
         } catch (error) {
-          console.error('处理失败:', error);
-          showError(`❌ 处理失败: ${error.message}`, errorMessage);
-          statusMessage.classList.remove('processing');
-          processBtn.disabled = false;
+          console.error('处理失败:', error)
+          showError(`❌ 处理失败: ${error.message}`, errorMessage)
+          statusMessage.classList.remove('processing')
+          processBtn.disabled = false
         }
       }
 
@@ -1603,120 +1686,147 @@
           flac: 'flac',
           ogg: 'libvorbis',
           m4a: 'aac',
-          wma: 'wmav2'
-        };
-        return codecMap[format] || 'aac';
+          wma: 'wmav2',
+        }
+        return codecMap[format] || 'aac'
       }
 
       // 生成下载区域
       function generateDownloadArea(segmentBlobs, videoFormat, audioFormat) {
-        downloadSegments.innerHTML = '';
-        
+        downloadSegments.innerHTML = ''
+
         segmentBlobs.forEach((segmentData, index) => {
-          const segmentDiv = document.createElement('div');
-          segmentDiv.className = 'download-segment';
+          const segmentDiv = document.createElement('div')
+          segmentDiv.className = 'download-segment'
           segmentDiv.innerHTML = `
             <div class="segment-header">
               <h4>片段 ${index + 1}</h4>
-              <span class="segment-time">${formatTime(segmentData.segment.start)} - ${formatTime(segmentData.segment.end)}</span>
+              <span class="segment-time">${formatTime(
+                segmentData.segment.start
+              )} - ${formatTime(segmentData.segment.end)}</span>
             </div>
             <div class="download-items">
               <div class="download-item">
                 <div class="download-title">🎬 视频文件</div>
-                <div class="download-size">${formatFileSize(segmentData.videoBlob.size)}</div>
+                <div class="download-size">${formatFileSize(
+                  segmentData.videoBlob.size
+                )}</div>
                 <button class="btn-success download-btn" data-type="video" data-index="${index}">
                   📥 下载视频
                 </button>
               </div>
               <div class="download-item">
                 <div class="download-title">🎵 音频文件</div>
-                <div class="download-size">${formatFileSize(segmentData.audioBlob.size)}</div>
+                <div class="download-size">${formatFileSize(
+                  segmentData.audioBlob.size
+                )}</div>
                 <button class="btn-success download-btn" data-type="audio" data-index="${index}">
                   📥 下载音频
                 </button>
               </div>
             </div>
-          `;
-          downloadSegments.appendChild(segmentDiv);
-        });
-        
+          `
+          downloadSegments.appendChild(segmentDiv)
+        })
+
         // 添加下载按钮事件监听
-        document.querySelectorAll('.download-btn').forEach(btn => {
+        document.querySelectorAll('.download-btn').forEach((btn) => {
           btn.addEventListener('click', (e) => {
-            const type = e.target.getAttribute('data-type');
-            const index = parseInt(e.target.getAttribute('data-index'));
-            downloadSegmentFile(segmentBlobs[index], type, videoFormat, audioFormat, index + 1);
-          });
-        });
+            const type = e.target.getAttribute('data-type')
+            const index = parseInt(e.target.getAttribute('data-index'))
+            downloadSegmentFile(
+              segmentBlobs[index],
+              type,
+              videoFormat,
+              audioFormat,
+              index + 1
+            )
+          })
+        })
       }
 
       // 下载片段文件
-      function downloadSegmentFile(segmentData, type, videoFormat, audioFormat, segmentNumber) {
-        const blob = type === 'video' ? segmentData.videoBlob : segmentData.audioBlob;
-        const format = type === 'video' ? videoFormat : audioFormat;
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        const filename = `${type === 'video' ? '视频' : '音频'}_片段${segmentNumber}_${timestamp}.${format}`;
+      function downloadSegmentFile(
+        segmentData,
+        type,
+        videoFormat,
+        audioFormat,
+        segmentNumber
+      ) {
+        const blob =
+          type === 'video' ? segmentData.videoBlob : segmentData.audioBlob
+        const format = type === 'video' ? videoFormat : audioFormat
+        const timestamp = new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace(/:/g, '-')
+        const filename = `${
+          type === 'video' ? '视频' : '音频'
+        }_片段${segmentNumber}_${timestamp}.${format}`
 
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = filename
+        a.click()
 
-        statusMessage.textContent = `📥 ${type === 'video' ? '视频' : '音频'}文件下载中...`;
+        statusMessage.textContent = `📥 ${
+          type === 'video' ? '视频' : '音频'
+        }文件下载中...`
       }
 
       // 重置所有
       function resetAll() {
         if (confirm('🤔 确定要重置所有内容吗？')) {
           if (videoUrl) {
-            URL.revokeObjectURL(videoUrl);
-            videoUrl = null;
+            URL.revokeObjectURL(videoUrl)
+            videoUrl = null
           }
 
-          inputFile = null;
-          videoBlob = null;
-          audioBlob = null;
-          currentVideo = null;
-          timeSegments = [];
-          
-          videoInput.value = '';
-          startTimeInput.value = '';
-          endTimeInput.value = '';
-          currentTimeDisplay.textContent = '00:00';
+          inputFile = null
+          videoBlob = null
+          audioBlob = null
+          currentVideo = null
+          timeSegments = []
 
-          originalPreview.innerHTML = '<p style="text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 1.1rem;">📺 视频预览区</p>';
-          updateSegmentsList();
-          
-          downloadSection.style.display = 'none';
-          processBtn.disabled = true;
-          statusMessage.textContent = '';
-          statusMessage.classList.remove('processing');
-          errorMessage.textContent = '';
-          progressFill.style.width = '0%';
-          progressText.textContent = '🚀 准备就绪';
+          videoInput.value = ''
+          startTimeInput.value = ''
+          endTimeInput.value = ''
+          currentTimeDisplay.textContent = '00:00'
+
+          originalPreview.innerHTML =
+            '<p style="text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 1.1rem;">📺 视频预览区</p>'
+          updateSegmentsList()
+
+          downloadSection.style.display = 'none'
+          processBtn.disabled = true
+          statusMessage.textContent = ''
+          statusMessage.classList.remove('processing')
+          errorMessage.textContent = ''
+          progressFill.style.width = '0%'
+          progressText.textContent = '🚀 准备就绪'
         }
       }
 
       // 显示错误信息
       function showError(message, element) {
-        element.textContent = message;
-        element.classList.add('error-shake');
+        element.textContent = message
+        element.classList.add('error-shake')
         setTimeout(() => {
-          element.classList.remove('error-shake');
-        }, 500);
+          element.classList.remove('error-shake')
+        }, 500)
       }
 
       // 格式化文件大小
       function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        if (bytes === 0) return '0 Bytes'
+        const k = 1024
+        const sizes = ['Bytes', 'KB', 'MB', 'GB']
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
       }
 
       // 初始化
-      initEvents();
+      initEvents()
     </script>
   </body>
 </html>
