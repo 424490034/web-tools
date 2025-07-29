@@ -1552,8 +1552,7 @@
           statusMessage.classList.add('processing')
           errorMessage.textContent = ''
           processBtn.disabled = true
-          downloadVideoBtn.disabled = true
-          downloadAudioBtn.disabled = true
+          // Download buttons are now dynamically generated
           downloadSection.style.display = 'none'
 
           // 初始化FFmpeg
