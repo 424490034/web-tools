@@ -1733,6 +1733,8 @@
             }
             
             videoArgs.push('-t', segment.duration.toString(), '-an')
+            // 重置时间戳，确保输出视频从0开始播放
+            videoArgs.push('-avoid_negative_ts', 'make_zero')
 
             // 设置视频质量
             if (videoQuality === 'original') {
@@ -1755,6 +1757,8 @@
             }
             
             audioArgs.push('-t', segment.duration.toString(), '-vn')
+            // 重置时间戳，确保输出音频从0开始播放
+            audioArgs.push('-avoid_negative_ts', 'make_zero')
             audioArgs.push('-c:a', getAudioCodec(audioFormat))
             audioArgs.push('-b:a', `${audioBitrate}k`)
             audioArgs.push(segmentAudioName)
