@@ -621,40 +621,107 @@
 
       .download-section {
         display: flex;
+        flex-direction: column;
         gap: 20px;
-        justify-content: center;
         margin-top: 30px;
+        padding: 25px;
+        background: var(--primary-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-large);
+        border: 2px solid var(--accent-color);
+      }
+
+      .download-segments {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .download-segment {
+        background: var(--secondary-bg);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .download-segment:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-large);
+        border-color: var(--accent-color);
+      }
+
+      .segment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .segment-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .segment-time {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 4px 12px;
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .download-items {
+        display: flex;
+        gap: 15px;
         flex-wrap: wrap;
       }
 
       .download-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
         background: var(--primary-bg);
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 8px 8px 16px var(--shadow-dark),
-          -8px -8px 16px var(--shadow-light);
-        text-align: center;
-        min-width: 200px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-small);
         transition: all 0.3s ease;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        flex: 1;
+        min-width: 280px;
       }
 
       .download-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 12px 12px 24px var(--shadow-dark),
-          -12px -12px 24px var(--shadow-light);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-medium);
+        border-color: var(--accent-color);
       }
 
       .download-title {
-        font-size: 1.2rem;
+        font-size: 1rem;
         font-weight: 600;
-        color: var(--accent-color);
-        margin-bottom: 15px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .download-size {
         font-size: 0.9rem;
         color: var(--text-secondary);
-        margin-bottom: 15px;
+        font-weight: 500;
+        padding: 6px 12px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        margin: 0 10px;
       }
 
       .instructions {
@@ -1139,19 +1206,8 @@
 
       <!-- 下载区域 -->
       <div class="download-section" id="downloadSection" style="display: none;">
-        <div class="download-item">
-          <div class="download-title">🎬 视频文件</div>
-          <div class="download-size" id="videoSize">-</div>
-          <button class="btn-success" id="downloadVideoBtn" disabled>
-            📥 下载视频
-          </button>
-        </div>
-        <div class="download-item">
-          <div class="download-title">🎵 音频文件</div>
-          <div class="download-size" id="audioSize">-</div>
-          <button class="btn-success" id="downloadAudioBtn" disabled>
-            📥 下载音频
-          </button>
+        <div class="download-segments" id="downloadSegments">
+          <!-- 动态生成的片段下载项 -->
         </div>
       </div>
 
@@ -1208,10 +1264,7 @@
       const statusMessage = document.getElementById('statusMessage');
       const errorMessage = document.getElementById('errorMessage');
       const downloadSection = document.getElementById('downloadSection');
-      const videoSize = document.getElementById('videoSize');
-      const audioSize = document.getElementById('audioSize');
-      const downloadVideoBtn = document.getElementById('downloadVideoBtn');
-      const downloadAudioBtn = document.getElementById('downloadAudioBtn');
+      const downloadSegments = document.getElementById('downloadSegments');
 
       // 初始化事件
       function initEvents() {
@@ -1248,8 +1301,6 @@
         // 按钮事件
         processBtn.addEventListener('click', processVideo);
         resetBtn.addEventListener('click', resetAll);
-        downloadVideoBtn.addEventListener('click', () => downloadFile(videoBlob, 'video'));
-        downloadAudioBtn.addEventListener('click', () => downloadFile(audioBlob, 'audio'));
         
         // 时间段管理事件
         getStartTimeBtn.addEventListener('click', () => getCurrentTime('start'));
@@ -1471,8 +1522,7 @@
           ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
 
           // 处理多个时间段
-          const videoSegments = [];
-          const audioSegments = [];
+          const segmentBlobs = [];
           
           statusMessage.textContent = `🎬 正在处理 ${timeSegments.length} 个时间段...`;
           
@@ -1497,7 +1547,6 @@
             
             videoArgs.push(segmentVideoName);
             await ffmpeg.run(...videoArgs);
-            videoSegments.push(segmentVideoName);
             
             // 处理音频片段
             const audioArgs = ['-i', inputName, '-ss', segment.start.toString(), '-t', segment.duration.toString(), '-vn'];
@@ -1506,54 +1555,31 @@
             audioArgs.push(segmentAudioName);
             
             await ffmpeg.run(...audioArgs);
-            audioSegments.push(segmentAudioName);
-          }
-          
-          // 合并所有片段
-          statusMessage.textContent = '🔗 正在合并视频片段...';
-          
-          if (videoSegments.length === 1) {
-            // 只有一个片段，直接重命名
-            const videoData = ffmpeg.FS('readFile', videoSegments[0]);
-            const audioData = ffmpeg.FS('readFile', audioSegments[0]);
             
-            videoBlob = new Blob([videoData.buffer], { type: `video/${videoFormat}` });
-            audioBlob = new Blob([audioData.buffer], { type: `audio/${audioFormat}` });
-          } else {
-            // 多个片段需要合并
-            // 创建视频合并列表文件
-            const videoListContent = videoSegments.map(name => `file '${name}'`).join('\n');
-            ffmpeg.FS('writeFile', 'video_list.txt', videoListContent);
+            // 读取片段文件
+            const videoData = ffmpeg.FS('readFile', segmentVideoName);
+            const audioData = ffmpeg.FS('readFile', segmentAudioName);
             
-            // 创建音频合并列表文件
-            const audioListContent = audioSegments.map(name => `file '${name}'`).join('\n');
-            ffmpeg.FS('writeFile', 'audio_list.txt', audioListContent);
+            const videoBlob = new Blob([videoData.buffer], { type: `video/${videoFormat}` });
+            const audioBlob = new Blob([audioData.buffer], { type: `audio/${audioFormat}` });
             
-            // 合并视频
-            const finalVideoName = `final_video.${videoFormat}`;
-            await ffmpeg.run('-f', 'concat', '-safe', '0', '-i', 'video_list.txt', '-c', 'copy', finalVideoName);
+            segmentBlobs.push({
+              index: i,
+              segment: segment,
+              videoBlob: videoBlob,
+              audioBlob: audioBlob
+            });
             
-            // 合并音频
-            statusMessage.textContent = '🔗 正在合并音频片段...';
-            const finalAudioName = `final_audio.${audioFormat}`;
-            await ffmpeg.run('-f', 'concat', '-safe', '0', '-i', 'audio_list.txt', '-c', 'copy', finalAudioName);
-            
-            // 读取最终文件
-            const videoData = ffmpeg.FS('readFile', finalVideoName);
-            const audioData = ffmpeg.FS('readFile', finalAudioName);
-            
-            videoBlob = new Blob([videoData.buffer], { type: `video/${videoFormat}` });
-            audioBlob = new Blob([audioData.buffer], { type: `audio/${audioFormat}` });
+            // 清理临时文件
+            ffmpeg.FS('unlink', segmentVideoName);
+            ffmpeg.FS('unlink', segmentAudioName);
           }
 
-          // 显示文件大小
-          videoSize.textContent = formatFileSize(videoBlob.size);
-          audioSize.textContent = formatFileSize(audioBlob.size);
+          // 生成下载区域
+          generateDownloadArea(segmentBlobs, videoFormat, audioFormat);
 
           // 显示下载区域
           downloadSection.style.display = 'flex';
-          downloadVideoBtn.disabled = false;
-          downloadAudioBtn.disabled = false;
 
           statusMessage.textContent = `🎉 多时间段音视频分离完成！共处理 ${timeSegments.length} 个片段`;
           statusMessage.classList.remove('processing');
@@ -1582,16 +1608,54 @@
         return codecMap[format] || 'aac';
       }
 
-      // 下载文件
-      function downloadFile(blob, type) {
-        if (!blob) {
-          showError(`❌ 没有可下载的${type === 'video' ? '视频' : '音频'}文件`, errorMessage);
-          return;
-        }
+      // 生成下载区域
+      function generateDownloadArea(segmentBlobs, videoFormat, audioFormat) {
+        downloadSegments.innerHTML = '';
+        
+        segmentBlobs.forEach((segmentData, index) => {
+          const segmentDiv = document.createElement('div');
+          segmentDiv.className = 'download-segment';
+          segmentDiv.innerHTML = `
+            <div class="segment-header">
+              <h4>片段 ${index + 1}</h4>
+              <span class="segment-time">${formatTime(segmentData.segment.start)} - ${formatTime(segmentData.segment.end)}</span>
+            </div>
+            <div class="download-items">
+              <div class="download-item">
+                <div class="download-title">🎬 视频文件</div>
+                <div class="download-size">${formatFileSize(segmentData.videoBlob.size)}</div>
+                <button class="btn-success download-btn" data-type="video" data-index="${index}">
+                  📥 下载视频
+                </button>
+              </div>
+              <div class="download-item">
+                <div class="download-title">🎵 音频文件</div>
+                <div class="download-size">${formatFileSize(segmentData.audioBlob.size)}</div>
+                <button class="btn-success download-btn" data-type="audio" data-index="${index}">
+                  📥 下载音频
+                </button>
+              </div>
+            </div>
+          `;
+          downloadSegments.appendChild(segmentDiv);
+        });
+        
+        // 添加下载按钮事件监听
+        document.querySelectorAll('.download-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const type = e.target.getAttribute('data-type');
+            const index = parseInt(e.target.getAttribute('data-index'));
+            downloadSegmentFile(segmentBlobs[index], type, videoFormat, audioFormat, index + 1);
+          });
+        });
+      }
 
-        const format = type === 'video' ? videoFormatSelect.value : audioFormatSelect.value;
+      // 下载片段文件
+      function downloadSegmentFile(segmentData, type, videoFormat, audioFormat, segmentNumber) {
+        const blob = type === 'video' ? segmentData.videoBlob : segmentData.audioBlob;
+        const format = type === 'video' ? videoFormat : audioFormat;
         const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        const filename = `${type === 'video' ? '视频' : '音频'}_${timestamp}.${format}`;
+        const filename = `${type === 'video' ? '视频' : '音频'}_片段${segmentNumber}_${timestamp}.${format}`;
 
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -1625,8 +1689,6 @@
           
           downloadSection.style.display = 'none';
           processBtn.disabled = true;
-          downloadVideoBtn.disabled = true;
-          downloadAudioBtn.disabled = true;
           statusMessage.textContent = '';
           statusMessage.classList.remove('processing');
           errorMessage.textContent = '';
