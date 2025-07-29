@@ -641,7 +641,7 @@
       }
 
       .download-segment {
-        background: var(--secondary-bg);
+        background: var(--primary-bg);
         border-radius: var(--border-radius);
         padding: 20px;
         box-shadow: var(--shadow-medium);
@@ -1981,6 +1981,7 @@
 
       // 检查文件格式是否支持预览
       function isPreviewSupported(type, format) {
+        console.log(type, format)
         if (type === 'video') {
           // 浏览器支持的视频格式
           const supportedVideoFormats = ['mp4', 'webm', 'ogg']
