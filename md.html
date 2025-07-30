@@ -794,8 +794,8 @@
       // 为图片添加点击事件
       function addImageClickEvents() {
         const images = markdownPreview.querySelectorAll('img')
-        images.forEach(img => {
-          img.addEventListener('click', function() {
+        images.forEach((img) => {
+          img.addEventListener('click', function () {
             openImageModal(this.src, this.alt)
           })
         })
@@ -805,13 +805,17 @@
       function openImageModal(src, alt) {
         const modal = document.getElementById('imageModal')
         const modalImg = document.getElementById('modalImage')
-        
+
         modalImg.src = src
         modalImg.alt = alt || ''
-        
+
         // 检测是否处于全屏模式
-        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
-        
+        const fullscreenElement =
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement
+
         if (fullscreenElement) {
           // 如果处于全屏模式，将弹框添加到全屏元素中
           fullscreenElement.appendChild(modal)
@@ -821,9 +825,9 @@
             document.body.appendChild(modal)
           }
         }
-        
+
         modal.classList.add('show')
-        
+
         // 阻止页面滚动
         document.body.style.overflow = 'hidden'
       }
@@ -832,32 +836,34 @@
       function closeImageModal() {
         const modal = document.getElementById('imageModal')
         modal.classList.remove('show')
-        
+
         // 将弹框移回body，确保下次能正常使用
         if (modal.parentNode !== document.body) {
           document.body.appendChild(modal)
         }
-        
+
         // 恢复页面滚动
         document.body.style.overflow = 'auto'
       }
 
       // 点击弹框背景关闭
-      document.getElementById('imageModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeImageModal()
-        }
-      })
+      document
+        .getElementById('imageModal')
+        .addEventListener('click', function (e) {
+          if (e.target === this) {
+            closeImageModal()
+          }
+        })
 
       // ESC键关闭弹框
-      document.addEventListener('keydown', function(e) {
+      document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
           closeImageModal()
         }
       })
 
       // 监听全屏状态变化
-      document.addEventListener('fullscreenchange', function() {
+      document.addEventListener('fullscreenchange', function () {
         const modal = document.getElementById('imageModal')
         if (modal.classList.contains('show') && !document.fullscreenElement) {
           // 如果弹框正在显示且退出了全屏，将弹框移回body
@@ -868,18 +874,24 @@
       })
 
       // 兼容不同浏览器的全屏事件
-      document.addEventListener('webkitfullscreenchange', function() {
+      document.addEventListener('webkitfullscreenchange', function () {
         const modal = document.getElementById('imageModal')
-        if (modal.classList.contains('show') && !document.webkitFullscreenElement) {
+        if (
+          modal.classList.contains('show') &&
+          !document.webkitFullscreenElement
+        ) {
           if (modal.parentNode !== document.body) {
             document.body.appendChild(modal)
           }
         }
       })
 
-      document.addEventListener('mozfullscreenchange', function() {
+      document.addEventListener('mozfullscreenchange', function () {
         const modal = document.getElementById('imageModal')
-        if (modal.classList.contains('show') && !document.mozFullScreenElement) {
+        if (
+          modal.classList.contains('show') &&
+          !document.mozFullScreenElement
+        ) {
           if (modal.parentNode !== document.body) {
             document.body.appendChild(modal)
           }
@@ -1108,6 +1120,18 @@
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; }
         th { background: #f6f8fa; }
+        img {
+        max-width: 100%;
+        max-height: 400px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 15px 0;
+        display: block;
+      }
     </style>
 </head>
 <body>
@@ -1229,7 +1253,7 @@ ${html}
       })
 
       // 页面加载完成后初始化
-      window.addEventListener('DOMContentLoaded', function() {
+      window.addEventListener('DOMContentLoaded', function () {
         // 初始化代码高亮
         hljs.highlightAll()
         // 如果有初始内容，触发预览更新
