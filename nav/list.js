@@ -144,6 +144,15 @@
       link: "https://www.996day.com/excel.html",
       buttonText: "开始编辑",
       category: "text-tools"
+    },
+    {
+      icon: "fas fa-edit",
+      title: "Markdown编辑器",
+      description: "在线编辑和预览Markdown文档，支持实时渲染、语法高亮、文件导入导出，完美的写作体验。📝✨",
+      emoji: "📝✨",
+      link: "https://www.996day.com/md.html",
+      buttonText: "开始编辑",
+      category: "text-tools"
     }
   ];
 

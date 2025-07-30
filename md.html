@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown编辑器</title>
+    <!-- 引入marked.js用于Markdown解析 -->
+    <script src="./md/marked.min.js"></script>
+    <!-- 引入highlight.js用于代码高亮 -->
+    <link rel="stylesheet" href="./md/github.min.css" />
+    <script src="./md/highlight.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial,
+          sans-serif;
+      }
+
+      :root {
+        --primary-bg: #e6e7ee;
+        --secondary-bg: #ffffff;
+        --shadow-light: #ffffff;
+        --shadow-dark: #d1d9e6;
+        --accent-color: #667eea;
+        --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-color: #4ecdc4;
+        --danger-color: #ff6b6b;
+        --warning-color: #feca57;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
+      }
+
+      body {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        animation: pageLoad 0.8s ease;
+      }
+
+      @keyframes pageLoad {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1400px;
+        background: var(--primary-bg);
+        border-radius: 30px;
+        padding: 40px;
+        box-shadow: 20px 20px 60px var(--shadow-dark),
+          -20px -20px 60px var(--shadow-light);
+        margin-top: 20px;
+        transition: all 0.3s ease;
+        animation: containerFloat 1s ease 0.2s both;
+      }
+
+      @keyframes containerFloat {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .container:hover {
+        box-shadow: 25px 25px 70px var(--shadow-dark),
+          -25px -25px 70px var(--shadow-light);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: var(--primary-bg);
+        border-radius: 25px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        animation: headerSlide 0.8s ease 0.4s both;
+      }
+
+      @keyframes headerSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h1 {
+        font-size: 3.2rem;
+        margin-bottom: 15px;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        animation: titleGlow 3s ease-in-out infinite alternate;
+      }
+
+      @keyframes titleGlow {
+        from {
+          filter: brightness(1);
+        }
+        to {
+          filter: brightness(1.2);
+        }
+      }
+
+      .subtitle {
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+        font-weight: 500;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: var(--primary-bg);
+        border-radius: 20px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        flex-wrap: wrap;
+        justify-content: center;
+        animation: toolbarSlide 0.8s ease 0.6s both;
+      }
+
+      @keyframes toolbarSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      button {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+      }
+
+      button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      button:hover::before {
+        left: 100%;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+      }
+
+      .btn-primary {
+        background: var(--accent-gradient);
+        color: white;
+        padding: 14px 28px;
+        font-size: 1rem;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2),
+          0 0 30px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-success {
+        background: linear-gradient(
+          135deg,
+          var(--success-color) 0%,
+          #44a08d 100%
+        );
+        color: white;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-danger {
+        background: linear-gradient(
+          135deg,
+          var(--danger-color) 0%,
+          #e74c3c 100%
+        );
+        color: white;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .file-input {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+      }
+
+      .file-input input[type='file'] {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .editor-container {
+        display: flex;
+        gap: 20px;
+        height: 600px;
+        margin-bottom: 30px;
+        animation: editorSlide 0.8s ease 0.8s both;
+      }
+
+      @keyframes editorSlide {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .editor-panel {
+        flex: 1;
+        background: var(--primary-bg);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: inset 10px 10px 20px var(--shadow-dark),
+          inset -10px -10px 20px var(--shadow-light);
+        display: none;
+        flex-direction: column;
+        transition: all 0.3s ease;
+      }
+
+      .editor-panel.show {
+        display: flex;
+      }
+
+      .preview-only .preview-panel {
+        flex: 1;
+        max-width: 100%;
+      }
+
+      /* 全屏模式下的样式优化 */
+      .preview-panel:fullscreen {
+        background: var(--secondary-bg);
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-panel:fullscreen #markdownPreview {
+        max-width: 1000px;
+        margin: 0 auto;
+        flex: 1;
+      }
+
+      .preview-panel:-webkit-full-screen {
+        background: var(--secondary-bg);
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-panel:-webkit-full-screen #markdownPreview {
+        max-width: 1000px;
+        margin: 0 auto;
+        flex: 1;
+      }
+
+      .preview-panel:-moz-full-screen {
+        background: var(--secondary-bg);
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-panel:-moz-full-screen #markdownPreview {
+        max-width: 1000px;
+        margin: 0 auto;
+        flex: 1;
+      }
+
+      .panel-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--accent-color);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+      }
+
+      #markdownInput {
+        flex: 1;
+        background: var(--primary-bg);
+        border: none;
+        border-radius: 15px;
+        padding: 20px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-primary);
+        resize: none;
+        outline: none;
+        box-shadow: inset 8px 8px 16px var(--shadow-dark),
+          inset -8px -8px 16px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      #markdownInput:focus {
+        box-shadow: inset 10px 10px 20px var(--shadow-dark),
+          inset -10px -10px 20px var(--shadow-light),
+          0 0 0 3px rgba(102, 126, 234, 0.2);
+      }
+
+      .preview-panel {
+        flex: 1;
+        background: var(--secondary-bg);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #markdownPreview {
+        flex: 1;
+        line-height: 1.8;
+        color: var(--text-primary);
+      }
+
+      #markdownPreview h1,
+      #markdownPreview h2,
+      #markdownPreview h3,
+      #markdownPreview h4,
+      #markdownPreview h5,
+      #markdownPreview h6 {
+        color: var(--accent-color);
+        margin: 20px 0 10px 0;
+        font-weight: 600;
+      }
+
+      #markdownPreview h1 {
+        font-size: 2rem;
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 10px;
+      }
+
+      #markdownPreview h2 {
+        font-size: 1.6rem;
+      }
+
+      #markdownPreview h3 {
+        font-size: 1.4rem;
+      }
+
+      #markdownPreview p {
+        margin: 15px 0;
+      }
+
+      #markdownPreview ul,
+      #markdownPreview ol {
+        margin: 15px 0;
+        padding-left: 30px;
+      }
+
+      #markdownPreview li {
+        margin: 8px 0;
+      }
+
+      #markdownPreview blockquote {
+        border-left: 4px solid var(--accent-color);
+        padding-left: 20px;
+        margin: 20px 0;
+        background: rgba(102, 126, 234, 0.05);
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-style: italic;
+      }
+
+      #markdownPreview code {
+        background: rgba(102, 126, 234, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+
+      #markdownPreview pre {
+        background: var(--primary-bg);
+        padding: 20px;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 20px 0;
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+      }
+
+      #markdownPreview pre code {
+        background: none;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      #markdownPreview table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+        background: var(--secondary-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+      }
+
+      #markdownPreview th,
+      #markdownPreview td {
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        padding: 12px 15px;
+        text-align: left;
+      }
+
+      #markdownPreview th {
+        background: var(--accent-color);
+        color: white;
+        font-weight: 600;
+      }
+
+      #markdownPreview tr:nth-child(even) {
+        background: rgba(102, 126, 234, 0.05);
+      }
+
+      #markdownPreview a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      #markdownPreview a:hover {
+        text-decoration: underline;
+        color: var(--success-color);
+      }
+
+      .status-message {
+        min-height: 35px;
+        margin: 20px 0;
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .error-message {
+        color: var(--danger-color);
+        margin: 20px 0;
+        min-height: 35px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-align: center;
+        animation: errorShake 0.5s ease;
+      }
+
+      @keyframes errorShake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      .success-message {
+        color: var(--success-color);
+        margin: 20px 0;
+        min-height: 35px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-align: center;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 1024px) {
+        .editor-container {
+          flex-direction: column;
+          height: auto;
+        }
+
+        .editor-panel,
+        .preview-panel {
+          height: 400px;
+        }
+
+        .toolbar {
+          justify-content: flex-start;
+        }
+
+        button {
+          padding: 10px 20px;
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+
+        .toolbar {
+          gap: 10px;
+        }
+
+        button {
+          padding: 8px 16px;
+          font-size: 0.85rem;
+        }
+
+        .editor-panel,
+        .preview-panel {
+          height: 300px;
+          padding: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📝 Markdown编辑器</h1>
+        <p class="subtitle">
+          在线编辑和预览Markdown文档，支持实时渲染和文件操作
+        </p>
+      </header>
+
+      <div class="toolbar">
+        <div class="file-input">
+          <input type="file" id="fileInput" accept=".md,.markdown,.txt" />
+          <button
+            class="btn-primary"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            📁 打开文件
+          </button>
+        </div>
+        <button id="newDocBtn" onclick="newDocument()">📄 新建文档</button>
+        <button id="clearBtn" onclick="clearContent()" class="btn-danger">
+          🗑️ 清空内容
+        </button>
+        <button id="toggleEditorBtn" onclick="toggleEditor()">
+          📝 显示/隐藏编辑器
+        </button>
+        <button
+          id="fullscreenBtn"
+          onclick="toggleFullscreen()"
+          class="btn-primary"
+        >
+          🔍 预览全屏
+        </button>
+        <button onclick="downloadMarkdown()" class="btn-success">
+          💾 保存为MD
+        </button>
+        <button onclick="downloadHTML()">🌐 导出HTML</button>
+        <button onclick="insertTemplate('heading')">📋 插入标题</button>
+        <button onclick="insertTemplate('list')">📝 插入列表</button>
+        <button onclick="insertTemplate('table')">📊 插入表格</button>
+        <button onclick="insertTemplate('code')">💻 插入代码</button>
+      </div>
+
+      <div class="editor-container">
+        <div class="editor-panel">
+          <div class="panel-header">📝 Markdown编辑器</div>
+          <textarea
+            id="markdownInput"
+            placeholder="在这里输入Markdown内容...\n\n示例：\n# 标题\n\n这是一个**粗体**文本和*斜体*文本。\n\n- 列表项1\n- 列表项2\n\n```javascript\nconsole.log('Hello World!');\n```\n\n> 这是一个引用块"
+          ></textarea>
+        </div>
+
+        <div class="preview-panel">
+          <div class="panel-header">👁️ 实时预览</div>
+          <div id="markdownPreview"></div>
+        </div>
+      </div>
+
+      <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+      // 初始化marked配置
+      marked.setOptions({
+        highlight: function (code, lang) {
+          if (lang && hljs.getLanguage(lang)) {
+            try {
+              return hljs.highlight(code, { language: lang }).value
+            } catch (err) {}
+          }
+          return hljs.highlightAuto(code).value
+        },
+        breaks: true,
+        gfm: true,
+      })
+
+      const markdownInput = document.getElementById('markdownInput')
+      const markdownPreview = document.getElementById('markdownPreview')
+      const statusMessage = document.getElementById('statusMessage')
+      const fileInput = document.getElementById('fileInput')
+
+      // 实时预览功能
+      function updatePreview() {
+        const markdownText = markdownInput.value
+        try {
+          const html = marked.parse(markdownText)
+          markdownPreview.innerHTML = html
+        } catch (error) {
+          markdownPreview.innerHTML =
+            '<p style="color: var(--danger-color);">预览错误: ' +
+            error.message +
+            '</p>'
+        }
+      }
+
+      // 监听输入变化
+      markdownInput.addEventListener('input', updatePreview)
+
+      // 显示状态消息
+      function showMessage(message, type = 'info') {
+        statusMessage.textContent = message
+        statusMessage.className =
+          type === 'error'
+            ? 'error-message'
+            : type === 'success'
+            ? 'success-message'
+            : 'status-message'
+
+        setTimeout(() => {
+          statusMessage.textContent = ''
+          statusMessage.className = 'status-message'
+        }, 3000)
+      }
+
+      // 文件读取功能
+      fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0]
+        if (!file) return
+
+        if (!file.name.match(/\.(md|markdown|txt)$/i)) {
+          showMessage('请选择Markdown文件（.md, .markdown, .txt）', 'error')
+          return
+        }
+
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          markdownInput.value = e.target.result
+          updatePreview()
+          showMessage(`文件 "${file.name}" 加载成功！`, 'success')
+        }
+        reader.onerror = function () {
+          showMessage('文件读取失败', 'error')
+        }
+        reader.readAsText(file, 'UTF-8')
+      })
+
+      // 编辑器显示状态
+      let editorVisible = false
+      let isFullscreen = false
+
+      // 切换编辑器显示/隐藏
+      function toggleEditor() {
+        const editorPanel = document.querySelector('.editor-panel')
+        const editorContainer = document.querySelector('.editor-container')
+        const toggleBtn = document.getElementById('toggleEditorBtn')
+
+        editorVisible = !editorVisible
+
+        if (editorVisible) {
+          editorPanel.classList.add('show')
+          editorContainer.classList.remove('preview-only')
+          toggleBtn.textContent = '👁️ 隐藏编辑器'
+          showMessage('编辑器已显示', 'success')
+        } else {
+          editorPanel.classList.remove('show')
+          editorContainer.classList.add('preview-only')
+          toggleBtn.textContent = '📝 显示编辑器'
+          showMessage('编辑器已隐藏', 'info')
+        }
+      }
+
+      // 切换全屏预览
+      function toggleFullscreen() {
+        const previewPanel = document.querySelector('.preview-panel')
+        const fullscreenBtn = document.getElementById('fullscreenBtn')
+
+        if (!document.fullscreenElement) {
+          // 进入全屏模式
+          if (previewPanel.requestFullscreen) {
+            previewPanel.requestFullscreen()
+          } else if (previewPanel.mozRequestFullScreen) {
+            // Firefox
+            previewPanel.mozRequestFullScreen()
+          } else if (previewPanel.webkitRequestFullscreen) {
+            // Chrome, Safari
+            previewPanel.webkitRequestFullscreen()
+          } else if (previewPanel.msRequestFullscreen) {
+            // IE/Edge
+            previewPanel.msRequestFullscreen()
+          }
+          showMessage('已进入全屏预览模式，按ESC键退出', 'success')
+        } else {
+          // 退出全屏模式
+          if (document.exitFullscreen) {
+            document.exitFullscreen()
+          } else if (document.mozCancelFullScreen) {
+            // Firefox
+            document.mozCancelFullScreen()
+          } else if (document.webkitExitFullscreen) {
+            // Chrome, Safari
+            document.webkitExitFullscreen()
+          } else if (document.msExitFullscreen) {
+            // IE/Edge
+            document.msExitFullscreen()
+          }
+          showMessage('已退出全屏预览模式', 'info')
+        }
+      }
+
+      // 监听全屏状态变化
+      document.addEventListener('fullscreenchange', function () {
+        const fullscreenBtn = document.getElementById('fullscreenBtn')
+        if (document.fullscreenElement) {
+          fullscreenBtn.textContent = '🔙 退出全屏'
+          isFullscreen = true
+        } else {
+          fullscreenBtn.textContent = '🔍 预览全屏'
+          isFullscreen = false
+        }
+      })
+
+      // 兼容其他浏览器的全屏状态变化事件
+      document.addEventListener('webkitfullscreenchange', function () {
+        const fullscreenBtn = document.getElementById('fullscreenBtn')
+        if (document.webkitFullscreenElement) {
+          fullscreenBtn.textContent = '🔙 退出全屏'
+          isFullscreen = true
+        } else {
+          fullscreenBtn.textContent = '🔍 预览全屏'
+          isFullscreen = false
+        }
+      })
+
+      document.addEventListener('mozfullscreenchange', function () {
+        const fullscreenBtn = document.getElementById('fullscreenBtn')
+        if (document.mozFullScreenElement) {
+          fullscreenBtn.textContent = '🔙 退出全屏'
+          isFullscreen = true
+        } else {
+          fullscreenBtn.textContent = '🔍 预览全屏'
+          isFullscreen = false
+        }
+      })
+
+      // 新建文档
+      function newDocument() {
+        console.log('新建文档函数被调用')
+        if (
+          markdownInput.value.trim() &&
+          !confirm('当前内容将被清空，确定要新建文档吗？')
+        ) {
+          return
+        }
+        markdownInput.value = ''
+        updatePreview()
+        showMessage('新建文档成功', 'success')
+      }
+
+      // 清空内容
+      function clearContent() {
+        console.log('清空内容函数被调用')
+        if (!markdownInput.value.trim()) {
+          showMessage('内容已经是空的', 'info')
+          return
+        }
+        if (confirm('确定要清空所有内容吗？此操作不可撤销。')) {
+          markdownInput.value = ''
+          updatePreview()
+          showMessage('内容已清空', 'success')
+        }
+      }
+
+      // 下载Markdown文件
+      function downloadMarkdown() {
+        const content = markdownInput.value
+        if (!content.trim()) {
+          showMessage('没有内容可以保存', 'error')
+          return
+        }
+
+        const blob = new Blob([content], {
+          type: 'text/markdown;charset=utf-8',
+        })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `document_${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace(/:/g, '-')}.md`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        showMessage('Markdown文件保存成功', 'success')
+      }
+
+      // 导出HTML文件
+      function downloadHTML() {
+        const content = markdownInput.value
+        if (!content.trim()) {
+          showMessage('没有内容可以导出', 'error')
+          return
+        }
+
+        try {
+          const html = marked.parse(content)
+          const fullHTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown文档</title>
+    <link rel="stylesheet" href="./md/github.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1, h2, h3, h4, h5, h6 { color: #333; margin-top: 24px; margin-bottom: 16px; }
+        code { background: #f6f8fa; padding: 2px 4px; border-radius: 3px; }
+        pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #dfe2e5; padding-left: 16px; margin: 0; color: #6a737d; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; }
+        th { background: #f6f8fa; }
+    </style>
+</head>
+<body>
+${html}
+</body>
+</html>`
+
+          const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `document_${new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/:/g, '-')}.html`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          showMessage('HTML文件导出成功', 'success')
+        } catch (error) {
+          showMessage('HTML导出失败: ' + error.message, 'error')
+        }
+      }
+
+      // 插入模板
+      function insertTemplate(type) {
+        const textarea = markdownInput
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const selectedText = textarea.value.substring(start, end)
+        let template = ''
+
+        switch (type) {
+          case 'heading':
+            template = selectedText ? `# ${selectedText}` : '# 标题\n\n内容...'
+            break
+          case 'list':
+            template = selectedText
+              ? selectedText
+                  .split('\n')
+                  .map((line) => (line.trim() ? `- ${line.trim()}` : ''))
+                  .join('\n')
+              : '- 列表项1\n- 列表项2\n- 列表项3'
+            break
+          case 'table':
+            template =
+              '| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |'
+            break
+          case 'code':
+            template = selectedText
+              ? `\`\`\`javascript\n${selectedText}\n\`\`\``
+              : '```javascript\nconsole.log("Hello World!");\n```'
+            break
+        }
+
+        textarea.value =
+          textarea.value.substring(0, start) +
+          template +
+          textarea.value.substring(end)
+        textarea.focus()
+        textarea.setSelectionRange(
+          start + template.length,
+          start + template.length
+        )
+        updatePreview()
+        showMessage(
+          `${
+            type === 'heading'
+              ? '标题'
+              : type === 'list'
+              ? '列表'
+              : type === 'table'
+              ? '表格'
+              : '代码块'
+          }模板已插入`,
+          'success'
+        )
+      }
+
+      // 键盘快捷键
+      markdownInput.addEventListener('keydown', function (e) {
+        // Ctrl+S 保存
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault()
+          downloadMarkdown()
+        }
+        // Ctrl+N 新建
+        if (e.ctrlKey && e.key === 'n') {
+          e.preventDefault()
+          newDocument()
+        }
+        // Tab键插入空格
+        if (e.key === 'Tab') {
+          e.preventDefault()
+          const start = this.selectionStart
+          const end = this.selectionEnd
+          this.value =
+            this.value.substring(0, start) + '    ' + this.value.substring(end)
+          this.setSelectionRange(start + 4, start + 4)
+          updatePreview()
+        }
+      })
+
+      // 页面加载完成后初始化预览
+      document.addEventListener('DOMContentLoaded', function () {
+        // 初始化编辑器状态（默认隐藏）
+        const editorContainer = document.querySelector('.editor-container')
+        const toggleBtn = document.getElementById('toggleEditorBtn')
+
+        editorContainer.classList.add('preview-only')
+        toggleBtn.textContent = '📝 显示编辑器'
+
+        updatePreview()
+        showMessage(
+          'Markdown编辑器已就绪 - 点击"显示编辑器"开始编辑',
+          'success'
+        )
+      })
+
+      // 防止页面刷新丢失内容
+      window.addEventListener('beforeunload', function (e) {
+        if (markdownInput.value.trim()) {
+          e.preventDefault()
+          e.returnValue = '您有未保存的内容，确定要离开吗？'
+        }
+      })
+    </script>
+  </body>
+</html>
