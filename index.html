@@ -762,6 +762,17 @@
           padding: 6px 12px;
           max-width: 100px;
         }
+
+        .categories-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .search-box input {
+          min-width: 150px;
+          font-size: 0.8rem;
+        }
       }
 
       @media (max-width: 480px) {
@@ -965,10 +976,56 @@
         box-shadow: var(--glass-shadow);
       }
 
+      .categories-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
       .tool-categories h3 {
         color: var(--primary-color);
-        margin-bottom: 15px;
+        margin: 0;
         font-size: 1.2rem;
+      }
+
+      .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-box input {
+        padding: 8px 35px 8px 12px;
+        border: 2px solid var(--glass-border);
+        border-radius: 20px;
+        background: var(--card-bg);
+        color: var(--text-color);
+        font-size: 0.85rem;
+        outline: none;
+        transition: all 0.3s ease;
+        min-width: 200px;
+      }
+
+      .search-box input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+      }
+
+      .search-box input::placeholder {
+        color: var(--text-color);
+        opacity: 0.6;
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 12px;
+        color: var(--text-color);
+        opacity: 0.6;
+        font-size: 0.85rem;
+        pointer-events: none;
       }
 
       .tool-categories ul {
@@ -1208,7 +1265,13 @@
         </section>
         <!-- 工具分类导航 -->
         <nav class="tool-categories" aria-label="工具分类">
-          <h3>工具分类</h3>
+          <div class="categories-header">
+            <h3>工具分类</h3>
+            <div class="search-box">
+              <input type="text" id="toolSearch" placeholder="搜索工具..." aria-label="搜索工具">
+              <i class="fas fa-search search-icon"></i>
+            </div>
+          </div>
           <ul>
             <!-- 分类按钮将通过JavaScript动态生成 -->
           </ul>

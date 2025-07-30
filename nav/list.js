@@ -168,13 +168,26 @@
 
   // 当前选中的分类
   let currentCategory = 'all';
+  // 当前搜索关键词
+  let currentSearchTerm = '';
 
   // 筛选工具函数
-  function filterTools(category) {
-    if (currentCategory === category) return; // 如果已经是当前分类，不执行筛选
+  function filterTools(category, searchTerm = currentSearchTerm) {
+    if (currentCategory === category && currentSearchTerm === searchTerm) return; // 如果筛选条件没有变化，不执行筛选
     
     currentCategory = category;
-    const filteredTools = category === 'all' ? tools : tools.filter(tool => tool.category === category);
+    currentSearchTerm = searchTerm;
+    
+    let filteredTools = category === 'all' ? tools : tools.filter(tool => tool.category === category);
+    
+    // 如果有搜索关键词，进一步筛选
+    if (searchTerm.trim()) {
+      filteredTools = filteredTools.filter(tool => 
+        tool.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tool.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
     const timelineTrack = document.querySelector("#timelineTrack");
     
     // 保存当前容器高度，防止抖动
@@ -324,7 +337,7 @@
       
       a.addEventListener('click', (e) => {
         e.preventDefault();
-        filterTools(categoryKey);
+        filterTools(categoryKey, currentSearchTerm);
       });
       
       li.appendChild(a);
@@ -343,10 +356,40 @@
     });
   }
 
+  // 搜索功能
+  function initializeSearch() {
+    const searchInput = document.getElementById('toolSearch');
+    if (!searchInput) return;
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value;
+      
+      // 防抖处理，避免频繁搜索
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        filterTools(currentCategory, searchTerm);
+      }, 300);
+    });
+    
+    // 清空搜索框时重置
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        filterTools(currentCategory, '');
+        searchInput.blur();
+      }
+    });
+  }
+
   // 动态生成工具网格
   document.addEventListener("DOMContentLoaded", function() {
     // 生成分类导航
     generateCategoryNavigation();
+    
+    // 初始化搜索功能
+    initializeSearch();
     
     // 初始渲染所有工具
     renderTools(tools);
