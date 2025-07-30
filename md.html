@@ -504,6 +504,98 @@
         color: var(--success-color);
       }
 
+      /* 图片样式限制 */
+      #markdownPreview img {
+        max-width: 100%;
+        max-height: 400px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 15px 0;
+        display: block;
+      }
+
+      #markdownPreview img:hover {
+        transform: scale(1.02);
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+      }
+
+      /* 图片弹框样式 */
+      .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      .image-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: scale(0.8) translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 10000;
+        transition: all 0.3s ease;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+
       .status-message {
         min-height: 35px;
         margin: 20px 0;
@@ -655,6 +747,12 @@
       <div id="statusMessage" class="status-message"></div>
     </div>
 
+    <!-- 图片弹框 -->
+    <div id="imageModal" class="image-modal">
+      <span class="modal-close" onclick="closeImageModal()">&times;</span>
+      <img class="modal-content" id="modalImage" />
+    </div>
+
     <script>
       // 初始化marked配置
       marked.setOptions({
@@ -683,6 +781,8 @@
           markdownPreview.innerHTML = html
           // 手动触发代码高亮
           hljs.highlightAll()
+          // 为图片添加点击事件
+          addImageClickEvents()
         } catch (error) {
           markdownPreview.innerHTML =
             '<p style="color: var(--danger-color);">预览错误: ' +
@@ -690,6 +790,101 @@
             '</p>'
         }
       }
+
+      // 为图片添加点击事件
+      function addImageClickEvents() {
+        const images = markdownPreview.querySelectorAll('img')
+        images.forEach(img => {
+          img.addEventListener('click', function() {
+            openImageModal(this.src, this.alt)
+          })
+        })
+      }
+
+      // 打开图片弹框
+      function openImageModal(src, alt) {
+        const modal = document.getElementById('imageModal')
+        const modalImg = document.getElementById('modalImage')
+        
+        modalImg.src = src
+        modalImg.alt = alt || ''
+        
+        // 检测是否处于全屏模式
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
+        
+        if (fullscreenElement) {
+          // 如果处于全屏模式，将弹框添加到全屏元素中
+          fullscreenElement.appendChild(modal)
+        } else {
+          // 如果不在全屏模式，确保弹框在body中
+          if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal)
+          }
+        }
+        
+        modal.classList.add('show')
+        
+        // 阻止页面滚动
+        document.body.style.overflow = 'hidden'
+      }
+
+      // 关闭图片弹框
+      function closeImageModal() {
+        const modal = document.getElementById('imageModal')
+        modal.classList.remove('show')
+        
+        // 将弹框移回body，确保下次能正常使用
+        if (modal.parentNode !== document.body) {
+          document.body.appendChild(modal)
+        }
+        
+        // 恢复页面滚动
+        document.body.style.overflow = 'auto'
+      }
+
+      // 点击弹框背景关闭
+      document.getElementById('imageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeImageModal()
+        }
+      })
+
+      // ESC键关闭弹框
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeImageModal()
+        }
+      })
+
+      // 监听全屏状态变化
+      document.addEventListener('fullscreenchange', function() {
+        const modal = document.getElementById('imageModal')
+        if (modal.classList.contains('show') && !document.fullscreenElement) {
+          // 如果弹框正在显示且退出了全屏，将弹框移回body
+          if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal)
+          }
+        }
+      })
+
+      // 兼容不同浏览器的全屏事件
+      document.addEventListener('webkitfullscreenchange', function() {
+        const modal = document.getElementById('imageModal')
+        if (modal.classList.contains('show') && !document.webkitFullscreenElement) {
+          if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal)
+          }
+        }
+      })
+
+      document.addEventListener('mozfullscreenchange', function() {
+        const modal = document.getElementById('imageModal')
+        if (modal.classList.contains('show') && !document.mozFullScreenElement) {
+          if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal)
+          }
+        }
+      })
 
       // 监听输入变化
       markdownInput.addEventListener('input', updatePreview)
