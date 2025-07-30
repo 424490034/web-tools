@@ -840,6 +840,8 @@
           return
         }
         markdownInput.value = ''
+        // 重置文件输入框，确保可以重新选择同一个文件
+        fileInput.value = ''
         updatePreview()
         showMessage('新建文档成功', 'success')
       }
@@ -853,6 +855,8 @@
         }
         if (confirm('确定要清空所有内容吗？此操作不可撤销。')) {
           markdownInput.value = ''
+          // 重置文件输入框，确保可以重新选择同一个文件
+          fileInput.value = ''
           updatePreview()
           showMessage('内容已清空', 'success')
         }
