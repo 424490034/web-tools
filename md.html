@@ -681,6 +681,8 @@
         try {
           const html = marked.parse(markdownText)
           markdownPreview.innerHTML = html
+          // 手动触发代码高亮
+          hljs.highlightAll()
         } catch (error) {
           markdownPreview.innerHTML =
             '<p style="color: var(--danger-color);">预览错误: ' +
@@ -1025,6 +1027,16 @@ ${html}
           'Markdown编辑器已就绪 - 点击"显示编辑器"开始编辑',
           'success'
         )
+      })
+
+      // 页面加载完成后初始化
+      window.addEventListener('DOMContentLoaded', function() {
+        // 初始化代码高亮
+        hljs.highlightAll()
+        // 如果有初始内容，触发预览更新
+        if (markdownInput.value.trim()) {
+          updatePreview()
+        }
       })
 
       // 防止页面刷新丢失内容
