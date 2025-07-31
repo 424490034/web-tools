@@ -596,6 +596,120 @@
         transform: scale(1.1);
       }
 
+      /* 帮助指南弹框样式 */
+      .help-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      .help-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .help-modal-content {
+        background: var(--secondary-bg);
+        border-radius: 20px;
+        padding: 40px;
+        width: 80vw;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.3s ease;
+        margin: 20px;
+      }
+
+      .help-modal-content h2 {
+        color: var(--accent-color);
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 2rem;
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 15px;
+      }
+
+      .help-content {
+        display: grid;
+        gap: 25px;
+      }
+
+      .help-section {
+        background: var(--primary-bg);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+      }
+
+      .help-section h3 {
+        color: var(--accent-color);
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+
+      .syntax-item {
+        margin-bottom: 15px;
+      }
+
+      .syntax-item h4 {
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .syntax-item code {
+        display: block;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+        border-left: 4px solid var(--accent-color);
+        white-space: pre-line;
+      }
+
+      .help-section ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .help-section li {
+        margin: 8px 0;
+        color: var(--text-primary);
+        line-height: 1.6;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .help-modal-content {
+          padding: 20px;
+          margin: 10px;
+          max-height: 90vh;
+        }
+
+        .help-modal-content h2 {
+          font-size: 1.5rem;
+        }
+
+        .help-section {
+          padding: 15px;
+        }
+      }
+
       .status-message {
         min-height: 35px;
         margin: 20px 0;
@@ -727,6 +841,9 @@
         <button onclick="insertTemplate('list')">📝 插入列表</button>
         <button onclick="insertTemplate('table')">📊 插入表格</button>
         <button onclick="insertTemplate('code')">💻 插入代码</button>
+        <button onclick="openHelpModal()" class="btn-primary">
+          ❓ 帮助指南
+        </button>
       </div>
 
       <div class="editor-container">
@@ -751,6 +868,94 @@
     <div id="imageModal" class="image-modal">
       <span class="modal-close" onclick="closeImageModal()">&times;</span>
       <img class="modal-content" id="modalImage" />
+    </div>
+
+    <!-- 帮助指南弹框 -->
+    <div id="helpModal" class="help-modal">
+      <div class="help-modal-content">
+        <span class="modal-close" onclick="closeHelpModal()">&times;</span>
+        <h2>📝 Markdown 编写指南</h2>
+        <div class="help-content">
+          <div class="help-section">
+            <h3>📋 基础语法</h3>
+            <div class="syntax-item">
+              <h4>标题</h4>
+              <code># 一级标题<br />## 二级标题<br />### 三级标题</code>
+            </div>
+            <div class="syntax-item">
+              <h4>文本格式</h4>
+              <code
+                >**粗体文本**<br />*斜体文本*<br />~~删除线~~<br />`行内代码`</code
+              >
+            </div>
+            <div class="syntax-item">
+              <h4>列表</h4>
+              <code
+                >- 无序列表项1<br />- 无序列表项2<br /><br />1. 有序列表项1<br />2.
+                有序列表项2</code
+              >
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>🔗 链接和图片</h3>
+            <div class="syntax-item">
+              <h4>链接</h4>
+              <code>[链接文本](https://example.com)</code>
+            </div>
+            <div class="syntax-item">
+              <h4>图片</h4>
+              <code>![图片描述](图片链接)</code>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>📊 表格</h3>
+            <div class="syntax-item">
+              <code
+                >| 列1 | 列2 | 列3 |<br />|-----|-----|-----|<br />| 内容1 |
+                内容2 | 内容3 |</code
+              >
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>💻 代码块</h3>
+            <div class="syntax-item">
+              <h4>行内代码</h4>
+              <code>`代码内容`</code>
+            </div>
+            <div class="syntax-item">
+              <h4>代码块</h4>
+              <code
+                >```javascript<br />console.log('Hello World!');<br />```</code
+              >
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>📝 引用和分割线</h3>
+            <div class="syntax-item">
+              <h4>引用</h4>
+              <code>> 这是一个引用块<br />> 可以多行引用</code>
+            </div>
+            <div class="syntax-item">
+              <h4>分割线</h4>
+              <code>---</code>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>💡 提示</h3>
+            <ul>
+              <li>使用工具栏按钮可以快速插入常用模板</li>
+              <li>支持实时预览，编辑时可以立即看到效果</li>
+              <li>点击预览区域的图片可以放大查看</li>
+              <li>支持导出为HTML或保存为Markdown文件</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -858,9 +1063,38 @@
       // ESC键关闭弹框
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-          closeImageModal()
+          const imageModal = document.getElementById('imageModal')
+          const helpModal = document.getElementById('helpModal')
+
+          if (imageModal.classList.contains('show')) {
+            closeImageModal()
+          } else if (helpModal.classList.contains('show')) {
+            closeHelpModal()
+          }
         }
       })
+
+      // 帮助指南弹框功能
+      function openHelpModal() {
+        const modal = document.getElementById('helpModal')
+        modal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      function closeHelpModal() {
+        const modal = document.getElementById('helpModal')
+        modal.classList.remove('show')
+        document.body.style.overflow = 'auto'
+      }
+
+      // 点击帮助弹框背景关闭
+      document
+        .getElementById('helpModal')
+        .addEventListener('click', function (e) {
+          if (e.target === this) {
+            closeHelpModal()
+          }
+        })
 
       // 监听全屏状态变化
       document.addEventListener('fullscreenchange', function () {
@@ -1188,14 +1422,19 @@ ${html}
             break
         }
 
+        // 在插入模板前添加换行符
+        const beforeText = textarea.value.substring(0, start)
+        const needsNewline = beforeText.length > 0 && !beforeText.endsWith('\n')
+        const finalTemplate = needsNewline ? '\n' + template : template
+
         textarea.value =
           textarea.value.substring(0, start) +
-          template +
+          finalTemplate +
           textarea.value.substring(end)
         textarea.focus()
         textarea.setSelectionRange(
-          start + template.length,
-          start + template.length
+          start + finalTemplate.length,
+          start + finalTemplate.length
         )
         updatePreview()
         showMessage(
