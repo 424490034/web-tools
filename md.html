@@ -959,20 +959,48 @@
             <h3>🖼️ 图片显示说明</h3>
             <div class="syntax-item">
               <h4>相对路径图片的显示规则</h4>
-              <code
-                >**服务器部署环境中的相对路径：** ✅
-                可以正常显示（基于服务器上md.html所在目录解析）
-                示例：./favicon.ico、./images/logo.png
-                **从外部md文件导入的相对路径：** ❌
-                无法正常显示（路径基准发生变化）
-                原因：图片路径会基于服务器上所在目录解析，而不是原始md文件目录
-                **解决方案：** 1. 将图片文件上传到服务器后,使用服务器地址 2.
-                使用网络图片URL（推荐） 3. 使用图床服务（如GitHub、七牛云等） 4.
-                修改为服务器上的绝对路径 **检查清单：** 1.
-                图片文件是否已上传到服务器相应目录 2.
-                图片路径是否基于服务器目录正确设置 3. 网络图片URL是否可访问 4.
-                跨域访问是否正常</code
+              <div
+                style="
+                  background: rgba(102, 126, 234, 0.1);
+                  padding: 15px;
+                  padding-left: 24px;
+                  border-radius: 8px;
+                  border-left: 4px solid var(--accent-color);
+                  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                  font-size: 0.9rem;
+                  line-height: 1.6;
+                "
               >
+                <p><strong>服务器部署环境中的相对路径：</strong></p>
+                <p>✅ 可以正常显示（基于服务器上md.html所在目录解析）</p>
+                <p>
+                  示例：<code>./favicon.ico</code>、<code
+                    >./images/logo.png</code
+                  >
+                </p>
+                <br />
+                <p><strong>从外部md文件导入的相对路径：</strong></p>
+                <p>❌ 无法正常显示（路径基准发生变化）</p>
+                <p>
+                  原因：图片路径会基于服务器上md.html所在目录解析，而不是原始md文件目录
+                </p>
+                <br />
+                <p><strong>解决方案：</strong></p>
+                <ol>
+                  <li>将图片文件上传到服务器后，使用服务器地址</li>
+                  <li>使用网络图片URL（推荐）</li>
+                  <li>使用图床服务（如GitHub、七牛云等）</li>
+                  <li>修改为服务器上的绝对路径</li>
+                </ol>
+                <br />
+                <p><strong>检查清单：</strong></p>
+                <ol>
+                  <li>图片文件是否已上传到服务器相应目录</li>
+                  <li>图片路径是否基于服务器目录正确设置</li>
+                  <li>网络图片URL是否可访问</li>
+                  <li>跨域访问是否正常</li>
+                </ol>
+              </div>
             </div>
           </div>
         </div>
