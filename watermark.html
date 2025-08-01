@@ -1284,7 +1284,6 @@
             this.showStatus('正在加载 FFmpeg...')
             this.ffmpeg = createFFmpeg({
               log: true,
-              corePath: './ffmpeg-core.wasm',
             })
             await this.ffmpeg.load()
             this.showStatus('FFmpeg 加载完成')
