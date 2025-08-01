@@ -1979,20 +1979,21 @@
                 h = Math.max(1, h)
 
                 // 确保区域完全在视频帧内
-                if (x + w > videoWidth) {
-                  if (x >= videoWidth) {
-                    x = videoWidth - 1
+                // FFmpeg的delogo要求x+w < videoWidth，而不是x+w <= videoWidth
+                if (x + w >= videoWidth) {
+                  if (x >= videoWidth - 1) {
+                    x = videoWidth - 2
                     w = 1
                   } else {
-                    w = videoWidth - x
+                    w = videoWidth - x - 1
                   }
                 }
-                if (y + h > videoHeight) {
-                  if (y >= videoHeight) {
-                    y = videoHeight - 1
+                if (y + h >= videoHeight) {
+                  if (y >= videoHeight - 1) {
+                    y = videoHeight - 2
                     h = 1
                   } else {
-                    h = videoHeight - y
+                    h = videoHeight - y - 1
                   }
                 }
 
