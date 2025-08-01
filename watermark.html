@@ -1030,14 +1030,54 @@
           >
             <video id="videoPreview" controls></video>
             <div class="watermark-overlay" id="watermarkOverlay"></div>
-            
+
             <!-- Cropper容器 -->
-            <div id="cropperContainer" style="display: none; margin-top: 20px; background: var(--primary-bg); border-radius: 15px; padding: 20px; box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);">
-              <div style="margin-bottom: 15px; font-weight: 600; color: var(--accent-color);">📐 选择水印区域</div>
-              <img id="cropperImage" style="max-width: 100%; height: auto; border-radius: 10px;" />
-              <div style="display: flex; gap: 15px; margin-top: 15px; justify-content: center;">
-                <button id="confirmCropBtn" class="btn-success" style="width: auto; margin: 0;">✅ 确认添加</button>
-                <button id="cancelCropBtn" class="btn-danger" style="width: auto; margin: 0;">❌ 取消</button>
+            <div
+              id="cropperContainer"
+              style="
+                display: none;
+                margin-top: 20px;
+                background: var(--primary-bg);
+                border-radius: 15px;
+                box-shadow: inset 6px 6px 12px var(--shadow-dark),
+                  inset -6px -6px 12px var(--shadow-light);
+              "
+            >
+              <div
+                style="
+                  margin-bottom: 15px;
+                  font-weight: 600;
+                  color: var(--accent-color);
+                "
+              >
+                📐 选择水印区域
+              </div>
+              <img
+                id="cropperImage"
+                style="max-width: 100%; height: auto; border-radius: 10px"
+              />
+              <div
+                style="
+                  display: flex;
+                  gap: 15px;
+                  margin-top: 15px;
+                  justify-content: center;
+                "
+              >
+                <button
+                  id="confirmCropBtn"
+                  class="btn-success"
+                  style="width: auto; margin: 0"
+                >
+                  ✅ 确认添加
+                </button>
+                <button
+                  id="cancelCropBtn"
+                  class="btn-danger"
+                  style="width: auto; margin: 0"
+                >
+                  ❌ 取消
+                </button>
               </div>
             </div>
           </div>
@@ -1198,7 +1238,7 @@
           this.dragStartX = 0
           this.dragStartY = 0
           this.resizeHandle = null
-          
+
           // Cropper相关属性
           this.cropper = null
           this.cropperImage = null
@@ -1227,7 +1267,7 @@
           this.errorMessage = document.getElementById('errorMessage')
           this.outputFormat = document.getElementById('outputFormat')
           this.quality = document.getElementById('quality')
-          
+
           // Cropper相关元素
           this.cropperImage = document.getElementById('cropperImage')
           this.cropperContainer = document.getElementById('cropperContainer')
@@ -1271,14 +1311,12 @@
           this.clearAllBtn.addEventListener('click', () =>
             this.clearAllRegions()
           )
-          
+
           // Cropper按钮事件
           this.confirmCropBtn.addEventListener('click', () =>
             this.confirmCrop()
           )
-          this.cancelCropBtn.addEventListener('click', () =>
-            this.cancelCrop()
-          )
+          this.cancelCropBtn.addEventListener('click', () => this.cancelCrop())
 
           // 视频加载完成
           this.videoPreview.addEventListener('loadedmetadata', () => {
@@ -1438,11 +1476,18 @@
 
         // 捕获视频帧
         captureVideoFrame() {
+          const video = this.videoPreview
+          
+          // 确保视频已加载并有有效尺寸
+          if (!video.videoWidth || !video.videoHeight) {
+            this.showError('视频尚未完全加载，请稍后再试')
+            return
+          }
+
           if (!this.canvas) {
             this.canvas = document.createElement('canvas')
           }
 
-          const video = this.videoPreview
           this.canvas.width = video.videoWidth
           this.canvas.height = video.videoHeight
 
@@ -1450,11 +1495,17 @@
           ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height)
 
           // 将canvas转换为图片并显示在cropper中
-          this.canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob)
-            this.cropperImage.src = url
-            this.initializeCropper()
-          }, 'image/jpeg', 0.9)
+          this.canvas.toBlob(
+            (blob) => {
+              const url = URL.createObjectURL(blob)
+              this.cropperImage.onload = () => {
+                this.initializeCropper()
+              }
+              this.cropperImage.src = url
+            },
+            'image/jpeg',
+            0.9
+          )
         }
 
         // 初始化Cropper
@@ -1482,7 +1533,7 @@
             background: false,
             modal: true,
             responsive: true,
-            checkOrientation: false
+            checkOrientation: false,
           })
         }
 
@@ -1506,7 +1557,7 @@
             x: Math.round(cropData.x * scaleX),
             y: Math.round(cropData.y * scaleY),
             width: Math.round(cropData.width * scaleX),
-            height: Math.round(cropData.height * scaleY)
+            height: Math.round(cropData.height * scaleY),
           }
 
           // 检查重叠
@@ -1531,7 +1582,7 @@
             this.cropper = null
           }
           this.cropperContainer.style.display = 'none'
-          
+
           // 清理图片URL
           if (this.cropperImage.src) {
             URL.revokeObjectURL(this.cropperImage.src)
@@ -1902,21 +1953,40 @@
             // 构建 delogo 滤镜，添加边界检查
             const videoWidth = this.videoPreview.videoWidth
             const videoHeight = this.videoPreview.videoHeight
-            
+
             const delogoFilters = this.watermarkRegions
               .map((region) => {
                 let x = Math.round(region.x * scaleX)
                 let y = Math.round(region.y * scaleY)
                 let w = Math.round(region.width * scaleX)
                 let h = Math.round(region.height * scaleY)
-                
-                // 边界检查和修正
+
+                // 严格的边界检查和修正
+                // 确保坐标在有效范围内
                 x = Math.max(0, Math.min(x, videoWidth - 1))
                 y = Math.max(0, Math.min(y, videoHeight - 1))
-                w = Math.max(1, Math.min(w, videoWidth - x))
-                h = Math.max(1, Math.min(h, videoHeight - y))
                 
-                console.log(`水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`)
+                // 确保宽度和高度不会超出边界
+                const maxWidth = videoWidth - x
+                const maxHeight = videoHeight - y
+                w = Math.max(1, Math.min(w, maxWidth))
+                h = Math.max(1, Math.min(h, maxHeight))
+                
+                // 最终验证：确保区域完全在视频帧内
+                if (x + w > videoWidth) {
+                  w = videoWidth - x
+                }
+                if (y + h > videoHeight) {
+                  h = videoHeight - y
+                }
+                
+                // 确保最小尺寸
+                w = Math.max(1, w)
+                h = Math.max(1, h)
+
+                console.log(
+                  `水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`
+                )
                 return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`
               })
               .join(',')
@@ -1964,12 +2034,8 @@
               type: `video/${this.outputFormat.value}`,
             })
 
-            // 下载文件
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`
-            a.click()
+            // 显示预览和下载选项
+            this.showVideoPreview(blob, `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`)
 
             this.updateProgress(100, '处理完成！')
             this.showStatus(
@@ -2018,6 +2084,136 @@
           setTimeout(() => {
             this.errorMessage.textContent = ''
           }, 5000)
+        }
+
+        // 显示视频预览
+        showVideoPreview(blob, filename) {
+          // 创建预览容器
+          const previewContainer = document.createElement('div')
+          previewContainer.className = 'video-preview-container'
+          previewContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+          `
+
+          // 创建预览内容
+          const previewContent = document.createElement('div')
+          previewContent.style.cssText = `
+            background: var(--primary-bg);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            box-shadow: 20px 20px 60px var(--shadow-dark), -20px -20px 60px var(--shadow-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+          `
+
+          // 创建标题
+          const title = document.createElement('h3')
+          title.textContent = '🎉 视频处理完成'
+          title.style.cssText = `
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.5rem;
+          `
+
+          // 创建预览视频
+          const previewVideo = document.createElement('video')
+          previewVideo.controls = true
+          previewVideo.style.cssText = `
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+          `
+          previewVideo.src = URL.createObjectURL(blob)
+
+          // 创建按钮容器
+          const buttonContainer = document.createElement('div')
+          buttonContainer.style.cssText = `
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+          `
+
+          // 下载按钮
+          const downloadBtn = document.createElement('button')
+          downloadBtn.className = 'btn-success'
+          downloadBtn.innerHTML = '📥 下载视频'
+          downloadBtn.style.cssText = `
+            width: auto;
+            margin: 0;
+            padding: 12px 24px;
+          `
+          downloadBtn.onclick = () => {
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = filename
+            a.click()
+            URL.revokeObjectURL(url)
+          }
+
+          // 关闭按钮
+          const closeBtn = document.createElement('button')
+          closeBtn.className = 'btn-danger'
+          closeBtn.innerHTML = '❌ 关闭'
+          closeBtn.style.cssText = `
+            width: auto;
+            margin: 0;
+            padding: 12px 24px;
+          `
+          closeBtn.onclick = () => {
+            URL.revokeObjectURL(previewVideo.src)
+            document.body.removeChild(previewContainer)
+          }
+
+          // 继续处理按钮
+          const continueBtn = document.createElement('button')
+          continueBtn.className = 'btn-primary'
+          continueBtn.innerHTML = '🔄 继续处理'
+          continueBtn.style.cssText = `
+            width: auto;
+            margin: 0;
+            padding: 12px 24px;
+          `
+          continueBtn.onclick = () => {
+            URL.revokeObjectURL(previewVideo.src)
+            document.body.removeChild(previewContainer)
+          }
+
+          // 组装元素
+          buttonContainer.appendChild(downloadBtn)
+          buttonContainer.appendChild(continueBtn)
+          buttonContainer.appendChild(closeBtn)
+          
+          previewContent.appendChild(title)
+          previewContent.appendChild(previewVideo)
+          previewContent.appendChild(buttonContainer)
+          
+          previewContainer.appendChild(previewContent)
+          document.body.appendChild(previewContainer)
+
+          // 点击背景关闭
+          previewContainer.onclick = (e) => {
+            if (e.target === previewContainer) {
+              URL.revokeObjectURL(previewVideo.src)
+              document.body.removeChild(previewContainer)
+            }
+          }
         }
       }
 
