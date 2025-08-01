@@ -2114,10 +2114,11 @@
 
             // 构建delogo滤镜链
             const processedRegions = this.watermarkRegions.map((region, index) => {
-              let x = Math.round(region.x * scaleX)
-              let y = Math.round(region.y * scaleY)
-              let w = Math.round(region.width * scaleX)
-              let h = Math.round(region.height * scaleY)
+              // region中的坐标已经是视频像素坐标，不需要再次缩放
+              let x = Math.round(region.x)
+              let y = Math.round(region.y)
+              let w = Math.round(region.width)
+              let h = Math.round(region.height)
 
               // 确保最小尺寸，避免过小的区域导致处理失败
               const minSize = 8
@@ -2149,7 +2150,10 @@
               }
 
               console.log(
-                `水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`
+                `水印区域 ${region.id}: 原始坐标=(${region.x}, ${region.y}) 尺寸=${region.width}×${region.height}`
+              )
+              console.log(
+                `水印区域 ${region.id}: 处理后坐标=(${x}, ${y}) 尺寸=${w}×${h} (视频尺寸: ${videoWidth}×${videoHeight})`
               )
               
               return { x, y, w, h, id: region.id }
