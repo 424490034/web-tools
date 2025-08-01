@@ -1246,13 +1246,19 @@
         box-shadow: var(--shadow-medium);
       }
     </style>
+    
+    <!-- Pako.js CDN (UPNG.js dependency) -->
+    <script src="./squoosh/pako.min.js"></script>
+    
+    <!-- UPNG.js CDN -->
+    <script src="./squoosh/UPNG.min.js"></script>
   </head>
   <body>
     <div class="container">
       <header>
         <h1>极速在线图片压缩器</h1>
         <p class="subtitle">
-          基于jSquash技术 · WebAssembly加速 · 智能压缩算法 · 批量处理 ·
+          基于jSquash + UPNG.js技术 · WebAssembly加速 · 智能压缩算法 · 批量处理 ·
           完美保护隐私
         </p>
       </header>
@@ -1396,13 +1402,12 @@
           console.log('正在加载jSquash编码器...')
 
           // 预加载常用编码器
-          const [jpegModule, webpModule, avifModule, oxiPngModule,pngModule, jxlModule] =
+          const [jpegModule, webpModule, avifModule, oxiPngModule, jxlModule] =
             await Promise.allSettled([
               import('https://unpkg.com/@jsquash/jpeg?module'),
               import('https://unpkg.com/@jsquash/webp?module'),
               import('https://unpkg.com/@jsquash/avif?module'),
               import('https://unpkg.com/@jsquash/oxipng?module'),
-              import('https://unpkg.com/@jsquash/png?module'),
               import('https://unpkg.com/@jsquash/jxl?module'),
             ])
 
@@ -1427,9 +1432,11 @@
             console.log('✅ OxiPNG编码器加载成功')
           }
 
-          if (pngModule.status === 'fulfilled') {
-            jSquashEncoders.png = pngModule.value
-            console.log('✅ PNG编码器加载成功')
+          // UPNG.js 已通过CDN加载，无需动态导入
+          if (typeof UPNG !== 'undefined') {
+            console.log(UPNG)
+            jSquashEncoders.png = UPNG
+            console.log('✅ UPNG.js编码器加载成功')
           }
 
           if (jxlModule.status === 'fulfilled') {
@@ -1840,8 +1847,13 @@
 
               case 'png':
                 if (jSquashEncoders.png) {
-                  const pngOptions = this.getSquooshEncodeOptions(format, quality).png
-                  encodedBuffer = await jSquashEncoders.png.encode(imageData, pngOptions)
+                  // 使用UPNG.js进行PNG压缩
+                  const { width, height, data } = imageData
+                  
+                  // 计算颜色数量，质量越低颜色越少
+                  const colorCount = quality >= 90 ? 0 : Math.max(16, Math.round((quality / 100) * 256))
+                  // 使用UPNG.js编码
+                  encodedBuffer = jSquashEncoders.png.encode([data.buffer], width, height, colorCount)
                   actualFormat = 'png'
                 }
                 break
