@@ -920,6 +920,71 @@
         }
       }
 
+      .operation-history {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        padding: 30px;
+        margin-top: 30px;
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light);
+        animation: instructionsSlide 0.8s ease 1s both;
+      }
+
+      .history-item {
+        background: var(--primary-bg);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .history-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+      }
+
+      .history-time {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .history-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .history-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .history-actions button {
+        flex: 1;
+        margin: 0;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+
       .instructions {
         background: var(--primary-bg);
         border-radius: 25px;
@@ -1211,16 +1276,35 @@
       <div class="status-message" id="statusMessage"></div>
       <div class="error-message" id="errorMessage"></div>
 
+      <!-- 操作记录列表 -->
+      <div
+        class="operation-history"
+        id="operationHistory"
+        style="display: none"
+      >
+        <h3
+          style="
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+          "
+        >
+          📋 处理记录
+        </h3>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
       <div class="instructions">
         <h3>📋 使用说明</h3>
         <ol>
           <li>上传需要去除水印的视频文件</li>
-          <li>点击"添加水印区域"按钮，在视频上选择水印位置</li>
+          <li>点击"添加水印区域"按钮，在视频下方操作区选择水印位置</li>
           <li>可以添加多个水印区域，但区域不能重叠</li>
           <li>调整区域大小和位置，确保完全覆盖水印</li>
           <li>选择输出格式和质量设置</li>
           <li>点击"开始去除水印"进行处理</li>
         </ol>
+        <p>💡 提示：处理速度取决于视频清晰度和大小,需要逐帧处理,请耐心等待。</p>
         <p>
           💡
           提示：水印去除效果取决于水印的复杂程度和背景内容。建议选择稍大于水印的区域以获得更好的效果。
@@ -1272,6 +1356,11 @@
           this.errorMessage = document.getElementById('errorMessage')
           this.outputFormat = document.getElementById('outputFormat')
           this.quality = document.getElementById('quality')
+
+          // 操作记录相关元素
+          this.operationHistory = document.getElementById('operationHistory')
+          this.historyList = document.getElementById('historyList')
+          this.processedVideos = []
 
           // Cropper相关元素
           this.cropperImage = document.getElementById('cropperImage')
@@ -2047,15 +2136,23 @@
               type: `video/${this.outputFormat.value}`,
             })
 
-            // 显示预览和下载选项
-            this.showVideoPreview(
+            // 添加到操作记录列表
+            this.addToHistory(
               blob,
-              `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`
+              `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`,
+              {
+                startTime,
+                endTime,
+                duration,
+                format: this.outputFormat.value,
+                quality: this.quality.value,
+                regionsCount: this.watermarkRegions.length,
+              }
             )
 
             this.updateProgress(100, '处理完成！')
             this.showStatus(
-              `水印去除完成，已处理 ${startTime}s-${endTime}s 时间段，文件已下载`
+              `水印去除完成，已处理 ${startTime}s-${endTime}s 时间段`
             )
 
             // 清理文件
@@ -2100,6 +2197,128 @@
           setTimeout(() => {
             this.errorMessage.textContent = ''
           }, 5000)
+        }
+
+        // 添加到操作记录
+        addToHistory(blob, filename, info) {
+          const historyItem = {
+            id: Date.now(),
+            blob,
+            filename,
+            info,
+            timestamp: new Date(),
+          }
+
+          this.processedVideos.push(historyItem)
+          this.renderHistory()
+
+          // 显示操作记录区域
+          this.operationHistory.style.display = 'block'
+        }
+
+        // 渲染操作记录列表
+        renderHistory() {
+          this.historyList.innerHTML = ''
+
+          this.processedVideos.forEach((item) => {
+            const historyElement = this.createHistoryElement(item)
+            this.historyList.appendChild(historyElement)
+          })
+        }
+
+        // 创建操作记录元素
+        createHistoryElement(item) {
+          const element = document.createElement('div')
+          element.className = 'history-item'
+
+          const formatTime = (seconds) => {
+            const mins = Math.floor(seconds / 60)
+            const secs = (seconds % 60).toFixed(1)
+            return `${mins}:${secs.padStart(4, '0')}`
+          }
+
+          const qualityMap = {
+            high: '高质量',
+            medium: '中等质量',
+            low: '低质量',
+          }
+
+          element.innerHTML = `
+            <div class="history-header">
+              <div class="history-title">🎬 ${item.filename}</div>
+              <div class="history-time">${item.timestamp.toLocaleString()}</div>
+            </div>
+            <div class="history-info">
+              <div>⏱️ 时间段: ${formatTime(item.info.startTime)} - ${formatTime(
+            item.info.endTime
+          )}</div>
+              <div>📏 时长: ${item.info.duration.toFixed(1)}秒</div>
+              <div>📹 格式: ${item.info.format.toUpperCase()}</div>
+              <div>⚙️ 质量: ${qualityMap[item.info.quality]}</div>
+              <div>🎯 水印区域: ${item.info.regionsCount}个</div>
+              <div>📦 大小: ${(item.blob.size / 1024 / 1024).toFixed(
+                2
+              )} MB</div>
+            </div>
+            <div class="history-actions">
+              <button class="btn-primary" onclick="watermarkRemover.previewVideo('${
+                item.id
+              }')">
+                👁️ 预览
+              </button>
+              <button class="btn-success" onclick="watermarkRemover.downloadVideo('${
+                item.id
+              }')">
+                💾 下载
+              </button>
+              <button class="btn-danger" onclick="watermarkRemover.deleteHistory('${
+                item.id
+              }')">
+                🗑️ 删除
+              </button>
+            </div>
+          `
+
+          return element
+        }
+
+        // 预览视频
+        previewVideo(id) {
+          const item = this.processedVideos.find((v) => v.id == id)
+          if (!item) return
+
+          this.showVideoPreview(item.blob, item.filename)
+        }
+
+        // 下载视频
+        downloadVideo(id) {
+          const item = this.processedVideos.find((v) => v.id == id)
+          if (!item) return
+
+          const url = URL.createObjectURL(item.blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = item.filename
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        }
+
+        // 删除操作记录
+        deleteHistory(id) {
+          const index = this.processedVideos.findIndex((v) => v.id == id)
+          if (index !== -1) {
+            // 释放blob内存
+            URL.revokeObjectURL(this.processedVideos[index].blob)
+            this.processedVideos.splice(index, 1)
+            this.renderHistory()
+
+            // 如果没有记录了，隐藏操作记录区域
+            if (this.processedVideos.length === 0) {
+              this.operationHistory.style.display = 'none'
+            }
+          }
         }
 
         // 显示视频预览
