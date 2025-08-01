@@ -140,10 +140,54 @@
 
       .main-content {
         display: grid;
-        grid-template-columns: 1fr 400px;
+        grid-template-columns: 1fr 450px;
         gap: 30px;
         margin-bottom: 40px;
         animation: panelsSlide 0.8s ease 0.6s both;
+        align-items: start;
+      }
+
+      @media (max-width: 1200px) {
+        .main-content {
+          grid-template-columns: 1fr 400px;
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 25px;
+        }
+        
+        .control-panel {
+          order: 2;
+        }
+        
+        .video-panel {
+          order: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          gap: 20px;
+        }
+        
+        .video-panel,
+        .control-panel {
+          padding: 20px;
+        }
+        
+        .time-controls,
+        .watermark-settings,
+        .output-settings {
+          padding: 20px;
+        }
+        
+        .action-buttons {
+          flex-direction: column;
+          gap: 10px;
+        }
       }
 
       @keyframes panelsSlide {
@@ -203,6 +247,38 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .time-controls,
+      .watermark-settings,
+      .output-settings {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      .time-controls:hover,
+      .watermark-settings:hover,
+      .output-settings:hover {
+        transform: translateY(-2px);
+        box-shadow: inset 8px 8px 16px var(--shadow-dark),
+          inset -8px -8px 16px var(--shadow-light),
+          0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
       }
 
       .control-panel::before {
@@ -611,8 +687,19 @@
           -8px -8px 16px var(--shadow-light);
         position: relative;
         overflow: hidden;
+        min-width: 140px;
+      }
+
+      .form-group button,
+      .watermark-settings button {
         width: 100%;
         margin-bottom: 15px;
+      }
+
+      .action-buttons button {
+        flex: 1;
+        min-width: 180px;
+        margin-bottom: 0;
       }
 
       button::before {
@@ -1237,6 +1324,7 @@
       </header>
 
       <div class="main-content">
+        <!-- 视频预览区域 -->
         <div class="video-panel">
           <div class="panel-title" data-icon="🎥">视频预览</div>
 
@@ -1265,140 +1353,148 @@
           </div>
         </div>
 
-        <!-- 水印区域选择模态弹窗 -->
-        <div id="watermarkModal" class="modal" style="display: none">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3>📐 选择水印区域</h3>
-              <span class="modal-close" id="modalClose">&times;</span>
-            </div>
-            <div class="modal-body">
-              <div class="video-info">
-                <span id="videoResolution">视频尺寸: 加载中...</span>
-                <span id="selectionInfo">选择区域: 未选择</span>
-              </div>
-              <div class="cropper-container">
-                <img id="cropperImage" style="max-width: 100%; height: auto" />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button id="confirmCropBtn" class="btn-success">
-                ✅ 确认添加
-              </button>
-              <button id="cancelCropBtn" class="btn-danger">❌ 取消</button>
-            </div>
-          </div>
-      </div>
-
-      <div class="control-panel">
-        <div class="video-controls" id="videoControls" style="display: none">
-            <div class="time-controls">
-              <div class="panel-title" data-icon="⏱️">时间范围设置</div>
-              <div class="time-input-group">
-                <div>
-                  <label>开始时间 (秒)</label>
-                  <input
-                    type="number"
-                    id="startTime"
-                    class="time-input"
-                    value="0"
-                    min="0"
-                    step="0.1"
-                  />
-                </div>
-                <div>
-                  <label>结束时间 (秒)</label>
-                  <input
-                    type="number"
-                    id="endTime"
-                    class="time-input"
-                    value="10"
-                    min="0"
-                    step="0.1"
-                  />
-                </div>
-              </div>
-              <input
-                type="range"
-                id="timeSlider"
-                class="time-slider"
-                min="0"
-                max="100"
-                value="0"
-                step="0.1"
-                style="padding-left: 0"
-              />
-              <div
-                style="
-                  display: flex;
-                  gap: 10px;
-                  justify-content: center;
-                  margin-top: 10px;
-                "
-              >
-                <button
-                  class="btn-small"
-                  onclick="watermarkRemover.setCurrentTimeAsStart()"
-                >
-                  设为开始时间
-                </button>
-                <button
-                  class="btn-small"
-                  onclick="watermarkRemover.setCurrentTimeAsEnd()"
-                >
-                  设为结束时间
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <!-- 控制面板区域 -->
         <div class="control-panel">
-          <div class="panel-title" data-icon="⚙️">水印设置</div>
-
-          <div class="form-group">
-            <button id="addWatermarkBtn" class="btn-primary">
-              ➕ 添加水印区域
-            </button>
-          </div>
-
-          <div class="watermark-list" id="watermarkList">
+          <!-- 时间控制区域 -->
+          <div class="time-controls" id="videoControls" style="display: none">
+            <div class="panel-title" data-icon="⏱️">时间范围设置</div>
+            <div class="time-input-group">
+              <div>
+                <label>开始时间 (秒)</label>
+                <input
+                  type="number"
+                  id="startTime"
+                  class="time-input"
+                  value="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label>结束时间 (秒)</label>
+                <input
+                  type="number"
+                  id="endTime"
+                  class="time-input"
+                  value="10"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+            </div>
+            <input
+              type="range"
+              id="timeSlider"
+              class="time-slider"
+              min="0"
+              max="100"
+              value="0"
+              step="0.1"
+              style="padding-left: 0"
+            />
             <div
               style="
-                text-align: center;
-                color: var(--text-secondary);
-                padding: 20px;
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-top: 10px;
               "
             >
-              暂无水印区域<br />
-              <small>点击上方按钮添加水印区域</small>
+              <button
+                class="btn-small"
+                onclick="watermarkRemover.setCurrentTimeAsStart()"
+              >
+                设为开始时间
+              </button>
+              <button
+                class="btn-small"
+                onclick="watermarkRemover.setCurrentTimeAsEnd()"
+              >
+                设为结束时间
+              </button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="outputFormat">输出格式</label>
-            <select id="outputFormat">
-              <option value="mp4">MP4 (推荐)</option>
-              <option value="avi">AVI</option>
-              <option value="mov">MOV</option>
-              <option value="mkv">MKV</option>
-            </select>
+          <!-- 水印设置区域 -->
+          <div class="watermark-settings">
+            <div class="panel-title" data-icon="⚙️">水印设置</div>
+
+            <div class="form-group">
+              <button id="addWatermarkBtn" class="btn-primary">
+                ➕ 添加水印区域
+              </button>
+            </div>
+
+            <div class="watermark-list" id="watermarkList">
+              <div
+                style="
+                  text-align: center;
+                  color: var(--text-secondary);
+                  padding: 20px;
+                "
+              >
+                暂无水印区域<br />
+                <small>点击上方按钮添加水印区域</small>
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="quality">视频质量</label>
-            <select id="quality">
-              <option value="high">高质量 (较慢)</option>
-              <option value="medium" selected>中等质量 (推荐)</option>
-              <option value="low">低质量 (较快)</option>
-            </select>
+          <!-- 输出设置区域 -->
+          <div class="output-settings">
+            <div class="panel-title" data-icon="🎬">输出设置</div>
+            
+            <div class="form-group">
+              <label for="outputFormat">输出格式</label>
+              <select id="outputFormat">
+                <option value="mp4">MP4 (推荐)</option>
+                <option value="avi">AVI</option>
+                <option value="mov">MOV</option>
+                <option value="mkv">MKV</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="quality">视频质量</label>
+              <select id="quality">
+                <option value="high">高质量 (较慢)</option>
+                <option value="medium" selected>中等质量 (推荐)</option>
+                <option value="low">低质量 (较快)</option>
+              </select>
+            </div>
           </div>
 
-          <button id="processBtn" class="btn-success" disabled>
-            🚀 开始去除水印
-          </button>
+          <!-- 操作按钮区域 -->
+          <div class="action-buttons">
+            <button id="processBtn" class="btn-success" disabled>
+              🚀 开始去除水印
+            </button>
+            <button id="clearAllBtn" class="btn-danger">🗑️ 清除所有区域</button>
+          </div>
+        </div>
+      </div>
 
-          <button id="clearAllBtn" class="btn-danger">🗑️ 清除所有区域</button>
+      <!-- 水印区域选择模态弹窗 -->
+      <div id="watermarkModal" class="modal" style="display: none">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>📐 选择水印区域</h3>
+            <span class="modal-close" id="modalClose">&times;</span>
+          </div>
+          <div class="modal-body">
+            <div class="video-info">
+              <span id="videoResolution">视频尺寸: 加载中...</span>
+              <span id="selectionInfo">选择区域: 未选择</span>
+            </div>
+            <div class="cropper-container">
+              <img id="cropperImage" style="max-width: 100%; height: auto" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="confirmCropBtn" class="btn-success">
+              ✅ 确认添加
+            </button>
+            <button id="cancelCropBtn" class="btn-danger">❌ 取消</button>
+          </div>
         </div>
       </div>
 
