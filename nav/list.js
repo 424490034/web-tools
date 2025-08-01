@@ -41,7 +41,7 @@
       title: "图片压缩",
       description: "智能压缩JPG/PNG图片，最高可减少70%文件大小，保持图片质量无明显损失。(づ｡◕‿‿◕｡)づ",
       emoji: "(づ｡◕‿‿◕｡)づ",
-      link: "https://tinypng.com/",
+      link: "https://www.996day.com/squoosh.html",
       buttonText: "压缩图片",
       category: "image-tools"
     },
