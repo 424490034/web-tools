@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频水印去除工具</title>
+    <script src="./ffmpeg.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial,
+          sans-serif;
+      }
+
+      :root {
+        --primary-bg: #e6e7ee;
+        --secondary-bg: #ffffff;
+        --shadow-light: #ffffff;
+        --shadow-dark: #d1d9e6;
+        --accent-color: #667eea;
+        --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-color: #4ecdc4;
+        --danger-color: #ff6b6b;
+        --warning-color: #feca57;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --border-radius: 20px;
+        --shadow-large: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light);
+      }
+
+      body {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        animation: pageLoad 0.8s ease;
+      }
+
+      @keyframes pageLoad {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        background: var(--primary-bg);
+        border-radius: 30px;
+        padding: 40px;
+        box-shadow: 20px 20px 60px var(--shadow-dark),
+          -20px -20px 60px var(--shadow-light);
+        margin-top: 20px;
+        transition: all 0.3s ease;
+        animation: containerFloat 1s ease 0.2s both;
+      }
+
+      @keyframes containerFloat {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .container:hover {
+        box-shadow: 25px 25px 70px var(--shadow-dark),
+          -25px -25px 70px var(--shadow-light);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: var(--primary-bg);
+        border-radius: 25px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        animation: headerSlide 0.8s ease 0.4s both;
+      }
+
+      @keyframes headerSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h1 {
+        font-size: 3.2rem;
+        margin-bottom: 15px;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        animation: titleGlow 3s ease-in-out infinite alternate;
+      }
+
+      @keyframes titleGlow {
+        from {
+          filter: brightness(1);
+        }
+        to {
+          filter: brightness(1.2);
+        }
+      }
+
+      .subtitle {
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+        font-weight: 500;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+        margin-bottom: 40px;
+        animation: panelsSlide 0.8s ease 0.6s both;
+      }
+
+      @keyframes panelsSlide {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .video-panel {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        padding: 30px;
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .video-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transition: left 0.8s;
+      }
+
+      .video-panel:hover::before {
+        left: 100%;
+      }
+
+      .video-panel:hover {
+        transform: translateY(-5px);
+        box-shadow: 16px 16px 32px var(--shadow-dark),
+          -16px -16px 32px var(--shadow-light);
+      }
+
+      .control-panel {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        padding: 30px;
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .control-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transition: left 0.8s;
+      }
+
+      .control-panel:hover::before {
+        left: 100%;
+      }
+
+      .control-panel:hover {
+        transform: translateY(-5px);
+        box-shadow: 16px 16px 32px var(--shadow-dark),
+          -16px -16px 32px var(--shadow-light);
+      }
+
+      .panel-title {
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+        color: var(--accent-color);
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+      }
+
+      .panel-title::before {
+        content: attr(data-icon);
+        margin-right: 12px;
+        font-size: 1.8rem;
+        animation: iconBounce 2s ease-in-out infinite;
+      }
+
+      @keyframes iconBounce {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .file-upload {
+        border: 3px dashed var(--accent-color);
+        border-radius: 25px;
+        padding: 50px 40px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 25px;
+        cursor: pointer;
+        background: var(--primary-bg);
+        box-shadow: inset 8px 8px 16px var(--shadow-dark),
+          inset -8px -8px 16px var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .file-upload:hover {
+        border-color: var(--success-color);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: inset 10px 10px 20px var(--shadow-dark),
+          inset -10px -10px 20px var(--shadow-light),
+          0 15px 40px rgba(102, 126, 234, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .file-upload.dragover {
+        border-color: var(--success-color);
+        background: rgba(78, 205, 196, 0.05);
+        transform: scale(1.05);
+        box-shadow: inset 12px 12px 24px var(--shadow-dark),
+          inset -12px -12px 24px var(--shadow-light),
+          0 20px 50px rgba(78, 205, 196, 0.3);
+        animation: dragPulse 1s ease-in-out infinite;
+      }
+
+      @keyframes dragPulse {
+        0%,
+        100% {
+          border-color: var(--success-color);
+        }
+        50% {
+          border-color: var(--accent-color);
+        }
+      }
+
+      .file-upload-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .file-upload-icon {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        display: block;
+        animation: iconFloat 3s ease-in-out infinite;
+        filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.2));
+      }
+
+      @keyframes iconFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .file-upload-text {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .file-upload-subtext {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        font-weight: 500;
+      }
+
+      .file-upload-formats {
+        font-size: 0.9rem;
+        color: var(--accent-color);
+        font-weight: 500;
+        padding: 8px 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 20px;
+      }
+
+      .file-upload input[type='file'] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .video-container {
+        position: relative;
+        width: 100%;
+        background: var(--primary-bg);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 20px;
+        box-shadow: inset 10px 10px 20px var(--shadow-dark),
+          inset -10px -10px 20px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      .video-container:hover {
+        box-shadow: inset 12px 12px 24px var(--shadow-dark),
+          inset -12px -12px 24px var(--shadow-light);
+      }
+
+      video {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 15px;
+      }
+
+      .watermark-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .watermark-region {
+        position: absolute;
+        border: 3px solid var(--accent-color);
+        background: rgba(102, 126, 234, 0.15);
+        cursor: move;
+        pointer-events: all;
+        min-width: 50px;
+        min-height: 50px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+          0 0 20px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        touch-action: none;
+        border-radius: 8px;
+        user-select: none;
+      }
+
+      .watermark-region:hover {
+        border-color: var(--warning-color);
+        background: rgba(254, 202, 87, 0.15);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+          0 0 30px rgba(254, 202, 87, 0.5);
+      }
+
+      .watermark-region.selected {
+        border-color: var(--success-color);
+        background: rgba(78, 205, 196, 0.15);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+          0 0 30px rgba(78, 205, 196, 0.5);
+      }
+
+      .watermark-region.invalid {
+        border-color: var(--danger-color);
+        background: rgba(255, 107, 107, 0.15);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+          0 0 30px rgba(255, 107, 107, 0.5);
+      }
+
+      .watermark-region.overlapping {
+        border-color: var(--danger-color);
+        background: rgba(255, 107, 107, 0.5);
+        animation: shake 0.5s ease-in-out;
+      }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        75% { transform: translateX(2px); }
+      }
+
+      .region-handle {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: var(--accent-color);
+        border: 3px solid white;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        z-index: 20;
+        touch-action: none;
+      }
+
+      .region-handle:hover {
+        transform: scale(1.2);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+      }
+
+      .region-handle.nw {
+        top: -8px;
+        left: -8px;
+        cursor: nw-resize;
+      }
+      .region-handle.ne {
+        top: -8px;
+        right: -8px;
+        cursor: ne-resize;
+      }
+      .region-handle.sw {
+        bottom: -8px;
+        left: -8px;
+        cursor: sw-resize;
+      }
+      .region-handle.se {
+        bottom: -8px;
+        right: -8px;
+        cursor: se-resize;
+      }
+      .region-handle.n {
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: n-resize;
+      }
+      .region-handle.s {
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: s-resize;
+      }
+      .region-handle.w {
+        top: 50%;
+        left: -8px;
+        transform: translateY(-50%);
+        cursor: w-resize;
+      }
+      .region-handle.e {
+        top: 50%;
+        right: -8px;
+        transform: translateY(-50%);
+        cursor: e-resize;
+      }
+
+      .region-label {
+        position: absolute;
+        top: -30px;
+        left: 0;
+        background: var(--accent-color);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .region-delete {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        width: 24px;
+        height: 24px;
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        z-index: 21;
+      }
+
+      .region-delete:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(255, 107, 107, 0.4);
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 14px 18px;
+        background: var(--primary-bg);
+        border: none;
+        border-radius: 15px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 500;
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        box-shadow: inset 8px 8px 16px var(--shadow-dark),
+          inset -8px -8px 16px var(--shadow-light),
+          0 0 0 3px rgba(102, 126, 234, 0.2);
+      }
+
+      button {
+        background: var(--primary-bg);
+        color: var(--text-primary);
+        border: none;
+        padding: 14px 28px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      button:hover::before {
+        left: 100%;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 4px 4px 8px var(--shadow-dark),
+          -4px -4px 8px var(--shadow-light);
+      }
+
+      .btn-primary {
+        background: var(--accent-gradient);
+        color: white;
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 12px 12px 24px var(--shadow-dark),
+          -12px -12px 24px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2),
+          0 0 30px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-success {
+        background: linear-gradient(
+          135deg,
+          var(--success-color) 0%,
+          #44a08d 100%
+        );
+        color: white;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-warning {
+        background: linear-gradient(
+          135deg,
+          var(--warning-color) 0%,
+          #f39c12 100%
+        );
+        color: white;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-danger {
+        background: linear-gradient(
+          135deg,
+          var(--danger-color) 0%,
+          #c0392b 100%
+        );
+        color: white;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .time-controls {
+        background: var(--primary-bg);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+      }
+
+      .time-input-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .time-input {
+        flex: 1;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 10px;
+        background: var(--secondary-bg);
+        box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+        font-size: 1rem;
+      }
+
+      .time-slider {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .video-controls {
+        display: none;
+        text-align: center;
+        margin-top: 15px;
+      }
+
+      .watermark-list {
+        background: var(--primary-bg);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+      }
+
+      .watermark-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--primary-bg);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        box-shadow: 4px 4px 8px var(--shadow-dark),
+          -4px -4px 8px var(--shadow-light);
+        transition: all 0.3s ease;
+      }
+
+      .watermark-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 6px 6px 12px var(--shadow-dark),
+          -6px -6px 12px var(--shadow-light);
+      }
+
+      .watermark-info {
+        flex: 1;
+      }
+
+      .watermark-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+      }
+
+      .watermark-coords {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-family: 'Courier New', monospace;
+      }
+
+      .watermark-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        width: auto;
+        margin: 0;
+      }
+
+      .progress-container {
+        margin: 30px 0;
+        animation: progressSlide 0.8s ease 0.8s both;
+      }
+
+      @keyframes progressSlide {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .progress-bar {
+        height: 16px;
+        background: var(--primary-bg);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        box-shadow: inset 6px 6px 12px var(--shadow-dark),
+          inset -6px -6px 12px var(--shadow-light);
+        position: relative;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--accent-gradient);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: progressShine 2s infinite;
+      }
+
+      @keyframes progressShine {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
+
+      .progress-text {
+        text-align: center;
+        font-size: 1rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .status-message {
+        min-height: 35px;
+        margin: 20px 0;
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .status-message.processing {
+        animation: statusPulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes statusPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .error-message {
+        color: var(--danger-color);
+        margin: 20px 0;
+        min-height: 35px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        animation: errorShake 0.5s ease;
+        text-align: center;
+      }
+
+      @keyframes errorShake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      .instructions {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        padding: 30px;
+        margin-top: 40px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        animation: instructionsSlide 0.8s ease 1.4s both;
+      }
+
+      @keyframes instructionsSlide {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .instructions h3 {
+        color: var(--accent-color);
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+        font-weight: 600;
+      }
+
+      .instructions ol {
+        padding-left: 25px;
+        margin-bottom: 20px;
+      }
+
+      .instructions li {
+        margin-bottom: 12px;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .instructions p {
+        color: var(--text-secondary);
+        font-style: italic;
+        font-weight: 500;
+        padding: 15px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 15px;
+        border-left: 4px solid var(--accent-color);
+      }
+
+      @media (max-width: 1200px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        
+        .control-panel {
+          order: -1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+          margin: 10px;
+        }
+        
+        h1 {
+          font-size: 2.5rem;
+        }
+        
+        .subtitle {
+          font-size: 1.1rem;
+        }
+
+        .time-input-group {
+          flex-direction: column;
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎬 视频水印去除工具</h1>
+        <p class="subtitle">智能识别并去除视频中的水印，支持多区域选择</p>
+      </header>
+
+      <div class="main-content">
+        <div class="video-panel">
+          <div class="panel-title" data-icon="🎥">视频预览</div>
+          
+          <div class="file-upload" id="fileUpload">
+            <div class="file-upload-content">
+              <span class="file-upload-icon">📁</span>
+              <div class="file-upload-text">点击或拖拽上传视频文件</div>
+              <div class="file-upload-subtext">支持多种视频格式</div>
+              <div class="file-upload-formats">MP4, AVI, MOV, MKV, WebM</div>
+            </div>
+            <input type="file" id="videoInput" accept="video/*" />
+          </div>
+
+          <div class="video-container" id="videoContainer" style="display: none;">
+            <video id="videoPreview" controls></video>
+            <div class="watermark-overlay" id="watermarkOverlay"></div>
+          </div>
+
+          <div class="video-controls" id="videoControls" style="display: none;">
+            <div class="time-controls">
+              <div class="panel-title" data-icon="⏱️">时间范围设置</div>
+              <div class="time-input-group">
+                <div>
+                  <label>开始时间 (秒)</label>
+                  <input type="number" id="startTime" class="time-input" value="0" min="0" step="0.1">
+                </div>
+                <div>
+                  <label>结束时间 (秒)</label>
+                  <input type="number" id="endTime" class="time-input" value="10" min="0" step="0.1">
+                </div>
+              </div>
+              <input type="range" id="timeSlider" class="time-slider" min="0" max="100" value="0" step="0.1">
+              <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button class="btn-small" onclick="watermarkRemover.setCurrentTimeAsStart()">设为开始时间</button>
+                <button class="btn-small" onclick="watermarkRemover.setCurrentTimeAsEnd()">设为结束时间</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-panel">
+          <div class="panel-title" data-icon="⚙️">水印设置</div>
+          
+          <div class="form-group">
+            <button id="addWatermarkBtn" class="btn-primary">➕ 添加水印区域</button>
+          </div>
+
+          <div class="watermark-list" id="watermarkList">
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+              暂无水印区域<br>
+              <small>点击上方按钮添加水印区域</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="outputFormat">输出格式</label>
+            <select id="outputFormat">
+              <option value="mp4">MP4 (推荐)</option>
+              <option value="avi">AVI</option>
+              <option value="mov">MOV</option>
+              <option value="mkv">MKV</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quality">视频质量</label>
+            <select id="quality">
+              <option value="high">高质量 (较慢)</option>
+              <option value="medium" selected>中等质量 (推荐)</option>
+              <option value="low">低质量 (较快)</option>
+            </select>
+          </div>
+
+          <button id="processBtn" class="btn-success" disabled>
+            🚀 开始去除水印
+          </button>
+          
+          <button id="clearAllBtn" class="btn-danger">
+            🗑️ 清除所有区域
+          </button>
+        </div>
+      </div>
+
+      <div class="progress-container" id="progressContainer" style="display: none;">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">准备处理...</div>
+      </div>
+
+      <div class="status-message" id="statusMessage"></div>
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="instructions">
+        <h3>📋 使用说明</h3>
+        <ol>
+          <li>上传需要去除水印的视频文件</li>
+          <li>点击"添加水印区域"按钮，在视频上选择水印位置</li>
+          <li>可以添加多个水印区域，但区域不能重叠</li>
+          <li>调整区域大小和位置，确保完全覆盖水印</li>
+          <li>选择输出格式和质量设置</li>
+          <li>点击"开始去除水印"进行处理</li>
+        </ol>
+        <p>
+          💡 提示：水印去除效果取决于水印的复杂程度和背景内容。建议选择稍大于水印的区域以获得更好的效果。
+        </p>
+      </div>
+    </div>
+
+    <script>
+      class WatermarkRemover {
+        constructor() {
+          this.ffmpeg = null;
+          this.videoFile = null;
+          this.watermarkRegions = [];
+          this.regionCounter = 0;
+          this.isDragging = false;
+          this.isResizing = false;
+          this.currentRegion = null;
+          this.dragStartX = 0;
+          this.dragStartY = 0;
+          this.resizeHandle = null;
+          
+          this.initializeElements();
+          this.setupEventListeners();
+          this.loadFFmpeg();
+        }
+
+        initializeElements() {
+          this.fileUpload = document.getElementById('fileUpload');
+          this.videoInput = document.getElementById('videoInput');
+          this.videoContainer = document.getElementById('videoContainer');
+          this.videoPreview = document.getElementById('videoPreview');
+          this.watermarkOverlay = document.getElementById('watermarkOverlay');
+          this.addWatermarkBtn = document.getElementById('addWatermarkBtn');
+          this.watermarkList = document.getElementById('watermarkList');
+          this.processBtn = document.getElementById('processBtn');
+          this.clearAllBtn = document.getElementById('clearAllBtn');
+          this.progressContainer = document.getElementById('progressContainer');
+          this.progressFill = document.getElementById('progressFill');
+          this.progressText = document.getElementById('progressText');
+          this.statusMessage = document.getElementById('statusMessage');
+          this.errorMessage = document.getElementById('errorMessage');
+          this.outputFormat = document.getElementById('outputFormat');
+          this.quality = document.getElementById('quality');
+        }
+
+        setupEventListeners() {
+          // 文件上传
+          this.fileUpload.addEventListener('click', () => this.videoInput.click());
+          this.videoInput.addEventListener('change', (e) => this.handleFileSelect(e));
+          
+          // 拖拽上传
+          this.fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.fileUpload.classList.add('dragover');
+          });
+          
+          this.fileUpload.addEventListener('dragleave', () => {
+            this.fileUpload.classList.remove('dragover');
+          });
+          
+          this.fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              this.handleFile(files[0]);
+            }
+          });
+
+          // 按钮事件
+          this.addWatermarkBtn.addEventListener('click', () => this.addWatermarkRegion());
+          this.processBtn.addEventListener('click', () => this.processVideo());
+          this.clearAllBtn.addEventListener('click', () => this.clearAllRegions());
+
+          // 视频加载完成
+          this.videoPreview.addEventListener('loadedmetadata', () => {
+            this.updateOverlaySize();
+            this.initializeTimeControls();
+          });
+
+          // 时间控制
+          const timeSlider = document.getElementById('timeSlider');
+          const startTime = document.getElementById('startTime');
+          const endTime = document.getElementById('endTime');
+          
+          if (timeSlider) {
+            timeSlider.addEventListener('input', (e) => {
+              if (this.videoPreview) {
+                this.videoPreview.currentTime = parseFloat(e.target.value);
+              }
+            });
+          }
+          
+          if (startTime) {
+            startTime.addEventListener('change', () => this.validateTimeRange());
+          }
+          
+          if (endTime) {
+            endTime.addEventListener('change', () => this.validateTimeRange());
+          }
+
+          // 窗口大小变化
+          window.addEventListener('resize', () => {
+            this.updateOverlaySize();
+          });
+        }
+
+        async loadFFmpeg() {
+          try {
+            this.showStatus('正在加载 FFmpeg...');
+            this.ffmpeg = createFFmpeg({
+              log: true,
+              corePath: './ffmpeg-core.wasm'
+            });
+            await this.ffmpeg.load();
+            this.showStatus('FFmpeg 加载完成');
+          } catch (error) {
+            this.showError('FFmpeg 加载失败: ' + error.message);
+          }
+        }
+
+        initializeTimeControls() {
+          const timeSlider = document.getElementById('timeSlider');
+          const endTime = document.getElementById('endTime');
+          const videoControls = document.getElementById('videoControls');
+          
+          if (this.videoPreview && this.videoPreview.duration) {
+            const duration = this.videoPreview.duration;
+            
+            if (timeSlider) {
+              timeSlider.max = duration;
+              timeSlider.value = 0;
+            }
+            
+            if (endTime) {
+              endTime.value = duration.toFixed(1);
+              endTime.max = duration;
+            }
+            
+            if (videoControls) {
+              videoControls.style.display = 'block';
+            }
+          }
+        }
+
+        setCurrentTimeAsStart() {
+          const startTime = document.getElementById('startTime');
+          if (this.videoPreview && startTime) {
+            startTime.value = this.videoPreview.currentTime.toFixed(1);
+            this.validateTimeRange();
+          }
+        }
+
+        setCurrentTimeAsEnd() {
+          const endTime = document.getElementById('endTime');
+          if (this.videoPreview && endTime) {
+            endTime.value = this.videoPreview.currentTime.toFixed(1);
+            this.validateTimeRange();
+          }
+        }
+
+        validateTimeRange() {
+          const startTime = document.getElementById('startTime');
+          const endTime = document.getElementById('endTime');
+          
+          if (startTime && endTime) {
+            const start = parseFloat(startTime.value);
+            const end = parseFloat(endTime.value);
+            
+            if (start >= end) {
+              endTime.value = (start + 1).toFixed(1);
+            }
+            
+            if (this.videoPreview && this.videoPreview.duration) {
+              const duration = this.videoPreview.duration;
+              if (end > duration) {
+                endTime.value = duration.toFixed(1);
+              }
+            }
+          }
+        }
+
+        handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (file) {
+            this.handleFile(file);
+          }
+        }
+
+        handleFile(file) {
+          if (!file.type.startsWith('video/')) {
+            this.showError('请选择有效的视频文件');
+            return;
+          }
+
+          this.videoFile = file;
+          const url = URL.createObjectURL(file);
+          this.videoPreview.src = url;
+          this.videoContainer.style.display = 'block';
+          this.fileUpload.style.display = 'none';
+          
+          this.clearAllRegions();
+          this.showStatus('视频加载完成，可以开始添加水印区域');
+        }
+
+        updateOverlaySize() {
+          if (!this.videoPreview.videoWidth || !this.videoPreview.videoHeight) return;
+          
+          const videoRect = this.videoPreview.getBoundingClientRect();
+          const containerRect = this.videoContainer.getBoundingClientRect();
+          
+          this.watermarkOverlay.style.width = videoRect.width + 'px';
+          this.watermarkOverlay.style.height = videoRect.height + 'px';
+          this.watermarkOverlay.style.left = (videoRect.left - containerRect.left) + 'px';
+          this.watermarkOverlay.style.top = (videoRect.top - containerRect.top) + 'px';
+        }
+
+        addWatermarkRegion() {
+          if (!this.videoFile) {
+            this.showError('请先上传视频文件');
+            return;
+          }
+
+          this.regionCounter++;
+          const region = {
+            id: this.regionCounter,
+            x: 50,
+            y: 50,
+            width: 150,
+            height: 100
+          };
+
+          // 检查重叠
+          if (this.checkOverlap(region)) {
+            this.showError('新区域与现有区域重叠，请调整位置');
+            return;
+          }
+
+          this.watermarkRegions.push(region);
+          this.createRegionElement(region);
+          this.updateWatermarkList();
+          this.updateProcessButton();
+          this.showStatus(`已添加水印区域 ${region.id}`);
+        }
+
+        createRegionElement(region) {
+          const regionEl = document.createElement('div');
+          regionEl.className = 'watermark-region';
+          regionEl.dataset.regionId = region.id;
+          regionEl.style.left = region.x + 'px';
+          regionEl.style.top = region.y + 'px';
+          regionEl.style.width = region.width + 'px';
+          regionEl.style.height = region.height + 'px';
+
+          // 添加标签
+          const label = document.createElement('div');
+          label.className = 'region-label';
+          label.textContent = `水印 ${region.id}`;
+          regionEl.appendChild(label);
+
+          // 添加删除按钮
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'region-delete';
+          deleteBtn.innerHTML = '×';
+          deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.removeRegion(region.id);
+          });
+          regionEl.appendChild(deleteBtn);
+
+          // 添加调整手柄
+          const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'];
+          handles.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `region-handle ${pos}`;
+            handle.addEventListener('mousedown', (e) => this.startResize(e, region, pos));
+            regionEl.appendChild(handle);
+          });
+
+          // 拖拽事件
+          regionEl.addEventListener('mousedown', (e) => this.startDrag(e, region));
+
+          this.watermarkOverlay.appendChild(regionEl);
+        }
+
+        startDrag(event, region) {
+          if (event.target.classList.contains('region-handle') || 
+              event.target.classList.contains('region-delete')) {
+            return;
+          }
+
+          event.preventDefault();
+          this.isDragging = true;
+          this.currentRegion = region;
+          
+          const rect = this.watermarkOverlay.getBoundingClientRect();
+          this.dragStartX = event.clientX - rect.left - region.x;
+          this.dragStartY = event.clientY - rect.top - region.y;
+
+          document.addEventListener('mousemove', this.handleDrag.bind(this));
+          document.addEventListener('mouseup', this.stopDrag.bind(this));
+        }
+
+        handleDrag(event) {
+          if (!this.isDragging || !this.currentRegion) return;
+
+          const rect = this.watermarkOverlay.getBoundingClientRect();
+          const newX = Math.max(0, Math.min(
+            event.clientX - rect.left - this.dragStartX,
+            rect.width - this.currentRegion.width
+          ));
+          const newY = Math.max(0, Math.min(
+            event.clientY - rect.top - this.dragStartY,
+            rect.height - this.currentRegion.height
+          ));
+
+          const tempRegion = { ...this.currentRegion, x: newX, y: newY };
+          
+          // 检查重叠
+          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${this.currentRegion.id}"]`);
+          if (this.checkOverlapExcluding(tempRegion, this.currentRegion.id)) {
+            regionEl.classList.add('invalid');
+            return;
+          } else {
+            regionEl.classList.remove('invalid');
+          }
+
+          this.currentRegion.x = newX;
+          this.currentRegion.y = newY;
+          
+          regionEl.style.left = newX + 'px';
+          regionEl.style.top = newY + 'px';
+        }
+
+        stopDrag() {
+          this.isDragging = false;
+          this.currentRegion = null;
+          document.removeEventListener('mousemove', this.handleDrag.bind(this));
+          document.removeEventListener('mouseup', this.stopDrag.bind(this));
+          this.updateWatermarkList();
+        }
+
+        startResize(event, region, handle) {
+          event.preventDefault();
+          event.stopPropagation();
+          
+          this.isResizing = true;
+          this.currentRegion = region;
+          this.resizeHandle = handle;
+          
+          const rect = this.watermarkOverlay.getBoundingClientRect();
+          this.dragStartX = event.clientX - rect.left;
+          this.dragStartY = event.clientY - rect.top;
+
+          document.addEventListener('mousemove', this.handleResize.bind(this));
+          document.addEventListener('mouseup', this.stopResize.bind(this));
+        }
+
+        handleResize(event) {
+          if (!this.isResizing || !this.currentRegion) return;
+
+          const rect = this.watermarkOverlay.getBoundingClientRect();
+          const mouseX = event.clientX - rect.left;
+          const mouseY = event.clientY - rect.top;
+          
+          const region = this.currentRegion;
+          const handle = this.resizeHandle;
+          
+          let newX = region.x;
+          let newY = region.y;
+          let newWidth = region.width;
+          let newHeight = region.height;
+
+          // 根据手柄位置调整尺寸
+          if (handle.includes('w')) {
+            newWidth = region.width + (region.x - mouseX);
+            newX = mouseX;
+          }
+          if (handle.includes('e')) {
+            newWidth = mouseX - region.x;
+          }
+          if (handle.includes('n')) {
+            newHeight = region.height + (region.y - mouseY);
+            newY = mouseY;
+          }
+          if (handle.includes('s')) {
+            newHeight = mouseY - region.y;
+          }
+
+          // 限制最小尺寸
+          newWidth = Math.max(50, newWidth);
+          newHeight = Math.max(50, newHeight);
+          
+          // 限制边界
+          newX = Math.max(0, Math.min(newX, rect.width - newWidth));
+          newY = Math.max(0, Math.min(newY, rect.height - newHeight));
+          
+          const tempRegion = { ...region, x: newX, y: newY, width: newWidth, height: newHeight };
+          
+          // 检查重叠
+          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${region.id}"]`);
+          if (this.checkOverlapExcluding(tempRegion, region.id)) {
+            regionEl.classList.add('invalid');
+            return;
+          } else {
+            regionEl.classList.remove('invalid');
+          }
+
+          region.x = newX;
+          region.y = newY;
+          region.width = newWidth;
+          region.height = newHeight;
+          
+          regionEl.style.left = newX + 'px';
+          regionEl.style.top = newY + 'px';
+          regionEl.style.width = newWidth + 'px';
+          regionEl.style.height = newHeight + 'px';
+        }
+
+        stopResize() {
+          this.isResizing = false;
+          this.currentRegion = null;
+          this.resizeHandle = null;
+          document.removeEventListener('mousemove', this.handleResize.bind(this));
+          document.removeEventListener('mouseup', this.stopResize.bind(this));
+          this.updateWatermarkList();
+        }
+
+        checkOverlap(newRegion) {
+          return this.watermarkRegions.some(region => 
+            this.regionsOverlap(newRegion, region)
+          );
+        }
+
+        checkOverlapExcluding(newRegion, excludeId) {
+          return this.watermarkRegions.some(region => 
+            region.id !== excludeId && this.regionsOverlap(newRegion, region)
+          );
+        }
+
+        regionsOverlap(region1, region2) {
+          return !(region1.x + region1.width <= region2.x || 
+                   region2.x + region2.width <= region1.x || 
+                   region1.y + region1.height <= region2.y || 
+                   region2.y + region2.height <= region1.y);
+        }
+
+        removeRegion(regionId) {
+          this.watermarkRegions = this.watermarkRegions.filter(r => r.id !== regionId);
+          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${regionId}"]`);
+          if (regionEl) {
+            regionEl.remove();
+          }
+          this.updateWatermarkList();
+          this.updateProcessButton();
+          this.showStatus(`已删除水印区域 ${regionId}`);
+        }
+
+        clearAllRegions() {
+          this.watermarkRegions = [];
+          this.watermarkOverlay.innerHTML = '';
+          this.updateWatermarkList();
+          this.updateProcessButton();
+          this.showStatus('已清除所有水印区域');
+        }
+
+        updateWatermarkList() {
+          if (this.watermarkRegions.length === 0) {
+            this.watermarkList.innerHTML = `
+              <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                暂无水印区域<br>
+                <small>点击上方按钮添加水印区域</small>
+              </div>
+            `;
+            return;
+          }
+
+          this.watermarkList.innerHTML = this.watermarkRegions.map(region => `
+            <div class="watermark-item">
+              <div class="watermark-info">
+                <div class="watermark-name">水印区域 ${region.id}</div>
+                <div class="watermark-coords">
+                  位置: (${Math.round(region.x)}, ${Math.round(region.y)}) 
+                  尺寸: ${Math.round(region.width)}×${Math.round(region.height)}
+                </div>
+              </div>
+              <div class="watermark-actions">
+                <button class="btn-small btn-danger" onclick="watermarkRemover.removeRegion(${region.id})">
+                  删除
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        updateProcessButton() {
+          this.processBtn.disabled = !this.videoFile || this.watermarkRegions.length === 0;
+        }
+
+        async processVideo() {
+          if (!this.videoFile || this.watermarkRegions.length === 0) {
+            this.showError('请上传视频并添加至少一个水印区域');
+            return;
+          }
+
+          try {
+            this.showProgress(true);
+            this.updateProgress(0, '准备处理视频...');
+            
+            // 获取时间范围
+            const startTime = parseFloat(document.getElementById('startTime').value) || 0;
+            const endTime = parseFloat(document.getElementById('endTime').value) || this.videoPreview.duration;
+            const duration = endTime - startTime;
+            
+            if (duration <= 0) {
+              this.showError('结束时间必须大于开始时间');
+              return;
+            }
+            
+            // 写入视频文件
+            const inputName = 'input.' + this.videoFile.name.split('.').pop();
+            this.ffmpeg.FS('writeFile', inputName, await this.fetchFile(this.videoFile));
+            
+            this.updateProgress(20, '分析视频信息...');
+            
+            // 获取视频尺寸
+            const videoRect = this.videoPreview.getBoundingClientRect();
+            const overlayRect = this.watermarkOverlay.getBoundingClientRect();
+            const scaleX = this.videoPreview.videoWidth / videoRect.width;
+            const scaleY = this.videoPreview.videoHeight / videoRect.height;
+            
+            // 构建 delogo 滤镜
+            const delogoFilters = this.watermarkRegions.map(region => {
+              const x = Math.round(region.x * scaleX);
+              const y = Math.round(region.y * scaleY);
+              const w = Math.round(region.width * scaleX);
+              const h = Math.round(region.height * scaleY);
+              return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`;
+            }).join(',');
+            
+            this.updateProgress(40, '开始去除水印...');
+            
+            // 设置质量参数
+            const qualitySettings = {
+              high: ['-crf', '18'],
+              medium: ['-crf', '23'],
+              low: ['-crf', '28']
+            };
+            
+            const outputName = `output.${this.outputFormat.value}`;
+            const quality = qualitySettings[this.quality.value];
+            
+            // 构建FFmpeg命令参数
+            const ffmpegArgs = [
+              '-i', inputName,
+              '-ss', startTime.toString(),
+              '-t', duration.toString(),
+              '-vf', delogoFilters,
+              ...quality,
+              '-c:a', 'copy',
+              '-avoid_negative_ts', 'make_zero',
+              outputName
+            ];
+            
+            console.log('FFmpeg命令:', ffmpegArgs.join(' '));
+            
+            // 执行 FFmpeg 命令
+            await this.ffmpeg.run(...ffmpegArgs);
+            
+            this.updateProgress(90, '生成输出文件...');
+            
+            // 读取输出文件
+            const data = this.ffmpeg.FS('readFile', outputName);
+            const blob = new Blob([data.buffer], { type: `video/${this.outputFormat.value}` });
+            
+            // 下载文件
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`;
+            a.click();
+            
+            this.updateProgress(100, '处理完成！');
+            this.showStatus(`水印去除完成，已处理 ${startTime}s-${endTime}s 时间段，文件已下载`);
+            
+            // 清理文件
+            this.ffmpeg.FS('unlink', inputName);
+            this.ffmpeg.FS('unlink', outputName);
+            
+          } catch (error) {
+            this.showError('处理失败: ' + error.message);
+            console.error('FFmpeg处理错误:', error);
+          } finally {
+            setTimeout(() => this.showProgress(false), 2000);
+          }
+        }
+
+        async fetchFile(file) {
+          return new Uint8Array(await file.arrayBuffer());
+        }
+
+        updateProgress(percent, text) {
+          this.progressFill.style.width = percent + '%';
+          this.progressText.textContent = text;
+        }
+
+        showProgress(show) {
+          this.progressContainer.style.display = show ? 'block' : 'none';
+          if (!show) {
+            this.updateProgress(0, '准备处理...');
+          }
+        }
+
+        showStatus(message) {
+          this.statusMessage.textContent = message;
+          this.statusMessage.className = 'status-message';
+          this.errorMessage.textContent = '';
+          setTimeout(() => {
+            this.statusMessage.textContent = '';
+          }, 3000);
+        }
+
+        showError(message) {
+          this.errorMessage.textContent = message;
+          this.statusMessage.textContent = '';
+          setTimeout(() => {
+            this.errorMessage.textContent = '';
+          }, 5000);
+        }
+      }
+
+      // 初始化应用
+      const watermarkRemover = new WatermarkRemover();
+    </script>
+  </body>
+</html>
