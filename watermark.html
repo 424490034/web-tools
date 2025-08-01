@@ -1430,6 +1430,8 @@
           if (file) {
             this.handleFile(file)
           }
+          // 清空input的value，允许重复选择相同文件
+          event.target.value = ''
         }
 
         handleFile(file) {
@@ -1477,7 +1479,7 @@
         // 捕获视频帧
         captureVideoFrame() {
           const video = this.videoPreview
-          
+
           // 确保视频已加载并有有效尺寸
           if (!video.videoWidth || !video.videoHeight) {
             this.showError('视频尚未完全加载，请稍后再试')
@@ -1965,13 +1967,13 @@
                 // 确保坐标在有效范围内
                 x = Math.max(0, Math.min(x, videoWidth - 1))
                 y = Math.max(0, Math.min(y, videoHeight - 1))
-                
+
                 // 确保宽度和高度不会超出边界
                 const maxWidth = videoWidth - x
                 const maxHeight = videoHeight - y
                 w = Math.max(1, Math.min(w, maxWidth))
                 h = Math.max(1, Math.min(h, maxHeight))
-                
+
                 // 最终验证：确保区域完全在视频帧内
                 if (x + w > videoWidth) {
                   w = videoWidth - x
@@ -1979,7 +1981,7 @@
                 if (y + h > videoHeight) {
                   h = videoHeight - y
                 }
-                
+
                 // 确保最小尺寸
                 w = Math.max(1, w)
                 h = Math.max(1, h)
@@ -2035,7 +2037,10 @@
             })
 
             // 显示预览和下载选项
-            this.showVideoPreview(blob, `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`)
+            this.showVideoPreview(
+              blob,
+              `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`
+            )
 
             this.updateProgress(100, '处理完成！')
             this.showStatus(
@@ -2199,11 +2204,11 @@
           buttonContainer.appendChild(downloadBtn)
           buttonContainer.appendChild(continueBtn)
           buttonContainer.appendChild(closeBtn)
-          
+
           previewContent.appendChild(title)
           previewContent.appendChild(previewVideo)
           previewContent.appendChild(buttonContainer)
-          
+
           previewContainer.appendChild(previewContent)
           document.body.appendChild(previewContainer)
 
