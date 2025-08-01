@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>视频水印去除工具</title>
+    <!-- Cropper.js CSS -->
+    <link href="./videoFormat/cropper.min.css" rel="stylesheet" />
     <script src="./ffmpeg.min.js"></script>
+    <!-- Cropper.js JavaScript -->
+    <script src="./videoFormat/cropper.min.js"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -1026,6 +1030,16 @@
           >
             <video id="videoPreview" controls></video>
             <div class="watermark-overlay" id="watermarkOverlay"></div>
+            
+            <!-- Cropper容器 -->
+            <div id="cropperContainer" style="display: none; margin-top: 20px; background: var(--primary-bg); border-radius: 15px; padding: 20px; box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);">
+              <div style="margin-bottom: 15px; font-weight: 600; color: var(--accent-color);">📐 选择水印区域</div>
+              <img id="cropperImage" style="max-width: 100%; height: auto; border-radius: 10px;" />
+              <div style="display: flex; gap: 15px; margin-top: 15px; justify-content: center;">
+                <button id="confirmCropBtn" class="btn-success" style="width: auto; margin: 0;">✅ 确认添加</button>
+                <button id="cancelCropBtn" class="btn-danger" style="width: auto; margin: 0;">❌ 取消</button>
+              </div>
+            </div>
           </div>
 
           <div class="video-controls" id="videoControls" style="display: none">
@@ -1184,6 +1198,12 @@
           this.dragStartX = 0
           this.dragStartY = 0
           this.resizeHandle = null
+          
+          // Cropper相关属性
+          this.cropper = null
+          this.cropperImage = null
+          this.cropperContainer = null
+          this.canvas = null
 
           this.initializeElements()
           this.setupEventListeners()
@@ -1207,6 +1227,12 @@
           this.errorMessage = document.getElementById('errorMessage')
           this.outputFormat = document.getElementById('outputFormat')
           this.quality = document.getElementById('quality')
+          
+          // Cropper相关元素
+          this.cropperImage = document.getElementById('cropperImage')
+          this.cropperContainer = document.getElementById('cropperContainer')
+          this.confirmCropBtn = document.getElementById('confirmCropBtn')
+          this.cancelCropBtn = document.getElementById('cancelCropBtn')
         }
 
         setupEventListeners() {
@@ -1239,11 +1265,19 @@
 
           // 按钮事件
           this.addWatermarkBtn.addEventListener('click', () =>
-            this.addWatermarkRegion()
+            this.showCropper()
           )
           this.processBtn.addEventListener('click', () => this.processVideo())
           this.clearAllBtn.addEventListener('click', () =>
             this.clearAllRegions()
+          )
+          
+          // Cropper按钮事件
+          this.confirmCropBtn.addEventListener('click', () =>
+            this.confirmCrop()
+          )
+          this.cancelCropBtn.addEventListener('click', () =>
+            this.cancelCrop()
           )
 
           // 视频加载完成
@@ -1389,6 +1423,120 @@
             videoRect.left - containerRect.left + 'px'
           this.watermarkOverlay.style.top =
             videoRect.top - containerRect.top + 'px'
+        }
+
+        // 显示Cropper选择器
+        showCropper() {
+          if (!this.videoFile) {
+            this.showError('请先上传视频文件')
+            return
+          }
+
+          // 捕获当前视频帧
+          this.captureVideoFrame()
+        }
+
+        // 捕获视频帧
+        captureVideoFrame() {
+          if (!this.canvas) {
+            this.canvas = document.createElement('canvas')
+          }
+
+          const video = this.videoPreview
+          this.canvas.width = video.videoWidth
+          this.canvas.height = video.videoHeight
+
+          const ctx = this.canvas.getContext('2d')
+          ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height)
+
+          // 将canvas转换为图片并显示在cropper中
+          this.canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob)
+            this.cropperImage.src = url
+            this.initializeCropper()
+          }, 'image/jpeg', 0.9)
+        }
+
+        // 初始化Cropper
+        initializeCropper() {
+          this.cropperContainer.style.display = 'block'
+
+          // 销毁现有的cropper
+          if (this.cropper) {
+            this.cropper.destroy()
+          }
+
+          // 创建新的cropper
+          this.cropper = new Cropper(this.cropperImage, {
+            aspectRatio: NaN, // 自由比例
+            viewMode: 1,
+            dragMode: 'crop',
+            autoCropArea: 0.3,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: true,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            background: false,
+            modal: true,
+            responsive: true,
+            checkOrientation: false
+          })
+        }
+
+        // 确认裁剪
+        confirmCrop() {
+          if (!this.cropper) {
+            this.showError('请先选择区域')
+            return
+          }
+
+          const cropData = this.cropper.getData()
+          const imageData = this.cropper.getImageData()
+
+          // 计算相对于视频的坐标和尺寸
+          const scaleX = this.videoPreview.videoWidth / imageData.naturalWidth
+          const scaleY = this.videoPreview.videoHeight / imageData.naturalHeight
+
+          this.regionCounter++
+          const region = {
+            id: this.regionCounter,
+            x: Math.round(cropData.x * scaleX),
+            y: Math.round(cropData.y * scaleY),
+            width: Math.round(cropData.width * scaleX),
+            height: Math.round(cropData.height * scaleY)
+          }
+
+          // 检查重叠
+          if (this.checkOverlap(region)) {
+            this.showError('新区域与现有区域重叠，请调整位置')
+            return
+          }
+
+          this.watermarkRegions.push(region)
+          this.createRegionElement(region)
+          this.updateWatermarkList()
+          this.updateProcessButton()
+          this.showStatus(`已添加水印区域 ${region.id}`)
+
+          this.cancelCrop()
+        }
+
+        // 取消裁剪
+        cancelCrop() {
+          if (this.cropper) {
+            this.cropper.destroy()
+            this.cropper = null
+          }
+          this.cropperContainer.style.display = 'none'
+          
+          // 清理图片URL
+          if (this.cropperImage.src) {
+            URL.revokeObjectURL(this.cropperImage.src)
+            this.cropperImage.src = ''
+          }
         }
 
         addWatermarkRegion() {
@@ -1751,13 +1899,24 @@
             const scaleX = this.videoPreview.videoWidth / videoRect.width
             const scaleY = this.videoPreview.videoHeight / videoRect.height
 
-            // 构建 delogo 滤镜
+            // 构建 delogo 滤镜，添加边界检查
+            const videoWidth = this.videoPreview.videoWidth
+            const videoHeight = this.videoPreview.videoHeight
+            
             const delogoFilters = this.watermarkRegions
               .map((region) => {
-                const x = Math.round(region.x * scaleX)
-                const y = Math.round(region.y * scaleY)
-                const w = Math.round(region.width * scaleX)
-                const h = Math.round(region.height * scaleY)
+                let x = Math.round(region.x * scaleX)
+                let y = Math.round(region.y * scaleY)
+                let w = Math.round(region.width * scaleX)
+                let h = Math.round(region.height * scaleY)
+                
+                // 边界检查和修正
+                x = Math.max(0, Math.min(x, videoWidth - 1))
+                y = Math.max(0, Math.min(y, videoHeight - 1))
+                w = Math.max(1, Math.min(w, videoWidth - x))
+                h = Math.max(1, Math.min(h, videoHeight - y))
+                
+                console.log(`水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`)
                 return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`
               })
               .join(',')
