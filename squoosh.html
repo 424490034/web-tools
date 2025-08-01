@@ -1054,6 +1054,7 @@
 
       .preview-modal.show {
         display: flex;
+        flex-direction: column;
       }
 
       .preview-content {
@@ -1064,6 +1065,13 @@
         max-height: 90vh;
         box-shadow: var(--shadow-outset);
         position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-content-body {
+        flex:1;
+        overflow-y: auto;
       }
 
       .preview-header {
@@ -1106,7 +1114,7 @@
       .comparison-container {
         position: relative;
         width: 800px;
-        height: 600px;
+        height: 450px;
         border-radius: var(--border-radius);
         overflow: hidden;
         box-shadow: var(--shadow-medium);
@@ -1116,45 +1124,41 @@
       .image-container {
         position: absolute;
         top: 0;
+        left: 0;
+        width: 100%;
         height: 100%;
         overflow: hidden;
       }
 
       .original-container {
-        left: 0;
-        width: 50%;
+        z-index: 1;
       }
 
       .compressed-container {
-        left: 50%;
-        width: 50%;
+        z-index: 2;
       }
 
       .comparison-image {
-        width: 800px;
-        height: 600px;
-        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
         background: white;
         position: absolute;
         top: 0;
+        left: 0;
       }
 
       .original-container .comparison-image {
-        left: 0;
-        object-position: left center;
-        clip-path: inset(0 0 0 0);
+        clip-path: inset(0 50% 0 0);
       }
 
       .compressed-container .comparison-image {
-        right: 0;
-        object-position: left center;
-        clip-path: inset(0 0 0 0);
+        clip-path: inset(0 0 0 50%);
       }
 
       .image-label {
         position: absolute;
         top: 10px;
-        left: 10px;
         background: rgba(0, 0, 0, 0.7);
         color: white;
         padding: 5px 10px;
@@ -1162,7 +1166,13 @@
         font-size: 0.9rem;
         font-weight: 600;
       }
+      .image-label-left {
+        left: 10px;
+      }
 
+      .image-label-right {
+        right: 10px;
+      }
       .divider {
         position: absolute;
         top: 0;
@@ -2414,15 +2424,10 @@
         requestAnimationFrame(() => {
           divider.style.left = percentage + '%'
           
-          // 调整容器宽度和位置
-          originalContainer.style.width = percentage + '%'
-          compressedContainer.style.left = percentage + '%'
-          compressedContainer.style.width = (100 - percentage) + '%'
-          
-          // 使用clip-path控制图片显示区域
+          // 使用clip-path控制图片显示区域，让两张图片都能完整显示
           // 左边显示原图的左侧部分
           originalImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`
-          // 右边显示压缩图的左侧部分（从percentage位置开始显示）
+          // 右边显示压缩图的右侧部分
           compressedImage.style.clipPath = `inset(0 0 0 ${percentage}%)`
         })
       }
@@ -2450,19 +2455,22 @@
 
     <!-- 预览对比弹框 -->
     <div class="preview-modal" id="previewModal">
+ 
       <div class="preview-content">
-        <div class="preview-header">
-          <h3 class="preview-title">图片对比预览</h3>
-          <button class="close-btn" onclick="closePreview()">&times;</button>
-        </div>
+             <div class="preview-header">
+        <h3 class="preview-title">图片对比预览</h3>
+        <button class="close-btn" onclick="closePreview()">&times;</button>
+      </div>
+        <div class="preview-content-body">
+
         <div class="comparison-container" id="comparisonContainer">
           <div class="image-container original-container">
             <img class="comparison-image" id="originalImage" alt="原图">
-            <div class="image-label">原图</div>
+            <div class="image-label image-label-left">原图</div>
           </div>
           <div class="image-container compressed-container">
             <img class="comparison-image" id="compressedImage" alt="压缩后">
-            <div class="image-label">压缩后</div>
+            <div class="image-label image-label-right">压缩后</div>
           </div>
           <div class="divider" id="divider"></div>
         </div>
@@ -2483,6 +2491,7 @@
             <div class="info-label">压缩比例</div>
             <div class="info-value" id="compressionRatio">-</div>
           </div>
+        </div>
         </div>
       </div>
     </div>
