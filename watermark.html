@@ -1095,6 +1095,138 @@
           gap: 10px;
         }
       }
+
+      /* 模态弹窗样式 */
+      .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        box-shadow: 20px 20px 60px var(--shadow-dark),
+          -20px -20px 60px var(--shadow-light);
+        width: 90%;
+        max-width: 1000px;
+        max-height: 90vh;
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: translateY(-50px) scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--shadow-dark);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--primary-bg);
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        color: var(--accent-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .modal-close {
+        font-size: 2rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--primary-bg);
+        box-shadow: 5px 5px 10px var(--shadow-dark),
+          -5px -5px 10px var(--shadow-light);
+      }
+
+      .modal-close:hover {
+        color: var(--danger-color);
+        transform: scale(1.1);
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+      }
+
+      .modal-body {
+        padding: 30px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+
+      .video-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: var(--primary-bg);
+        border-radius: 15px;
+        box-shadow: inset 5px 5px 10px var(--shadow-dark),
+          inset -5px -5px 10px var(--shadow-light);
+      }
+
+      .video-info span {
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      .cropper-container {
+        margin-top: 20px;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 8px 8px 16px var(--shadow-dark),
+          -8px -8px 16px var(--shadow-light);
+      }
+
+      .modal-footer {
+        padding: 20px 30px;
+        border-top: 1px solid var(--shadow-dark);
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        background: var(--primary-bg);
+      }
+
+      .modal-footer button {
+        width: auto;
+        margin: 0;
+        padding: 12px 30px;
+      }
     </style>
   </head>
   <body>
@@ -1130,59 +1262,36 @@
           >
             <video id="videoPreview" controls></video>
             <div class="watermark-overlay" id="watermarkOverlay"></div>
+          </div>
+        </div>
 
-            <!-- Cropper容器 -->
-            <div
-              id="cropperContainer"
-              style="
-                display: none;
-                margin-top: 20px;
-                background: var(--primary-bg);
-                border-radius: 15px;
-                box-shadow: inset 6px 6px 12px var(--shadow-dark),
-                  inset -6px -6px 12px var(--shadow-light);
-              "
-            >
-              <div
-                style="
-                  margin-bottom: 15px;
-                  font-weight: 600;
-                  color: var(--accent-color);
-                "
-              >
-                📐 选择水印区域
+        <!-- 水印区域选择模态弹窗 -->
+        <div id="watermarkModal" class="modal" style="display: none">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>📐 选择水印区域</h3>
+              <span class="modal-close" id="modalClose">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div class="video-info">
+                <span id="videoResolution">视频尺寸: 加载中...</span>
+                <span id="selectionInfo">选择区域: 未选择</span>
               </div>
-              <img
-                id="cropperImage"
-                style="max-width: 100%; height: auto; border-radius: 10px"
-              />
-              <div
-                style="
-                  display: flex;
-                  gap: 15px;
-                  margin-top: 15px;
-                  justify-content: center;
-                "
-              >
-                <button
-                  id="confirmCropBtn"
-                  class="btn-success"
-                  style="width: auto; margin: 0"
-                >
-                  ✅ 确认添加
-                </button>
-                <button
-                  id="cancelCropBtn"
-                  class="btn-danger"
-                  style="width: auto; margin: 0"
-                >
-                  ❌ 取消
-                </button>
+              <div class="cropper-container">
+                <img id="cropperImage" style="max-width: 100%; height: auto" />
               </div>
             </div>
+            <div class="modal-footer">
+              <button id="confirmCropBtn" class="btn-success">
+                ✅ 确认添加
+              </button>
+              <button id="cancelCropBtn" class="btn-danger">❌ 取消</button>
+            </div>
           </div>
+      </div>
 
-          <div class="video-controls" id="videoControls" style="display: none">
+      <div class="control-panel">
+        <div class="video-controls" id="videoControls" style="display: none">
             <div class="time-controls">
               <div class="panel-title" data-icon="⏱️">时间范围设置</div>
               <div class="time-input-group">
@@ -1416,7 +1525,6 @@
 
           // Cropper相关元素
           this.cropperImage = document.getElementById('cropperImage')
-          this.cropperContainer = document.getElementById('cropperContainer')
           this.confirmCropBtn = document.getElementById('confirmCropBtn')
           this.cancelCropBtn = document.getElementById('cancelCropBtn')
         }
@@ -1463,6 +1571,27 @@
             this.confirmCrop()
           )
           this.cancelCropBtn.addEventListener('click', () => this.cancelCrop())
+
+          // 模态弹窗事件
+          const modal = document.getElementById('watermarkModal')
+          const modalClose = document.getElementById('modalClose')
+
+          // 关闭按钮
+          modalClose.addEventListener('click', () => this.cancelCrop())
+
+          // 点击背景关闭
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              this.cancelCrop()
+            }
+          })
+
+          // ESC键关闭
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+              this.cancelCrop()
+            }
+          })
 
           // 视频加载完成
           this.videoPreview.addEventListener('loadedmetadata', () => {
@@ -1627,6 +1756,18 @@
             return
           }
 
+          // 显示模态弹窗
+          const modal = document.getElementById('watermarkModal')
+          modal.style.display = 'flex'
+
+          // 更新视频尺寸信息
+          const videoResolution = document.getElementById('videoResolution')
+          videoResolution.textContent = `视频尺寸: ${this.videoPreview.videoWidth} × ${this.videoPreview.videoHeight}`
+
+          // 重置选择区域信息
+          const selectionInfo = document.getElementById('selectionInfo')
+          selectionInfo.textContent = '选择区域: 未选择'
+
           // 捕获当前视频帧
           this.captureVideoFrame()
         }
@@ -1667,8 +1808,6 @@
 
         // 初始化Cropper
         initializeCropper() {
-          this.cropperContainer.style.display = 'block'
-
           // 销毁现有的cropper
           if (this.cropper) {
             this.cropper.destroy()
@@ -1692,6 +1831,23 @@
             responsive: true,
             checkOrientation: false,
             zoomOnWheel: false, // 禁用滚轮缩放
+            crop: (event) => {
+              // 实时更新选择区域信息
+              const data = event.detail
+              const imageData = this.cropper.getImageData()
+              const scaleX =
+                this.videoPreview.videoWidth / imageData.naturalWidth
+              const scaleY =
+                this.videoPreview.videoHeight / imageData.naturalHeight
+
+              const videoX = Math.round(data.x * scaleX)
+              const videoY = Math.round(data.y * scaleY)
+              const videoWidth = Math.round(data.width * scaleX)
+              const videoHeight = Math.round(data.height * scaleY)
+
+              const selectionInfo = document.getElementById('selectionInfo')
+              selectionInfo.textContent = `选择区域: (${videoX}, ${videoY}) ${videoWidth}×${videoHeight}`
+            },
           })
         }
 
@@ -1739,7 +1895,10 @@
             this.cropper.destroy()
             this.cropper = null
           }
-          this.cropperContainer.style.display = 'none'
+
+          // 关闭模态弹窗
+          const modal = document.getElementById('watermarkModal')
+          modal.style.display = 'none'
 
           // 清理图片URL
           if (this.cropperImage.src) {
@@ -2113,56 +2272,61 @@
             const videoHeight = this.videoPreview.videoHeight
 
             // 构建delogo滤镜链
-            const processedRegions = this.watermarkRegions.map((region, index) => {
-              // region中的坐标已经是视频像素坐标，不需要再次缩放
-              let x = Math.round(region.x)
-              let y = Math.round(region.y)
-              let w = Math.round(region.width)
-              let h = Math.round(region.height)
+            const processedRegions = this.watermarkRegions.map(
+              (region, index) => {
+                // region中的坐标已经是视频像素坐标，不需要再次缩放
+                let x = Math.round(region.x)
+                let y = Math.round(region.y)
+                let w = Math.round(region.width)
+                let h = Math.round(region.height)
 
-              // 确保最小尺寸，避免过小的区域导致处理失败
-              const minSize = 8
-              w = Math.max(minSize, w)
-              h = Math.max(minSize, h)
-              
-              // 确保坐标在有效范围内，并为宽高留出空间
-              x = Math.max(0, Math.min(x, videoWidth - w))
-              y = Math.max(0, Math.min(y, videoHeight - h))
-              
-              // 如果调整后的坐标导致区域超出边界，则调整宽高
-              if (x + w >= videoWidth) {
-                w = videoWidth - x - 1  // 确保严格小于边界
-              }
-              if (y + h >= videoHeight) {
-                h = videoHeight - y - 1  // 确保严格小于边界
-              }
-              
-              // 最终检查，确保最小尺寸
-              w = Math.max(minSize, w)
-              h = Math.max(minSize, h)
-              
-              // 如果最小尺寸导致超出边界，则调整坐标
-              if (x + w >= videoWidth) {
-                x = Math.max(0, videoWidth - w - 1)
-              }
-              if (y + h >= videoHeight) {
-                y = Math.max(0, videoHeight - h - 1)
-              }
+                // 确保最小尺寸，避免过小的区域导致处理失败
+                const minSize = 8
+                w = Math.max(minSize, w)
+                h = Math.max(minSize, h)
 
-              console.log(
-                `水印区域 ${region.id}: 原始坐标=(${region.x}, ${region.y}) 尺寸=${region.width}×${region.height}`
-              )
-              console.log(
-                `水印区域 ${region.id}: 处理后坐标=(${x}, ${y}) 尺寸=${w}×${h} (视频尺寸: ${videoWidth}×${videoHeight})`
-              )
-              
-              return { x, y, w, h, id: region.id }
-            })
+                // 确保坐标在有效范围内，并为宽高留出空间
+                x = Math.max(0, Math.min(x, videoWidth - w))
+                y = Math.max(0, Math.min(y, videoHeight - h))
+
+                // 如果调整后的坐标导致区域超出边界，则调整宽高
+                if (x + w >= videoWidth) {
+                  w = videoWidth - x - 1 // 确保严格小于边界
+                }
+                if (y + h >= videoHeight) {
+                  h = videoHeight - y - 1 // 确保严格小于边界
+                }
+
+                // 最终检查，确保最小尺寸
+                w = Math.max(minSize, w)
+                h = Math.max(minSize, h)
+
+                // 如果最小尺寸导致超出边界，则调整坐标
+                if (x + w >= videoWidth) {
+                  x = Math.max(0, videoWidth - w - 1)
+                }
+                if (y + h >= videoHeight) {
+                  y = Math.max(0, videoHeight - h - 1)
+                }
+
+                console.log(
+                  `水印区域 ${region.id}: 原始坐标=(${region.x}, ${region.y}) 尺寸=${region.width}×${region.height}`
+                )
+                console.log(
+                  `水印区域 ${region.id}: 处理后坐标=(${x}, ${y}) 尺寸=${w}×${h} (视频尺寸: ${videoWidth}×${videoHeight})`
+                )
+
+                return { x, y, w, h, id: region.id }
+              }
+            )
 
             // 构建delogo滤镜字符串
             // 对于多个区域，使用逗号分隔的多个delogo滤镜
             const videoFilter = processedRegions
-              .map(region => `delogo=x=${region.x}:y=${region.y}:w=${region.w}:h=${region.h}:show=0`)
+              .map(
+                (region) =>
+                  `delogo=x=${region.x}:y=${region.y}:w=${region.w}:h=${region.h}:show=0`
+              )
               .join(',')
 
             this.updateProgress(40, '开始去除水印...')
