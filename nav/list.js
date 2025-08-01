@@ -128,6 +128,15 @@
       category: "video-tools"
     },
     {
+      icon: "fas fa-eraser",
+      title: "视频水印去除",
+      description: "智能去除视频中的水印，支持多种视频格式，可精确选择水印区域进行处理。(◕‿◕)✨",
+      emoji: "(◕‿◕)✨",
+      link: "https://www.996day.com/watermark.html",
+      buttonText: "去除水印",
+      category: "video-tools"
+    },
+    {
       icon: "fas fa-tree",
       title: "心灵树洞",
       description: "安全的情感倾诉空间，你的话语不会被保存，只会随风飘散在森林中。(｡◕‿◕｡)",
