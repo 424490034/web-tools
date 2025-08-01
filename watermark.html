@@ -29,7 +29,8 @@
         --glass-bg: rgba(255, 255, 255, 0.25);
         --glass-border: rgba(255, 255, 255, 0.18);
         --border-radius: 20px;
-        --shadow-large: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light);
+        --shadow-large: 15px 15px 30px var(--shadow-dark),
+          -15px -15px 30px var(--shadow-light);
       }
 
       body {
@@ -440,9 +441,16 @@
       }
 
       @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-2px); }
-        75% { transform: translateX(2px); }
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-2px);
+        }
+        75% {
+          transform: translateX(2px);
+        }
       }
 
       .region-handle {
@@ -701,7 +709,8 @@
         border-radius: var(--border-radius);
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+        box-shadow: inset 5px 5px 10px var(--shadow-dark),
+          inset -5px -5px 10px var(--shadow-light);
       }
 
       .time-input-group {
@@ -717,7 +726,8 @@
         border: none;
         border-radius: 10px;
         background: var(--secondary-bg);
-        box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+        box-shadow: inset 3px 3px 6px var(--shadow-dark),
+          inset -3px -3px 6px var(--shadow-light);
         font-size: 1rem;
       }
 
@@ -961,7 +971,7 @@
           grid-template-columns: 1fr;
           gap: 20px;
         }
-        
+
         .control-panel {
           order: -1;
         }
@@ -972,11 +982,11 @@
           padding: 20px;
           margin: 10px;
         }
-        
+
         h1 {
           font-size: 2.5rem;
         }
-        
+
         .subtitle {
           font-size: 1.1rem;
         }
@@ -998,7 +1008,7 @@
       <div class="main-content">
         <div class="video-panel">
           <div class="panel-title" data-icon="🎥">视频预览</div>
-          
+
           <div class="file-upload" id="fileUpload">
             <div class="file-upload-content">
               <span class="file-upload-icon">📁</span>
@@ -1009,28 +1019,71 @@
             <input type="file" id="videoInput" accept="video/*" />
           </div>
 
-          <div class="video-container" id="videoContainer" style="display: none;">
+          <div
+            class="video-container"
+            id="videoContainer"
+            style="display: none"
+          >
             <video id="videoPreview" controls></video>
             <div class="watermark-overlay" id="watermarkOverlay"></div>
           </div>
 
-          <div class="video-controls" id="videoControls" style="display: none;">
+          <div class="video-controls" id="videoControls" style="display: none">
             <div class="time-controls">
               <div class="panel-title" data-icon="⏱️">时间范围设置</div>
               <div class="time-input-group">
                 <div>
                   <label>开始时间 (秒)</label>
-                  <input type="number" id="startTime" class="time-input" value="0" min="0" step="0.1">
+                  <input
+                    type="number"
+                    id="startTime"
+                    class="time-input"
+                    value="0"
+                    min="0"
+                    step="0.1"
+                  />
                 </div>
                 <div>
                   <label>结束时间 (秒)</label>
-                  <input type="number" id="endTime" class="time-input" value="10" min="0" step="0.1">
+                  <input
+                    type="number"
+                    id="endTime"
+                    class="time-input"
+                    value="10"
+                    min="0"
+                    step="0.1"
+                  />
                 </div>
               </div>
-              <input type="range" id="timeSlider" class="time-slider" min="0" max="100" value="0" step="0.1">
-              <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                <button class="btn-small" onclick="watermarkRemover.setCurrentTimeAsStart()">设为开始时间</button>
-                <button class="btn-small" onclick="watermarkRemover.setCurrentTimeAsEnd()">设为结束时间</button>
+              <input
+                type="range"
+                id="timeSlider"
+                class="time-slider"
+                min="0"
+                max="100"
+                value="0"
+                step="0.1"
+              />
+              <div
+                style="
+                  display: flex;
+                  gap: 10px;
+                  justify-content: center;
+                  margin-top: 10px;
+                "
+              >
+                <button
+                  class="btn-small"
+                  onclick="watermarkRemover.setCurrentTimeAsStart()"
+                >
+                  设为开始时间
+                </button>
+                <button
+                  class="btn-small"
+                  onclick="watermarkRemover.setCurrentTimeAsEnd()"
+                >
+                  设为结束时间
+                </button>
               </div>
             </div>
           </div>
@@ -1038,14 +1091,22 @@
 
         <div class="control-panel">
           <div class="panel-title" data-icon="⚙️">水印设置</div>
-          
+
           <div class="form-group">
-            <button id="addWatermarkBtn" class="btn-primary">➕ 添加水印区域</button>
+            <button id="addWatermarkBtn" class="btn-primary">
+              ➕ 添加水印区域
+            </button>
           </div>
 
           <div class="watermark-list" id="watermarkList">
-            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
-              暂无水印区域<br>
+            <div
+              style="
+                text-align: center;
+                color: var(--text-secondary);
+                padding: 20px;
+              "
+            >
+              暂无水印区域<br />
               <small>点击上方按钮添加水印区域</small>
             </div>
           </div>
@@ -1072,14 +1133,16 @@
           <button id="processBtn" class="btn-success" disabled>
             🚀 开始去除水印
           </button>
-          
-          <button id="clearAllBtn" class="btn-danger">
-            🗑️ 清除所有区域
-          </button>
+
+          <button id="clearAllBtn" class="btn-danger">🗑️ 清除所有区域</button>
         </div>
       </div>
 
-      <div class="progress-container" id="progressContainer" style="display: none;">
+      <div
+        class="progress-container"
+        id="progressContainer"
+        style="display: none"
+      >
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -1100,468 +1163,514 @@
           <li>点击"开始去除水印"进行处理</li>
         </ol>
         <p>
-          💡 提示：水印去除效果取决于水印的复杂程度和背景内容。建议选择稍大于水印的区域以获得更好的效果。
+          💡
+          提示：水印去除效果取决于水印的复杂程度和背景内容。建议选择稍大于水印的区域以获得更好的效果。
         </p>
       </div>
     </div>
 
     <script>
+      const { createFFmpeg, fetchFile } = FFmpeg
+
       class WatermarkRemover {
         constructor() {
-          this.ffmpeg = null;
-          this.videoFile = null;
-          this.watermarkRegions = [];
-          this.regionCounter = 0;
-          this.isDragging = false;
-          this.isResizing = false;
-          this.currentRegion = null;
-          this.dragStartX = 0;
-          this.dragStartY = 0;
-          this.resizeHandle = null;
-          
-          this.initializeElements();
-          this.setupEventListeners();
-          this.loadFFmpeg();
+          this.ffmpeg = null
+          this.videoFile = null
+          this.watermarkRegions = []
+          this.regionCounter = 0
+          this.isDragging = false
+          this.isResizing = false
+          this.currentRegion = null
+          this.dragStartX = 0
+          this.dragStartY = 0
+          this.resizeHandle = null
+
+          this.initializeElements()
+          this.setupEventListeners()
+          this.loadFFmpeg()
         }
 
         initializeElements() {
-          this.fileUpload = document.getElementById('fileUpload');
-          this.videoInput = document.getElementById('videoInput');
-          this.videoContainer = document.getElementById('videoContainer');
-          this.videoPreview = document.getElementById('videoPreview');
-          this.watermarkOverlay = document.getElementById('watermarkOverlay');
-          this.addWatermarkBtn = document.getElementById('addWatermarkBtn');
-          this.watermarkList = document.getElementById('watermarkList');
-          this.processBtn = document.getElementById('processBtn');
-          this.clearAllBtn = document.getElementById('clearAllBtn');
-          this.progressContainer = document.getElementById('progressContainer');
-          this.progressFill = document.getElementById('progressFill');
-          this.progressText = document.getElementById('progressText');
-          this.statusMessage = document.getElementById('statusMessage');
-          this.errorMessage = document.getElementById('errorMessage');
-          this.outputFormat = document.getElementById('outputFormat');
-          this.quality = document.getElementById('quality');
+          this.fileUpload = document.getElementById('fileUpload')
+          this.videoInput = document.getElementById('videoInput')
+          this.videoContainer = document.getElementById('videoContainer')
+          this.videoPreview = document.getElementById('videoPreview')
+          this.watermarkOverlay = document.getElementById('watermarkOverlay')
+          this.addWatermarkBtn = document.getElementById('addWatermarkBtn')
+          this.watermarkList = document.getElementById('watermarkList')
+          this.processBtn = document.getElementById('processBtn')
+          this.clearAllBtn = document.getElementById('clearAllBtn')
+          this.progressContainer = document.getElementById('progressContainer')
+          this.progressFill = document.getElementById('progressFill')
+          this.progressText = document.getElementById('progressText')
+          this.statusMessage = document.getElementById('statusMessage')
+          this.errorMessage = document.getElementById('errorMessage')
+          this.outputFormat = document.getElementById('outputFormat')
+          this.quality = document.getElementById('quality')
         }
 
         setupEventListeners() {
           // 文件上传
-          this.fileUpload.addEventListener('click', () => this.videoInput.click());
-          this.videoInput.addEventListener('change', (e) => this.handleFileSelect(e));
-          
+          this.fileUpload.addEventListener('click', () =>
+            this.videoInput.click()
+          )
+          this.videoInput.addEventListener('change', (e) =>
+            this.handleFileSelect(e)
+          )
+
           // 拖拽上传
           this.fileUpload.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            this.fileUpload.classList.add('dragover');
-          });
-          
+            e.preventDefault()
+            this.fileUpload.classList.add('dragover')
+          })
+
           this.fileUpload.addEventListener('dragleave', () => {
-            this.fileUpload.classList.remove('dragover');
-          });
-          
+            this.fileUpload.classList.remove('dragover')
+          })
+
           this.fileUpload.addEventListener('drop', (e) => {
-            e.preventDefault();
-            this.fileUpload.classList.remove('dragover');
-            const files = e.dataTransfer.files;
+            e.preventDefault()
+            this.fileUpload.classList.remove('dragover')
+            const files = e.dataTransfer.files
             if (files.length > 0) {
-              this.handleFile(files[0]);
+              this.handleFile(files[0])
             }
-          });
+          })
 
           // 按钮事件
-          this.addWatermarkBtn.addEventListener('click', () => this.addWatermarkRegion());
-          this.processBtn.addEventListener('click', () => this.processVideo());
-          this.clearAllBtn.addEventListener('click', () => this.clearAllRegions());
+          this.addWatermarkBtn.addEventListener('click', () =>
+            this.addWatermarkRegion()
+          )
+          this.processBtn.addEventListener('click', () => this.processVideo())
+          this.clearAllBtn.addEventListener('click', () =>
+            this.clearAllRegions()
+          )
 
           // 视频加载完成
           this.videoPreview.addEventListener('loadedmetadata', () => {
-            this.updateOverlaySize();
-            this.initializeTimeControls();
-          });
+            this.updateOverlaySize()
+            this.initializeTimeControls()
+          })
 
           // 时间控制
-          const timeSlider = document.getElementById('timeSlider');
-          const startTime = document.getElementById('startTime');
-          const endTime = document.getElementById('endTime');
-          
+          const timeSlider = document.getElementById('timeSlider')
+          const startTime = document.getElementById('startTime')
+          const endTime = document.getElementById('endTime')
+
           if (timeSlider) {
             timeSlider.addEventListener('input', (e) => {
               if (this.videoPreview) {
-                this.videoPreview.currentTime = parseFloat(e.target.value);
+                this.videoPreview.currentTime = parseFloat(e.target.value)
               }
-            });
+            })
           }
-          
+
           if (startTime) {
-            startTime.addEventListener('change', () => this.validateTimeRange());
+            startTime.addEventListener('change', () => this.validateTimeRange())
           }
-          
+
           if (endTime) {
-            endTime.addEventListener('change', () => this.validateTimeRange());
+            endTime.addEventListener('change', () => this.validateTimeRange())
           }
 
           // 窗口大小变化
           window.addEventListener('resize', () => {
-            this.updateOverlaySize();
-          });
+            this.updateOverlaySize()
+          })
         }
 
         async loadFFmpeg() {
           try {
-            this.showStatus('正在加载 FFmpeg...');
+            this.showStatus('正在加载 FFmpeg...')
             this.ffmpeg = createFFmpeg({
               log: true,
-              corePath: './ffmpeg-core.wasm'
-            });
-            await this.ffmpeg.load();
-            this.showStatus('FFmpeg 加载完成');
+              corePath: './ffmpeg-core.wasm',
+            })
+            await this.ffmpeg.load()
+            this.showStatus('FFmpeg 加载完成')
           } catch (error) {
-            this.showError('FFmpeg 加载失败: ' + error.message);
+            this.showError('FFmpeg 加载失败: ' + error.message)
           }
         }
 
         initializeTimeControls() {
-          const timeSlider = document.getElementById('timeSlider');
-          const endTime = document.getElementById('endTime');
-          const videoControls = document.getElementById('videoControls');
-          
+          const timeSlider = document.getElementById('timeSlider')
+          const endTime = document.getElementById('endTime')
+          const videoControls = document.getElementById('videoControls')
+
           if (this.videoPreview && this.videoPreview.duration) {
-            const duration = this.videoPreview.duration;
-            
+            const duration = this.videoPreview.duration
+
             if (timeSlider) {
-              timeSlider.max = duration;
-              timeSlider.value = 0;
+              timeSlider.max = duration
+              timeSlider.value = 0
             }
-            
+
             if (endTime) {
-              endTime.value = duration.toFixed(1);
-              endTime.max = duration;
+              endTime.value = duration.toFixed(1)
+              endTime.max = duration
             }
-            
+
             if (videoControls) {
-              videoControls.style.display = 'block';
+              videoControls.style.display = 'block'
             }
           }
         }
 
         setCurrentTimeAsStart() {
-          const startTime = document.getElementById('startTime');
+          const startTime = document.getElementById('startTime')
           if (this.videoPreview && startTime) {
-            startTime.value = this.videoPreview.currentTime.toFixed(1);
-            this.validateTimeRange();
+            startTime.value = this.videoPreview.currentTime.toFixed(1)
+            this.validateTimeRange()
           }
         }
 
         setCurrentTimeAsEnd() {
-          const endTime = document.getElementById('endTime');
+          const endTime = document.getElementById('endTime')
           if (this.videoPreview && endTime) {
-            endTime.value = this.videoPreview.currentTime.toFixed(1);
-            this.validateTimeRange();
+            endTime.value = this.videoPreview.currentTime.toFixed(1)
+            this.validateTimeRange()
           }
         }
 
         validateTimeRange() {
-          const startTime = document.getElementById('startTime');
-          const endTime = document.getElementById('endTime');
-          
+          const startTime = document.getElementById('startTime')
+          const endTime = document.getElementById('endTime')
+
           if (startTime && endTime) {
-            const start = parseFloat(startTime.value);
-            const end = parseFloat(endTime.value);
-            
+            const start = parseFloat(startTime.value)
+            const end = parseFloat(endTime.value)
+
             if (start >= end) {
-              endTime.value = (start + 1).toFixed(1);
+              endTime.value = (start + 1).toFixed(1)
             }
-            
+
             if (this.videoPreview && this.videoPreview.duration) {
-              const duration = this.videoPreview.duration;
+              const duration = this.videoPreview.duration
               if (end > duration) {
-                endTime.value = duration.toFixed(1);
+                endTime.value = duration.toFixed(1)
               }
             }
           }
         }
 
         handleFileSelect(event) {
-          const file = event.target.files[0];
+          const file = event.target.files[0]
           if (file) {
-            this.handleFile(file);
+            this.handleFile(file)
           }
         }
 
         handleFile(file) {
           if (!file.type.startsWith('video/')) {
-            this.showError('请选择有效的视频文件');
-            return;
+            this.showError('请选择有效的视频文件')
+            return
           }
 
-          this.videoFile = file;
-          const url = URL.createObjectURL(file);
-          this.videoPreview.src = url;
-          this.videoContainer.style.display = 'block';
-          this.fileUpload.style.display = 'none';
-          
-          this.clearAllRegions();
-          this.showStatus('视频加载完成，可以开始添加水印区域');
+          this.videoFile = file
+          const url = URL.createObjectURL(file)
+          this.videoPreview.src = url
+          this.videoContainer.style.display = 'block'
+          this.fileUpload.style.display = 'none'
+
+          this.clearAllRegions()
+          this.showStatus('视频加载完成，可以开始添加水印区域')
         }
 
         updateOverlaySize() {
-          if (!this.videoPreview.videoWidth || !this.videoPreview.videoHeight) return;
-          
-          const videoRect = this.videoPreview.getBoundingClientRect();
-          const containerRect = this.videoContainer.getBoundingClientRect();
-          
-          this.watermarkOverlay.style.width = videoRect.width + 'px';
-          this.watermarkOverlay.style.height = videoRect.height + 'px';
-          this.watermarkOverlay.style.left = (videoRect.left - containerRect.left) + 'px';
-          this.watermarkOverlay.style.top = (videoRect.top - containerRect.top) + 'px';
+          if (!this.videoPreview.videoWidth || !this.videoPreview.videoHeight)
+            return
+
+          const videoRect = this.videoPreview.getBoundingClientRect()
+          const containerRect = this.videoContainer.getBoundingClientRect()
+
+          this.watermarkOverlay.style.width = videoRect.width + 'px'
+          this.watermarkOverlay.style.height = videoRect.height + 'px'
+          this.watermarkOverlay.style.left =
+            videoRect.left - containerRect.left + 'px'
+          this.watermarkOverlay.style.top =
+            videoRect.top - containerRect.top + 'px'
         }
 
         addWatermarkRegion() {
           if (!this.videoFile) {
-            this.showError('请先上传视频文件');
-            return;
+            this.showError('请先上传视频文件')
+            return
           }
 
-          this.regionCounter++;
+          this.regionCounter++
           const region = {
             id: this.regionCounter,
             x: 50,
             y: 50,
             width: 150,
-            height: 100
-          };
+            height: 100,
+          }
 
           // 检查重叠
           if (this.checkOverlap(region)) {
-            this.showError('新区域与现有区域重叠，请调整位置');
-            return;
+            this.showError('新区域与现有区域重叠，请调整位置')
+            return
           }
 
-          this.watermarkRegions.push(region);
-          this.createRegionElement(region);
-          this.updateWatermarkList();
-          this.updateProcessButton();
-          this.showStatus(`已添加水印区域 ${region.id}`);
+          this.watermarkRegions.push(region)
+          this.createRegionElement(region)
+          this.updateWatermarkList()
+          this.updateProcessButton()
+          this.showStatus(`已添加水印区域 ${region.id}`)
         }
 
         createRegionElement(region) {
-          const regionEl = document.createElement('div');
-          regionEl.className = 'watermark-region';
-          regionEl.dataset.regionId = region.id;
-          regionEl.style.left = region.x + 'px';
-          regionEl.style.top = region.y + 'px';
-          regionEl.style.width = region.width + 'px';
-          regionEl.style.height = region.height + 'px';
+          const regionEl = document.createElement('div')
+          regionEl.className = 'watermark-region'
+          regionEl.dataset.regionId = region.id
+          regionEl.style.left = region.x + 'px'
+          regionEl.style.top = region.y + 'px'
+          regionEl.style.width = region.width + 'px'
+          regionEl.style.height = region.height + 'px'
 
           // 添加标签
-          const label = document.createElement('div');
-          label.className = 'region-label';
-          label.textContent = `水印 ${region.id}`;
-          regionEl.appendChild(label);
+          const label = document.createElement('div')
+          label.className = 'region-label'
+          label.textContent = `水印 ${region.id}`
+          regionEl.appendChild(label)
 
           // 添加删除按钮
-          const deleteBtn = document.createElement('button');
-          deleteBtn.className = 'region-delete';
-          deleteBtn.innerHTML = '×';
+          const deleteBtn = document.createElement('button')
+          deleteBtn.className = 'region-delete'
+          deleteBtn.innerHTML = '×'
           deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.removeRegion(region.id);
-          });
-          regionEl.appendChild(deleteBtn);
+            e.stopPropagation()
+            this.removeRegion(region.id)
+          })
+          regionEl.appendChild(deleteBtn)
 
           // 添加调整手柄
-          const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'];
-          handles.forEach(pos => {
-            const handle = document.createElement('div');
-            handle.className = `region-handle ${pos}`;
-            handle.addEventListener('mousedown', (e) => this.startResize(e, region, pos));
-            regionEl.appendChild(handle);
-          });
+          const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e']
+          handles.forEach((pos) => {
+            const handle = document.createElement('div')
+            handle.className = `region-handle ${pos}`
+            handle.addEventListener('mousedown', (e) =>
+              this.startResize(e, region, pos)
+            )
+            regionEl.appendChild(handle)
+          })
 
           // 拖拽事件
-          regionEl.addEventListener('mousedown', (e) => this.startDrag(e, region));
+          regionEl.addEventListener('mousedown', (e) =>
+            this.startDrag(e, region)
+          )
 
-          this.watermarkOverlay.appendChild(regionEl);
+          this.watermarkOverlay.appendChild(regionEl)
         }
 
         startDrag(event, region) {
-          if (event.target.classList.contains('region-handle') || 
-              event.target.classList.contains('region-delete')) {
-            return;
+          if (
+            event.target.classList.contains('region-handle') ||
+            event.target.classList.contains('region-delete')
+          ) {
+            return
           }
 
-          event.preventDefault();
-          this.isDragging = true;
-          this.currentRegion = region;
-          
-          const rect = this.watermarkOverlay.getBoundingClientRect();
-          this.dragStartX = event.clientX - rect.left - region.x;
-          this.dragStartY = event.clientY - rect.top - region.y;
+          event.preventDefault()
+          this.isDragging = true
+          this.currentRegion = region
 
-          document.addEventListener('mousemove', this.handleDrag.bind(this));
-          document.addEventListener('mouseup', this.stopDrag.bind(this));
+          const rect = this.watermarkOverlay.getBoundingClientRect()
+          this.dragStartX = event.clientX - rect.left - region.x
+          this.dragStartY = event.clientY - rect.top - region.y
+
+          document.addEventListener('mousemove', this.handleDrag.bind(this))
+          document.addEventListener('mouseup', this.stopDrag.bind(this))
         }
 
         handleDrag(event) {
-          if (!this.isDragging || !this.currentRegion) return;
+          if (!this.isDragging || !this.currentRegion) return
 
-          const rect = this.watermarkOverlay.getBoundingClientRect();
-          const newX = Math.max(0, Math.min(
-            event.clientX - rect.left - this.dragStartX,
-            rect.width - this.currentRegion.width
-          ));
-          const newY = Math.max(0, Math.min(
-            event.clientY - rect.top - this.dragStartY,
-            rect.height - this.currentRegion.height
-          ));
+          const rect = this.watermarkOverlay.getBoundingClientRect()
+          const newX = Math.max(
+            0,
+            Math.min(
+              event.clientX - rect.left - this.dragStartX,
+              rect.width - this.currentRegion.width
+            )
+          )
+          const newY = Math.max(
+            0,
+            Math.min(
+              event.clientY - rect.top - this.dragStartY,
+              rect.height - this.currentRegion.height
+            )
+          )
 
-          const tempRegion = { ...this.currentRegion, x: newX, y: newY };
-          
+          const tempRegion = { ...this.currentRegion, x: newX, y: newY }
+
           // 检查重叠
-          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${this.currentRegion.id}"]`);
+          const regionEl = this.watermarkOverlay.querySelector(
+            `[data-region-id="${this.currentRegion.id}"]`
+          )
           if (this.checkOverlapExcluding(tempRegion, this.currentRegion.id)) {
-            regionEl.classList.add('invalid');
-            return;
+            regionEl.classList.add('invalid')
+            return
           } else {
-            regionEl.classList.remove('invalid');
+            regionEl.classList.remove('invalid')
           }
 
-          this.currentRegion.x = newX;
-          this.currentRegion.y = newY;
-          
-          regionEl.style.left = newX + 'px';
-          regionEl.style.top = newY + 'px';
+          this.currentRegion.x = newX
+          this.currentRegion.y = newY
+
+          regionEl.style.left = newX + 'px'
+          regionEl.style.top = newY + 'px'
         }
 
         stopDrag() {
-          this.isDragging = false;
-          this.currentRegion = null;
-          document.removeEventListener('mousemove', this.handleDrag.bind(this));
-          document.removeEventListener('mouseup', this.stopDrag.bind(this));
-          this.updateWatermarkList();
+          this.isDragging = false
+          this.currentRegion = null
+          document.removeEventListener('mousemove', this.handleDrag.bind(this))
+          document.removeEventListener('mouseup', this.stopDrag.bind(this))
+          this.updateWatermarkList()
         }
 
         startResize(event, region, handle) {
-          event.preventDefault();
-          event.stopPropagation();
-          
-          this.isResizing = true;
-          this.currentRegion = region;
-          this.resizeHandle = handle;
-          
-          const rect = this.watermarkOverlay.getBoundingClientRect();
-          this.dragStartX = event.clientX - rect.left;
-          this.dragStartY = event.clientY - rect.top;
+          event.preventDefault()
+          event.stopPropagation()
 
-          document.addEventListener('mousemove', this.handleResize.bind(this));
-          document.addEventListener('mouseup', this.stopResize.bind(this));
+          this.isResizing = true
+          this.currentRegion = region
+          this.resizeHandle = handle
+
+          const rect = this.watermarkOverlay.getBoundingClientRect()
+          this.dragStartX = event.clientX - rect.left
+          this.dragStartY = event.clientY - rect.top
+
+          document.addEventListener('mousemove', this.handleResize.bind(this))
+          document.addEventListener('mouseup', this.stopResize.bind(this))
         }
 
         handleResize(event) {
-          if (!this.isResizing || !this.currentRegion) return;
+          if (!this.isResizing || !this.currentRegion) return
 
-          const rect = this.watermarkOverlay.getBoundingClientRect();
-          const mouseX = event.clientX - rect.left;
-          const mouseY = event.clientY - rect.top;
-          
-          const region = this.currentRegion;
-          const handle = this.resizeHandle;
-          
-          let newX = region.x;
-          let newY = region.y;
-          let newWidth = region.width;
-          let newHeight = region.height;
+          const rect = this.watermarkOverlay.getBoundingClientRect()
+          const mouseX = event.clientX - rect.left
+          const mouseY = event.clientY - rect.top
+
+          const region = this.currentRegion
+          const handle = this.resizeHandle
+
+          let newX = region.x
+          let newY = region.y
+          let newWidth = region.width
+          let newHeight = region.height
 
           // 根据手柄位置调整尺寸
           if (handle.includes('w')) {
-            newWidth = region.width + (region.x - mouseX);
-            newX = mouseX;
+            newWidth = region.width + (region.x - mouseX)
+            newX = mouseX
           }
           if (handle.includes('e')) {
-            newWidth = mouseX - region.x;
+            newWidth = mouseX - region.x
           }
           if (handle.includes('n')) {
-            newHeight = region.height + (region.y - mouseY);
-            newY = mouseY;
+            newHeight = region.height + (region.y - mouseY)
+            newY = mouseY
           }
           if (handle.includes('s')) {
-            newHeight = mouseY - region.y;
+            newHeight = mouseY - region.y
           }
 
           // 限制最小尺寸
-          newWidth = Math.max(50, newWidth);
-          newHeight = Math.max(50, newHeight);
-          
+          newWidth = Math.max(50, newWidth)
+          newHeight = Math.max(50, newHeight)
+
           // 限制边界
-          newX = Math.max(0, Math.min(newX, rect.width - newWidth));
-          newY = Math.max(0, Math.min(newY, rect.height - newHeight));
-          
-          const tempRegion = { ...region, x: newX, y: newY, width: newWidth, height: newHeight };
-          
-          // 检查重叠
-          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${region.id}"]`);
-          if (this.checkOverlapExcluding(tempRegion, region.id)) {
-            regionEl.classList.add('invalid');
-            return;
-          } else {
-            regionEl.classList.remove('invalid');
+          newX = Math.max(0, Math.min(newX, rect.width - newWidth))
+          newY = Math.max(0, Math.min(newY, rect.height - newHeight))
+
+          const tempRegion = {
+            ...region,
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight,
           }
 
-          region.x = newX;
-          region.y = newY;
-          region.width = newWidth;
-          region.height = newHeight;
-          
-          regionEl.style.left = newX + 'px';
-          regionEl.style.top = newY + 'px';
-          regionEl.style.width = newWidth + 'px';
-          regionEl.style.height = newHeight + 'px';
+          // 检查重叠
+          const regionEl = this.watermarkOverlay.querySelector(
+            `[data-region-id="${region.id}"]`
+          )
+          if (this.checkOverlapExcluding(tempRegion, region.id)) {
+            regionEl.classList.add('invalid')
+            return
+          } else {
+            regionEl.classList.remove('invalid')
+          }
+
+          region.x = newX
+          region.y = newY
+          region.width = newWidth
+          region.height = newHeight
+
+          regionEl.style.left = newX + 'px'
+          regionEl.style.top = newY + 'px'
+          regionEl.style.width = newWidth + 'px'
+          regionEl.style.height = newHeight + 'px'
         }
 
         stopResize() {
-          this.isResizing = false;
-          this.currentRegion = null;
-          this.resizeHandle = null;
-          document.removeEventListener('mousemove', this.handleResize.bind(this));
-          document.removeEventListener('mouseup', this.stopResize.bind(this));
-          this.updateWatermarkList();
+          this.isResizing = false
+          this.currentRegion = null
+          this.resizeHandle = null
+          document.removeEventListener(
+            'mousemove',
+            this.handleResize.bind(this)
+          )
+          document.removeEventListener('mouseup', this.stopResize.bind(this))
+          this.updateWatermarkList()
         }
 
         checkOverlap(newRegion) {
-          return this.watermarkRegions.some(region => 
+          return this.watermarkRegions.some((region) =>
             this.regionsOverlap(newRegion, region)
-          );
+          )
         }
 
         checkOverlapExcluding(newRegion, excludeId) {
-          return this.watermarkRegions.some(region => 
-            region.id !== excludeId && this.regionsOverlap(newRegion, region)
-          );
+          return this.watermarkRegions.some(
+            (region) =>
+              region.id !== excludeId && this.regionsOverlap(newRegion, region)
+          )
         }
 
         regionsOverlap(region1, region2) {
-          return !(region1.x + region1.width <= region2.x || 
-                   region2.x + region2.width <= region1.x || 
-                   region1.y + region1.height <= region2.y || 
-                   region2.y + region2.height <= region1.y);
+          return !(
+            region1.x + region1.width <= region2.x ||
+            region2.x + region2.width <= region1.x ||
+            region1.y + region1.height <= region2.y ||
+            region2.y + region2.height <= region1.y
+          )
         }
 
         removeRegion(regionId) {
-          this.watermarkRegions = this.watermarkRegions.filter(r => r.id !== regionId);
-          const regionEl = this.watermarkOverlay.querySelector(`[data-region-id="${regionId}"]`);
+          this.watermarkRegions = this.watermarkRegions.filter(
+            (r) => r.id !== regionId
+          )
+          const regionEl = this.watermarkOverlay.querySelector(
+            `[data-region-id="${regionId}"]`
+          )
           if (regionEl) {
-            regionEl.remove();
+            regionEl.remove()
           }
-          this.updateWatermarkList();
-          this.updateProcessButton();
-          this.showStatus(`已删除水印区域 ${regionId}`);
+          this.updateWatermarkList()
+          this.updateProcessButton()
+          this.showStatus(`已删除水印区域 ${regionId}`)
         }
 
         clearAllRegions() {
-          this.watermarkRegions = [];
-          this.watermarkOverlay.innerHTML = '';
-          this.updateWatermarkList();
-          this.updateProcessButton();
-          this.showStatus('已清除所有水印区域');
+          this.watermarkRegions = []
+          this.watermarkOverlay.innerHTML = ''
+          this.updateWatermarkList()
+          this.updateProcessButton()
+          this.showStatus('已清除所有水印区域')
         }
 
         updateWatermarkList() {
@@ -1571,11 +1680,13 @@
                 暂无水印区域<br>
                 <small>点击上方按钮添加水印区域</small>
               </div>
-            `;
-            return;
+            `
+            return
           }
 
-          this.watermarkList.innerHTML = this.watermarkRegions.map(region => `
+          this.watermarkList.innerHTML = this.watermarkRegions
+            .map(
+              (region) => `
             <div class="watermark-item">
               <div class="watermark-info">
                 <div class="watermark-name">水印区域 ${region.id}</div>
@@ -1585,152 +1696,175 @@
                 </div>
               </div>
               <div class="watermark-actions">
-                <button class="btn-small btn-danger" onclick="watermarkRemover.removeRegion(${region.id})">
+                <button class="btn-small btn-danger" onclick="watermarkRemover.removeRegion(${
+                  region.id
+                })">
                   删除
                 </button>
               </div>
             </div>
-          `).join('');
+          `
+            )
+            .join('')
         }
 
         updateProcessButton() {
-          this.processBtn.disabled = !this.videoFile || this.watermarkRegions.length === 0;
+          this.processBtn.disabled =
+            !this.videoFile || this.watermarkRegions.length === 0
         }
 
         async processVideo() {
           if (!this.videoFile || this.watermarkRegions.length === 0) {
-            this.showError('请上传视频并添加至少一个水印区域');
-            return;
+            this.showError('请上传视频并添加至少一个水印区域')
+            return
           }
 
           try {
-            this.showProgress(true);
-            this.updateProgress(0, '准备处理视频...');
-            
+            this.showProgress(true)
+            this.updateProgress(0, '准备处理视频...')
+
             // 获取时间范围
-            const startTime = parseFloat(document.getElementById('startTime').value) || 0;
-            const endTime = parseFloat(document.getElementById('endTime').value) || this.videoPreview.duration;
-            const duration = endTime - startTime;
-            
+            const startTime =
+              parseFloat(document.getElementById('startTime').value) || 0
+            const endTime =
+              parseFloat(document.getElementById('endTime').value) ||
+              this.videoPreview.duration
+            const duration = endTime - startTime
+
             if (duration <= 0) {
-              this.showError('结束时间必须大于开始时间');
-              return;
+              this.showError('结束时间必须大于开始时间')
+              return
             }
-            
+
             // 写入视频文件
-            const inputName = 'input.' + this.videoFile.name.split('.').pop();
-            this.ffmpeg.FS('writeFile', inputName, await this.fetchFile(this.videoFile));
-            
-            this.updateProgress(20, '分析视频信息...');
-            
+            const inputName = 'input.' + this.videoFile.name.split('.').pop()
+            this.ffmpeg.FS(
+              'writeFile',
+              inputName,
+              await this.fetchFile(this.videoFile)
+            )
+
+            this.updateProgress(20, '分析视频信息...')
+
             // 获取视频尺寸
-            const videoRect = this.videoPreview.getBoundingClientRect();
-            const overlayRect = this.watermarkOverlay.getBoundingClientRect();
-            const scaleX = this.videoPreview.videoWidth / videoRect.width;
-            const scaleY = this.videoPreview.videoHeight / videoRect.height;
-            
+            const videoRect = this.videoPreview.getBoundingClientRect()
+            const overlayRect = this.watermarkOverlay.getBoundingClientRect()
+            const scaleX = this.videoPreview.videoWidth / videoRect.width
+            const scaleY = this.videoPreview.videoHeight / videoRect.height
+
             // 构建 delogo 滤镜
-            const delogoFilters = this.watermarkRegions.map(region => {
-              const x = Math.round(region.x * scaleX);
-              const y = Math.round(region.y * scaleY);
-              const w = Math.round(region.width * scaleX);
-              const h = Math.round(region.height * scaleY);
-              return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`;
-            }).join(',');
-            
-            this.updateProgress(40, '开始去除水印...');
-            
+            const delogoFilters = this.watermarkRegions
+              .map((region) => {
+                const x = Math.round(region.x * scaleX)
+                const y = Math.round(region.y * scaleY)
+                const w = Math.round(region.width * scaleX)
+                const h = Math.round(region.height * scaleY)
+                return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`
+              })
+              .join(',')
+
+            this.updateProgress(40, '开始去除水印...')
+
             // 设置质量参数
             const qualitySettings = {
               high: ['-crf', '18'],
               medium: ['-crf', '23'],
-              low: ['-crf', '28']
-            };
-            
-            const outputName = `output.${this.outputFormat.value}`;
-            const quality = qualitySettings[this.quality.value];
-            
+              low: ['-crf', '28'],
+            }
+
+            const outputName = `output.${this.outputFormat.value}`
+            const quality = qualitySettings[this.quality.value]
+
             // 构建FFmpeg命令参数
             const ffmpegArgs = [
-              '-i', inputName,
-              '-ss', startTime.toString(),
-              '-t', duration.toString(),
-              '-vf', delogoFilters,
+              '-i',
+              inputName,
+              '-ss',
+              startTime.toString(),
+              '-t',
+              duration.toString(),
+              '-vf',
+              delogoFilters,
               ...quality,
-              '-c:a', 'copy',
-              '-avoid_negative_ts', 'make_zero',
-              outputName
-            ];
-            
-            console.log('FFmpeg命令:', ffmpegArgs.join(' '));
-            
+              '-c:a',
+              'copy',
+              '-avoid_negative_ts',
+              'make_zero',
+              outputName,
+            ]
+
+            console.log('FFmpeg命令:', ffmpegArgs.join(' '))
+
             // 执行 FFmpeg 命令
-            await this.ffmpeg.run(...ffmpegArgs);
-            
-            this.updateProgress(90, '生成输出文件...');
-            
+            await this.ffmpeg.run(...ffmpegArgs)
+
+            this.updateProgress(90, '生成输出文件...')
+
             // 读取输出文件
-            const data = this.ffmpeg.FS('readFile', outputName);
-            const blob = new Blob([data.buffer], { type: `video/${this.outputFormat.value}` });
-            
+            const data = this.ffmpeg.FS('readFile', outputName)
+            const blob = new Blob([data.buffer], {
+              type: `video/${this.outputFormat.value}`,
+            })
+
             // 下载文件
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`;
-            a.click();
-            
-            this.updateProgress(100, '处理完成！');
-            this.showStatus(`水印去除完成，已处理 ${startTime}s-${endTime}s 时间段，文件已下载`);
-            
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `watermark_removed_${startTime}s-${endTime}s.${this.outputFormat.value}`
+            a.click()
+
+            this.updateProgress(100, '处理完成！')
+            this.showStatus(
+              `水印去除完成，已处理 ${startTime}s-${endTime}s 时间段，文件已下载`
+            )
+
             // 清理文件
-            this.ffmpeg.FS('unlink', inputName);
-            this.ffmpeg.FS('unlink', outputName);
-            
+            this.ffmpeg.FS('unlink', inputName)
+            this.ffmpeg.FS('unlink', outputName)
           } catch (error) {
-            this.showError('处理失败: ' + error.message);
-            console.error('FFmpeg处理错误:', error);
+            this.showError('处理失败: ' + error.message)
+            console.error('FFmpeg处理错误:', error)
           } finally {
-            setTimeout(() => this.showProgress(false), 2000);
+            setTimeout(() => this.showProgress(false), 2000)
           }
         }
 
         async fetchFile(file) {
-          return new Uint8Array(await file.arrayBuffer());
+          return new Uint8Array(await file.arrayBuffer())
         }
 
         updateProgress(percent, text) {
-          this.progressFill.style.width = percent + '%';
-          this.progressText.textContent = text;
+          this.progressFill.style.width = percent + '%'
+          this.progressText.textContent = text
         }
 
         showProgress(show) {
-          this.progressContainer.style.display = show ? 'block' : 'none';
+          this.progressContainer.style.display = show ? 'block' : 'none'
           if (!show) {
-            this.updateProgress(0, '准备处理...');
+            this.updateProgress(0, '准备处理...')
           }
         }
 
         showStatus(message) {
-          this.statusMessage.textContent = message;
-          this.statusMessage.className = 'status-message';
-          this.errorMessage.textContent = '';
+          this.statusMessage.textContent = message
+          this.statusMessage.className = 'status-message'
+          this.errorMessage.textContent = ''
           setTimeout(() => {
-            this.statusMessage.textContent = '';
-          }, 3000);
+            this.statusMessage.textContent = ''
+          }, 3000)
         }
 
         showError(message) {
-          this.errorMessage.textContent = message;
-          this.statusMessage.textContent = '';
+          this.errorMessage.textContent = message
+          this.statusMessage.textContent = ''
           setTimeout(() => {
-            this.errorMessage.textContent = '';
-          }, 5000);
+            this.errorMessage.textContent = ''
+          }, 5000)
         }
       }
 
       // 初始化应用
-      const watermarkRemover = new WatermarkRemover();
+      const watermarkRemover = new WatermarkRemover()
     </script>
   </body>
 </html>
