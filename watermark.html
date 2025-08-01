@@ -1021,7 +1021,12 @@
               <div class="file-upload-formats">MP4, AVI, MOV, MKV, WebM</div>
             </div>
           </div>
-          <input type="file" id="videoInput" accept="video/*" style="display: none;" />
+          <input
+            type="file"
+            id="videoInput"
+            accept="video/*"
+            style="display: none"
+          />
 
           <div
             class="video-container"
@@ -1536,6 +1541,7 @@
             modal: true,
             responsive: true,
             checkOrientation: false,
+            zoomOnWheel: false, // 禁用滚轮缩放
           })
         }
 
@@ -1967,7 +1973,7 @@
                 // 首先确保坐标在有效范围内
                 x = Math.max(0, x)
                 y = Math.max(0, y)
-                
+
                 // 确保宽度和高度为正数
                 w = Math.max(1, w)
                 h = Math.max(1, h)
