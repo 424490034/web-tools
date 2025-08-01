@@ -2119,21 +2119,33 @@
               let w = Math.round(region.width * scaleX)
               let h = Math.round(region.height * scaleY)
 
-              // 确保坐标和尺寸在有效范围内
-              x = Math.max(0, Math.min(x, videoWidth - 1))
-              y = Math.max(0, Math.min(y, videoHeight - 1))
-              
               // 确保最小尺寸，避免过小的区域导致处理失败
               const minSize = 8
-              w = Math.max(minSize, Math.min(w, videoWidth - x))
-              h = Math.max(minSize, Math.min(h, videoHeight - y))
-
-              // 最终边界检查，确保不超出视频边界
-              if (x + w > videoWidth) {
-                w = videoWidth - x
+              w = Math.max(minSize, w)
+              h = Math.max(minSize, h)
+              
+              // 确保坐标在有效范围内，并为宽高留出空间
+              x = Math.max(0, Math.min(x, videoWidth - w))
+              y = Math.max(0, Math.min(y, videoHeight - h))
+              
+              // 如果调整后的坐标导致区域超出边界，则调整宽高
+              if (x + w >= videoWidth) {
+                w = videoWidth - x - 1  // 确保严格小于边界
               }
-              if (y + h > videoHeight) {
-                h = videoHeight - y
+              if (y + h >= videoHeight) {
+                h = videoHeight - y - 1  // 确保严格小于边界
+              }
+              
+              // 最终检查，确保最小尺寸
+              w = Math.max(minSize, w)
+              h = Math.max(minSize, h)
+              
+              // 如果最小尺寸导致超出边界，则调整坐标
+              if (x + w >= videoWidth) {
+                x = Math.max(0, videoWidth - w - 1)
+              }
+              if (y + h >= videoHeight) {
+                y = Math.max(0, videoHeight - h - 1)
               }
 
               console.log(
