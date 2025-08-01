@@ -2112,46 +2112,41 @@
             const videoWidth = this.videoPreview.videoWidth
             const videoHeight = this.videoPreview.videoHeight
 
-            const delogoFilters = this.watermarkRegions
-              .map((region) => {
-                let x = Math.round(region.x * scaleX)
-                let y = Math.round(region.y * scaleY)
-                let w = Math.round(region.width * scaleX)
-                let h = Math.round(region.height * scaleY)
+            // 构建delogo滤镜链
+            const processedRegions = this.watermarkRegions.map((region, index) => {
+              let x = Math.round(region.x * scaleX)
+              let y = Math.round(region.y * scaleY)
+              let w = Math.round(region.width * scaleX)
+              let h = Math.round(region.height * scaleY)
 
-                // 严格的边界检查和修正
-                // 首先确保坐标在有效范围内
-                x = Math.max(0, x)
-                y = Math.max(0, y)
+              // 确保坐标和尺寸在有效范围内
+              x = Math.max(0, Math.min(x, videoWidth - 1))
+              y = Math.max(0, Math.min(y, videoHeight - 1))
+              
+              // 确保最小尺寸，避免过小的区域导致处理失败
+              const minSize = 8
+              w = Math.max(minSize, Math.min(w, videoWidth - x))
+              h = Math.max(minSize, Math.min(h, videoHeight - y))
 
-                // 确保宽度和高度为正数
-                w = Math.max(1, w)
-                h = Math.max(1, h)
+              // 最终边界检查，确保不超出视频边界
+              if (x + w > videoWidth) {
+                w = videoWidth - x
+              }
+              if (y + h > videoHeight) {
+                h = videoHeight - y
+              }
 
-                // 确保区域完全在视频帧内
-                // FFmpeg的delogo要求x+w < videoWidth，而不是x+w <= videoWidth
-                if (x + w >= videoWidth) {
-                  if (x >= videoWidth - 1) {
-                    x = videoWidth - 2
-                    w = 1
-                  } else {
-                    w = videoWidth - x - 1
-                  }
-                }
-                if (y + h >= videoHeight) {
-                  if (y >= videoHeight - 1) {
-                    y = videoHeight - 2
-                    h = 1
-                  } else {
-                    h = videoHeight - y - 1
-                  }
-                }
+              console.log(
+                `水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`
+              )
+              
+              return { x, y, w, h, id: region.id }
+            })
 
-                console.log(
-                  `水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`
-                )
-                return `delogo=x=${x}:y=${y}:w=${w}:h=${h}`
-              })
+            // 构建delogo滤镜字符串
+            // 对于多个区域，使用逗号分隔的多个delogo滤镜
+            const videoFilter = processedRegions
+              .map(region => `delogo=x=${region.x}:y=${region.y}:w=${region.w}:h=${region.h}:show=0`)
               .join(',')
 
             this.updateProgress(40, '开始去除水印...')
@@ -2175,7 +2170,7 @@
               '-t',
               duration.toString(),
               '-vf',
-              delogoFilters,
+              videoFilter,
               ...quality,
               '-c:a',
               'copy',
@@ -2185,9 +2180,15 @@
             ]
 
             console.log('FFmpeg命令:', ffmpegArgs.join(' '))
+            console.log('视频滤镜:', videoFilter)
 
             // 执行 FFmpeg 命令
-            await this.ffmpeg.run(...ffmpegArgs)
+            try {
+              await this.ffmpeg.run(...ffmpegArgs)
+            } catch (error) {
+              console.error('FFmpeg执行错误:', error)
+              throw new Error(`水印去除失败: ${error.message}`)
+            }
 
             this.updateProgress(90, '生成输出文件...')
 
