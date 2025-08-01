@@ -985,6 +985,35 @@
         font-size: 0.9rem;
       }
 
+      .ffmpeg-progress {
+        margin-top: 10px;
+        padding: 15px;
+        background: var(--primary-bg);
+        border-radius: 15px;
+        border: 1px solid var(--border-color);
+        box-shadow: inset 5px 5px 10px var(--shadow-dark),
+          inset -5px -5px 10px var(--shadow-light);
+      }
+
+      .progress-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+
+      .detail-item {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .detail-item span {
+        color: var(--accent-color);
+        font-weight: bold;
+      }
+
       .instructions {
         background: var(--primary-bg);
         border-radius: 25px;
@@ -1273,6 +1302,18 @@
         <div class="progress-text" id="progressText">准备处理...</div>
       </div>
 
+      <!-- FFmpeg 详细进度信息 -->
+      <div class="ffmpeg-progress" id="ffmpegProgress" style="display: none">
+        <div class="progress-details">
+          <span class="detail-item">帧数: <span id="frameCount">0</span></span>
+          <span class="detail-item">FPS: <span id="fpsValue">0</span></span>
+          <span class="detail-item"
+            >时间: <span id="timeValue">00:00:00</span></span
+          >
+          <span class="detail-item">速度: <span id="speedValue">0x</span></span>
+        </div>
+      </div>
+
       <div class="status-message" id="statusMessage"></div>
       <div class="error-message" id="errorMessage"></div>
 
@@ -1304,7 +1345,9 @@
           <li>选择输出格式和质量设置</li>
           <li>点击"开始去除水印"进行处理</li>
         </ol>
-        <p>💡 提示：处理速度取决于视频清晰度和大小,需要逐帧处理,请耐心等待。</p>
+        <p style="margin-bottom: 12px">
+          💡 提示：处理速度取决于视频清晰度和大小,需要逐帧处理,请耐心等待。
+        </p>
         <p>
           💡
           提示：水印去除效果取决于水印的复杂程度和背景内容。建议选择稍大于水印的区域以获得更好的效果。
@@ -1361,6 +1404,13 @@
           this.operationHistory = document.getElementById('operationHistory')
           this.historyList = document.getElementById('historyList')
           this.processedVideos = []
+
+          // FFmpeg进度信息相关元素
+          this.ffmpegProgress = document.getElementById('ffmpegProgress')
+          this.frameCount = document.getElementById('frameCount')
+          this.fpsValue = document.getElementById('fpsValue')
+          this.timeValue = document.getElementById('timeValue')
+          this.speedValue = document.getElementById('speedValue')
 
           // Cropper相关元素
           this.cropperImage = document.getElementById('cropperImage')
@@ -1451,6 +1501,15 @@
             this.ffmpeg = createFFmpeg({
               log: true,
             })
+
+            // 监听FFmpeg日志输出
+            this.ffmpeg.setLogging(true)
+            this.ffmpeg.setLogger(({ type, message }) => {
+              if (type === 'fferr' && message.includes('frame=')) {
+                this.parseFFmpegProgress(message)
+              }
+            })
+
             await this.ffmpeg.load()
             this.showStatus('FFmpeg 加载完成')
           } catch (error) {
@@ -2175,10 +2234,42 @@
           this.progressText.textContent = text
         }
 
+        parseFFmpegProgress(message) {
+          // 解析FFmpeg进度信息
+          // 示例: frame= 2752 fps=4.0 q=29.0 size= 15616kB time=00:01:31.97 bitrate=1390.9kbits/s speed=0.132x
+          try {
+            const frameMatch = message.match(/frame=\s*(\d+)/)
+            const fpsMatch = message.match(/fps=([\d.]+)/)
+            const timeMatch = message.match(/time=([\d:.-]+)/)
+            const speedMatch = message.match(/speed=([\d.]+)x/)
+
+            if (frameMatch && this.frameCount) {
+              this.frameCount.textContent = frameMatch[1]
+            }
+            if (fpsMatch && this.fpsValue) {
+              this.fpsValue.textContent = fpsMatch[1]
+            }
+            if (timeMatch && this.timeValue) {
+              this.timeValue.textContent = timeMatch[1]
+            }
+            if (speedMatch && this.speedValue) {
+              this.speedValue.textContent = speedMatch[1] + 'x'
+            }
+          } catch (error) {
+            console.log('解析FFmpeg进度信息失败:', error)
+          }
+        }
+
         showProgress(show) {
           this.progressContainer.style.display = show ? 'block' : 'none'
+          this.ffmpegProgress.style.display = show ? 'block' : 'none'
           if (!show) {
             this.updateProgress(0, '准备处理...')
+            // 重置FFmpeg进度信息
+            if (this.frameCount) this.frameCount.textContent = '0'
+            if (this.fpsValue) this.fpsValue.textContent = '0'
+            if (this.timeValue) this.timeValue.textContent = '00:00:00'
+            if (this.speedValue) this.speedValue.textContent = '0x'
           }
         }
 
