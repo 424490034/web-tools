@@ -1964,27 +1964,31 @@
                 let h = Math.round(region.height * scaleY)
 
                 // 严格的边界检查和修正
-                // 确保坐标在有效范围内
-                x = Math.max(0, Math.min(x, videoWidth - 1))
-                y = Math.max(0, Math.min(y, videoHeight - 1))
-
-                // 确保宽度和高度不会超出边界
-                const maxWidth = videoWidth - x
-                const maxHeight = videoHeight - y
-                w = Math.max(1, Math.min(w, maxWidth))
-                h = Math.max(1, Math.min(h, maxHeight))
-
-                // 最终验证：确保区域完全在视频帧内
-                if (x + w > videoWidth) {
-                  w = videoWidth - x
-                }
-                if (y + h > videoHeight) {
-                  h = videoHeight - y
-                }
-
-                // 确保最小尺寸
+                // 首先确保坐标在有效范围内
+                x = Math.max(0, x)
+                y = Math.max(0, y)
+                
+                // 确保宽度和高度为正数
                 w = Math.max(1, w)
                 h = Math.max(1, h)
+
+                // 确保区域完全在视频帧内
+                if (x + w > videoWidth) {
+                  if (x >= videoWidth) {
+                    x = videoWidth - 1
+                    w = 1
+                  } else {
+                    w = videoWidth - x
+                  }
+                }
+                if (y + h > videoHeight) {
+                  if (y >= videoHeight) {
+                    y = videoHeight - 1
+                    h = 1
+                  } else {
+                    h = videoHeight - y
+                  }
+                }
 
                 console.log(
                   `水印区域 ${region.id}: x=${x}, y=${y}, w=${w}, h=${h} (视频尺寸: ${videoWidth}x${videoHeight})`
