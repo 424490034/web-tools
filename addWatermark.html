@@ -2224,7 +2224,9 @@
               outputFormat: outputFormat,
               watermarkCount: this.watermarkRegions.length,
               processTime: new Date().toLocaleString(),
-              fileSize: (outputData.buffer.byteLength / (1024 * 1024)).toFixed(2) + ' MB'
+              fileSize:
+                (outputData.buffer.byteLength / (1024 * 1024)).toFixed(2) +
+                ' MB',
             })
 
             this.showStatus('视频处理完成，已添加到处理记录')
@@ -2436,7 +2438,10 @@
 
           const a = document.createElement('a')
           a.href = item.videoUrl
-          a.download = `watermarked_${item.originalFileName.replace(/\.[^/.]+$/, '')}.${item.outputFormat}`
+          a.download = `watermarked_${item.originalFileName.replace(
+            /\.[^/.]+$/,
+            ''
+          )}.${item.outputFormat}`
           a.click()
           this.showStatus('开始下载视频文件')
         }
@@ -2461,7 +2466,7 @@
           // 创建预览模态框
           const modal = document.createElement('div')
           modal.className = 'modal'
-          modal.style.display = 'block'
+          modal.style.display = 'flex'
           modal.innerHTML = `
             <div class="modal-content" style="max-width: 80%; max-height: 80%;">
               <div class="modal-header">
