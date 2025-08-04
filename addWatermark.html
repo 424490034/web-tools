@@ -1118,6 +1118,126 @@
         min-width: auto;
       }
 
+      .operation-history {
+        background: var(--primary-bg);
+        border-radius: 25px;
+        padding: 30px;
+        margin-top: 40px;
+        box-shadow: 10px 10px 20px var(--shadow-dark),
+          -10px -10px 20px var(--shadow-light);
+        animation: historySlide 0.8s ease 1.2s both;
+      }
+
+      @keyframes historySlide {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .history-list {
+        display: grid;
+        gap: 20px;
+      }
+
+      .history-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: inset 5px 5px 10px var(--shadow-dark),
+          inset -5px -5px 10px var(--shadow-light);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 5px 5px 15px var(--shadow-dark),
+          -5px -5px 15px var(--shadow-light);
+      }
+
+      .history-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .history-item-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .history-item-time {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        opacity: 0.8;
+      }
+
+      .history-item-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .history-item-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .history-item-actions button {
+        flex: 1;
+        min-width: 120px;
+        margin: 0;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-preview {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+      }
+
+      .btn-preview:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-download {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border: none;
+      }
+
+      .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
+      }
+
+      .btn-delete {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        border: none;
+      }
+
+      .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+      }
+
       .instructions {
         background: var(--primary-bg);
         border-radius: 25px;
@@ -1375,6 +1495,24 @@
       ></div>
       <div id="errorMessage" class="error-message" style="display: none"></div>
 
+      <!-- 操作记录列表 -->
+      <div
+        class="operation-history"
+        id="operationHistory"
+        style="display: none"
+      >
+        <h3
+          style="
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+          "
+        >
+          📋 处理记录
+        </h3>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
       <!-- 使用说明 -->
       <div class="instructions">
         <h3>📖 使用说明</h3>
@@ -1495,6 +1633,7 @@
           this.cropper = null
           this.canvas = null
           this.watermarkImageFile = null
+          this.processHistory = []
 
           this.initializeElements()
           this.setupEventListeners()
@@ -1540,6 +1679,10 @@
           this.imageWatermarkSettings = document.getElementById(
             'imageWatermarkSettings'
           )
+
+          // 历史记录相关元素
+          this.operationHistory = document.getElementById('operationHistory')
+          this.historyList = document.getElementById('historyList')
         }
 
         setupEventListeners() {
@@ -2015,7 +2158,7 @@
           }
 
           try {
-            this.showProgress(0, '准备处理视频...')
+            this.showProgress(0, '准备处理视频(加载字体文件)...')
             this.processBtn.disabled = true
 
             // 写入视频文件到 FFmpeg
@@ -2025,7 +2168,11 @@
             // 加载字体文件
             const fontResponse = await fetch('./SourceHanSansCN-Regular.ttf')
             const fontData = new Uint8Array(await fontResponse.arrayBuffer())
-            await this.ffmpeg.FS('writeFile', 'SourceHanSansCN-Regular.ttf', fontData)
+            await this.ffmpeg.FS(
+              'writeFile',
+              'SourceHanSansCN-Regular.ttf',
+              fontData
+            )
 
             // 处理图片水印文件
             for (let i = 0; i < this.watermarkRegions.length; i++) {
@@ -2062,22 +2209,28 @@
               `output.${outputFormat}`
             )
 
-            // 创建下载链接
+            // 创建视频blob
             const blob = new Blob([outputData.buffer], {
               type: `video/${outputFormat}`,
             })
             const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `watermarked_video.${outputFormat}`
-            a.click()
 
             this.showProgress(100, '处理完成！')
-            this.showStatus('视频处理完成，已开始下载')
 
-            // 清理文件
+            // 添加到历史记录
+            this.addToHistory({
+              videoUrl: url,
+              originalFileName: this.videoFile.name,
+              outputFormat: outputFormat,
+              watermarkCount: this.watermarkRegions.length,
+              processTime: new Date().toLocaleString(),
+              fileSize: (outputData.buffer.byteLength / (1024 * 1024)).toFixed(2) + ' MB'
+            })
+
+            this.showStatus('视频处理完成，已添加到处理记录')
+
+            // 清理进度显示
             setTimeout(() => {
-              URL.revokeObjectURL(url)
               this.hideProgress()
             }, 2000)
           } catch (error) {
@@ -2215,6 +2368,128 @@
 
         hideError() {
           this.errorMessage.style.display = 'none'
+        }
+
+        // 历史记录相关方法
+        addToHistory(historyItem) {
+          this.processHistory.unshift(historyItem)
+          this.updateHistoryDisplay()
+          this.operationHistory.style.display = 'block'
+        }
+
+        updateHistoryDisplay() {
+          if (this.processHistory.length === 0) {
+            this.historyList.innerHTML = `
+              <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                暂无处理记录<br>
+                <small>处理完成的视频将显示在这里</small>
+              </div>
+            `
+            return
+          }
+
+          this.historyList.innerHTML = ''
+          this.processHistory.forEach((item, index) => {
+            const historyElement = this.createHistoryElement(item, index)
+            this.historyList.appendChild(historyElement)
+          })
+        }
+
+        createHistoryElement(item, index) {
+          const element = document.createElement('div')
+          element.className = 'history-item'
+          element.innerHTML = `
+            <div class="history-item-header">
+              <div class="history-item-title">🎬 ${item.originalFileName}</div>
+              <div class="history-item-time">${item.processTime}</div>
+            </div>
+            <div class="history-item-info">
+              <div>📁 格式: ${item.outputFormat.toUpperCase()}</div>
+              <div>💾 大小: ${item.fileSize}</div>
+              <div>🏷️ 水印数量: ${item.watermarkCount}个</div>
+            </div>
+            <div class="history-item-actions">
+              <button class="btn-preview" onclick="watermarkAdder.previewVideo(${index})">
+                👁️ 预览
+              </button>
+              <button class="btn-download" onclick="watermarkAdder.downloadVideo(${index})">
+                💾 下载
+              </button>
+              <button class="btn-delete" onclick="watermarkAdder.deleteHistory(${index})">
+                🗑️ 删除
+              </button>
+            </div>
+          `
+          return element
+        }
+
+        previewVideo(index) {
+          const item = this.processHistory[index]
+          if (!item) return
+
+          this.showVideoPreview(item.videoUrl, item.originalFileName)
+        }
+
+        downloadVideo(index) {
+          const item = this.processHistory[index]
+          if (!item) return
+
+          const a = document.createElement('a')
+          a.href = item.videoUrl
+          a.download = `watermarked_${item.originalFileName.replace(/\.[^/.]+$/, '')}.${item.outputFormat}`
+          a.click()
+          this.showStatus('开始下载视频文件')
+        }
+
+        deleteHistory(index) {
+          if (confirm('确定要删除这条处理记录吗？')) {
+            const item = this.processHistory[index]
+            if (item && item.videoUrl) {
+              URL.revokeObjectURL(item.videoUrl)
+            }
+            this.processHistory.splice(index, 1)
+            this.updateHistoryDisplay()
+            this.showStatus('已删除处理记录')
+
+            if (this.processHistory.length === 0) {
+              this.operationHistory.style.display = 'none'
+            }
+          }
+        }
+
+        showVideoPreview(videoUrl, fileName) {
+          // 创建预览模态框
+          const modal = document.createElement('div')
+          modal.className = 'modal'
+          modal.style.display = 'block'
+          modal.innerHTML = `
+            <div class="modal-content" style="max-width: 80%; max-height: 80%;">
+              <div class="modal-header">
+                <h3>🎬 视频预览 - ${fileName}</h3>
+                <span class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</span>
+              </div>
+              <div class="modal-body" style="padding: 20px; text-align: center;">
+                <video controls style="max-width: 100%; max-height: 60vh; border-radius: 10px;">
+                  <source src="${videoUrl}" type="video/mp4">
+                  您的浏览器不支持视频播放。
+                </video>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-success" onclick="this.parentElement.parentElement.parentElement.remove()">
+                  关闭预览
+                </button>
+              </div>
+            </div>
+          `
+
+          document.body.appendChild(modal)
+
+          // 点击模态框外部关闭
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.remove()
+            }
+          })
         }
       }
 
