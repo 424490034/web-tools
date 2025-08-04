@@ -1951,6 +1951,7 @@
             cropBoxMovable: true,
             cropBoxResizable: true,
             toggleDragModeOnDblclick: false,
+            zoomOnWheel: false, // 禁用滚轮缩放
             crop: (event) => {
               const { x, y, width, height } = event.detail
               document.getElementById(
@@ -2263,8 +2264,32 @@
           }
 
           // 构建复杂滤镜
-          let filterComplex = '[0:v]'
+          let filterComplex = ''
           let overlayInputs = 1
+          let hasImageWatermark = false
+          let imageWatermarkIndex = 0
+
+          // 先处理所有图片水印的缩放和透明度
+          for (let i = 0; i < this.watermarkRegions.length; i++) {
+            const region = this.watermarkRegions[i]
+            if (region.type === 'image') {
+              command.push('-i', `watermark_${i}.png`)
+              const videoWidth = this.videoPreview.videoWidth
+              const videoHeight = this.videoPreview.videoHeight
+              const w = Math.round((region.width / 100) * videoWidth)
+              const h = Math.round((region.height / 100) * videoHeight)
+              const alpha = region.opacity
+
+              if (filterComplex) filterComplex += ';'
+              filterComplex += `[${overlayInputs}:v]scale=${w}:${h},format=rgba,colorchannelmixer=aa=${alpha}[wm${i}]`
+              overlayInputs++
+              hasImageWatermark = true
+            }
+          }
+
+          // 开始构建overlay链
+          let currentInput = '[0:v]'
+          let outputLabel = ''
 
           for (let i = 0; i < this.watermarkRegions.length; i++) {
             const region = this.watermarkRegions[i]
@@ -2274,8 +2299,6 @@
             // 计算实际像素位置
             const x = Math.round((region.x / 100) * videoWidth)
             const y = Math.round((region.y / 100) * videoHeight)
-            const w = Math.round((region.width / 100) * videoWidth)
-            const h = Math.round((region.height / 100) * videoHeight)
 
             if (region.type === 'text') {
               // 文字水印
@@ -2285,42 +2308,42 @@
                 .toString(16)
                 .padStart(2, '0')
 
-              filterComplex += `drawtext=text='${region.text}':fontfile=SourceHanSansCN-Regular.ttf:x=${x}:y=${y}:fontsize=${fontSize}:fontcolor=${fontColor}${alpha}:box=1:boxcolor=black@0.3:boxborderw=2`
-            } else if (region.type === 'image') {
-              // 图片水印
-              command.push('-i', `watermark_${i}.png`)
-              const alpha = region.opacity
-
-              if (i === 0) {
-                filterComplex += `[${overlayInputs}:v]scale=${w}:${h},format=rgba,colorchannelmixer=aa=${alpha}[wm${i}];[0:v][wm${i}]overlay=${x}:${y}`
-              } else {
-                filterComplex += `[${overlayInputs}:v]scale=${w}:${h},format=rgba,colorchannelmixer=aa=${alpha}[wm${i}];[tmp${
-                  i - 1
-                }][wm${i}]overlay=${x}:${y}[tmp${i}]`
+              if (filterComplex && !filterComplex.endsWith(';')) filterComplex += ';'
+              filterComplex += `${currentInput}drawtext=text='${region.text}':fontfile=SourceHanSansCN-Regular.ttf:x=${x}:y=${y}:fontsize=${fontSize}:fontcolor=${fontColor}${alpha}:box=1:boxcolor=black@0.3:boxborderw=2`
+              
+              if (i < this.watermarkRegions.length - 1) {
+                outputLabel = `[tmp${i}]`
+                filterComplex += outputLabel
+                currentInput = outputLabel
               }
-              overlayInputs++
-            }
-
-            if (
-              region.type === 'image' &&
-              i < this.watermarkRegions.length - 1
-            ) {
-              filterComplex += `[tmp${i}];`
+            } else if (region.type === 'image') {
+              // 图片水印overlay
+              if (filterComplex && !filterComplex.endsWith(';')) filterComplex += ';'
+              
+              if (i < this.watermarkRegions.length - 1) {
+                outputLabel = `[tmp${i}]`
+                filterComplex += `${currentInput}[wm${i}]overlay=${x}:${y}${outputLabel}`
+                currentInput = outputLabel
+              } else {
+                filterComplex += `${currentInput}[wm${i}]overlay=${x}:${y}`
+              }
             }
           }
 
           // 添加滤镜复杂参数
-          if (this.watermarkRegions.some((r) => r.type === 'image')) {
+          if (hasImageWatermark || this.watermarkRegions.some((r) => r.type === 'text')) {
             command.push('-filter_complex', filterComplex)
-            command.push(
-              '-map',
-              `[tmp${
-                this.watermarkRegions.filter((r) => r.type === 'image').length -
-                1
-              }]`
-            )
+            // 如果有输出标签，使用它；否则使用默认的视频流
+            if (outputLabel) {
+              command.push('-map', outputLabel)
+            } else {
+              command.push('-map', '0:v')
+            }
+            // 如果原视频有音频流，也要映射音频
+            command.push('-map', '0:a?')
           } else {
-            command.push('-vf', filterComplex)
+            // 没有水印的情况
+            command.push('-c', 'copy')
           }
 
           // 添加质量设置
