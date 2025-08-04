@@ -2250,9 +2250,9 @@
           const outputFormat = this.outputFormat.value
           const quality = this.quality.value
 
-          let command = ['-i', 'input.mp4']
+          let command = []
 
-          // 添加时间范围
+          // 添加时间范围到主视频输入
           if (parseFloat(startTime) > 0) {
             command.push('-ss', startTime)
           }
@@ -2262,6 +2262,7 @@
               (parseFloat(endTime) - parseFloat(startTime)).toString()
             )
           }
+          command.push('-i', 'input.mp4')
 
           // 构建复杂滤镜
           let filterComplex = ''
