@@ -137,6 +137,15 @@
       category: "video-tools"
     },
     {
+      icon: "fas fa-plus-circle",
+      title: "视频水印添加",
+      description: "为视频添加文字或图片水印，支持多种水印样式、透明度调节、位置自定义，处理记录可预览下载。(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+      emoji: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+      link: "https://www.996day.com/addWatermark.html",
+      buttonText: "添加水印",
+      category: "video-tools"
+    },
+    {
       icon: "fas fa-tree",
       title: "心灵树洞",
       description: "安全的情感倾诉空间，你的话语不会被保存，只会随风飘散在森林中。(｡◕‿◕｡)",
