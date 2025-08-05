@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>在线黄历 - 传统农历查询工具</title>
+    <meta
+      name="description"
+      content="免费在线黄历查询，提供农历日期、节气、宜忌、节假日等传统文化信息，采用精美卡通设计"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Microsoft YaHei', sans-serif;
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .title {
+        color: #ff6b6b;
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(255, 107, 107, 0.3);
+        margin-bottom: 10px;
+        position: relative;
+      }
+
+      .title::before {
+        content: '🌈';
+        position: absolute;
+        left: -60px;
+        top: 0;
+        font-size: 2rem;
+        animation: bounce 2s infinite;
+      }
+
+      .title::after {
+        content: '✨';
+        position: absolute;
+        right: -60px;
+        top: 0;
+        font-size: 2rem;
+        animation: bounce 2s infinite 0.5s;
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 25px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.15);
+        border: 3px solid #ffeb3b;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 235, 59, 0.1) 0%,
+          transparent 70%
+        );
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        50% {
+          transform: translate(-50%, -50%) rotate(180deg);
+        }
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #ff6b6b;
+        margin-bottom: 20px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .card-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #ffeb3b);
+        border-radius: 10px;
+        animation: rainbow 3s linear infinite;
+      }
+
+      @keyframes rainbow {
+        0% {
+          background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #ffeb3b);
+        }
+        33% {
+          background: linear-gradient(90deg, #4ecdc4, #ffeb3b, #ff6b6b);
+        }
+        66% {
+          background: linear-gradient(90deg, #ffeb3b, #ff6b6b, #4ecdc4);
+        }
+        100% {
+          background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #ffeb3b);
+        }
+      }
+
+      .date-display {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .solar-date {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .lunar-date {
+        font-size: 1.3rem;
+        color: #e74c3c;
+        margin-bottom: 5px;
+      }
+
+      .zodiac {
+        font-size: 1.1rem;
+        color: #8e44ad;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .zodiac-icon {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .info-item {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        color: #333;
+        padding: 18px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 6px 20px rgba(255, 154, 158, 0.3);
+        border: 2px solid #fff;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .info-item::before {
+        content: '✨';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      .info-item.good {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        box-shadow: 0 6px 20px rgba(168, 237, 234, 0.3);
+      }
+
+      .info-item.good::before {
+        content: '🌟';
+      }
+
+      .info-item.bad {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        box-shadow: 0 6px 20px rgba(252, 182, 159, 0.3);
+      }
+
+      .info-item.bad::before {
+        content: '⚠️';
+      }
+
+      .info-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 5px;
+      }
+
+      .info-value {
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+
+      .holiday-section {
+        background: #fff;
+        border-radius: 25px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.15);
+        border: 3px solid #4caf50;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .holiday-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(76, 175, 80, 0.1) 0%,
+          transparent 70%
+        );
+        animation: float 8s ease-in-out infinite reverse;
+      }
+
+      .holiday-card {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        color: #333;
+        padding: 20px;
+        border-radius: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 6px 25px rgba(255, 154, 158, 0.2);
+        border: 2px solid #fff;
+        position: relative;
+        z-index: 1;
+      }
+
+      .holiday-card::before {
+        content: '🎈';
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.5rem;
+        animation: bounce 2s infinite;
+      }
+
+      .holiday-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .holiday-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 0.95rem;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        .title {
+          font-size: 2rem;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .holiday-info {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .refresh-btn {
+        background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+        color: white;
+        border: 3px solid #fff;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+        margin: 20px auto;
+        display: block;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .refresh-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.5s ease;
+      }
+
+      .refresh-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+      }
+
+      .refresh-btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .data-section {
+        background: #fff;
+        border-radius: 25px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(156, 39, 176, 0.15);
+        border: 3px solid #9c27b0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .data-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(156, 39, 176, 0.1) 0%,
+          transparent 70%
+        );
+        animation: float 10s ease-in-out infinite;
+      }
+
+      .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .data-item {
+        background: linear-gradient(135deg, #e1bee7 0%, #f3e5f5 100%);
+        padding: 15px;
+        border-radius: 15px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(156, 39, 176, 0.2);
+        position: relative;
+      }
+
+      .data-item::before {
+        content: '💫';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 0.9rem;
+      }
+
+      .data-label {
+        font-weight: bold;
+        color: #7b1fa2;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+      }
+
+      .data-value {
+        color: #333;
+        font-size: 0.95rem;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">📅 在线黄历</h1>
+        <p class="subtitle">传统农历 · 节气宜忌 · 节假日查询</p>
+      </div>
+
+      <div class="main-content">
+        <div class="card">
+          <h2 class="card-title">🗓️ 今日黄历</h2>
+          <div id="calendar-content">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <p>正在加载黄历信息...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">🎯 宜忌事项</h2>
+          <div id="yiji-content">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <p>正在加载宜忌信息...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="holiday-section">
+        <h2 class="card-title">🎉 节假日信息</h2>
+        <div id="holiday-content">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>正在加载节假日信息...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-section">
+        <h2 class="card-title">📊 完整数据展示</h2>
+        <div id="full-data-content">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>正在加载完整数据...</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="refresh-btn" onclick="loadAllData()">🔄 刷新数据</button>
+    </div>
+
+    <script>
+      // API配置
+      const API_URL = 'https://api.996day.com/api/chineseHolidays'
+
+      // 生肖映射
+      const zodiacMap = {
+        鼠: '🐭',
+        牛: '🐮',
+        虎: '🐯',
+        兔: '🐰',
+        龙: '🐲',
+        蛇: '🐍',
+        马: '🐴',
+        羊: '🐑',
+        猴: '🐵',
+        鸡: '🐔',
+        狗: '🐶',
+        猪: '🐷',
+      }
+
+      // 加载所有数据
+      async function loadAllData() {
+        try {
+          const response = await fetch(API_URL)
+          if (!response.ok) {
+            throw new Error('网络请求失败')
+          }
+          const data = await response.json()
+
+          if (data.code === 0) {
+            renderCalendarInfo(data.data)
+            renderYijiInfo(data.data)
+            renderHolidayInfo(data.data)
+            renderFullData(data.data)
+          } else {
+            throw new Error('API返回错误')
+          }
+        } catch (error) {
+          console.error('加载数据失败:', error)
+          showError('数据加载失败，请稍后重试')
+        }
+      }
+
+      // 渲染黄历信息
+      function renderCalendarInfo(data) {
+        const today = new Date()
+        const solarDate = today.toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+        })
+
+        const lunarInfo = data.upcomingSolarTerms
+        const zodiacName = lunarInfo.shengXiao?.name || '未知'
+        const zodiacIcon = zodiacMap[zodiacName] || '🔮'
+
+        const html = `
+                <div class="date-display">
+                    <div class="solar-date">${solarDate}</div>
+                    <div class="lunar-date">${
+                      lunarInfo.lunar || '农历信息获取中...'
+                    }</div>
+                    <div class="zodiac">
+                        <div class="zodiac-icon">${zodiacIcon}</div>
+                        <span>${zodiacName}年</span>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">节气</div>
+                        <div class="info-value">${
+                          lunarInfo.NextJieQi?.name || '无'
+                        }</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">下个节气</div>
+                        <div class="info-value">${
+                          lunarInfo.NextJieQi?.date || '无'
+                        }</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">财神方位</div>
+                        <div class="info-value">${
+                          lunarInfo.dayShenPosition?.caiShen?.desc || '未知'
+                        }</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">喜神方位</div>
+                        <div class="info-value">${
+                          lunarInfo.dayShenPosition?.xiShen?.desc || '未知'
+                        }</div>
+                    </div>
+                </div>
+            `
+
+        document.getElementById('calendar-content').innerHTML = html
+      }
+
+      // 渲染宜忌信息
+      function renderYijiInfo(data) {
+        const dayInfo = data.upcomingSolarTerms?.day || {}
+        const timeInfo = data.upcomingSolarTerms?.time || {}
+
+        const dayYi = dayInfo.dayYi || '无特别宜事'
+        const dayJi = dayInfo.datJi || '无特别忌事'
+
+        const html = `
+                <div class="info-grid">
+                    <div class="info-item good">
+                        <div class="info-label">✅ 今日宜</div>
+                        <div class="info-value">${dayYi
+                          .split(',')
+                          .slice(0, 3)
+                          .join('、')}</div>
+                    </div>
+                    <div class="info-item bad">
+                        <div class="info-label">❌ 今日忌</div>
+                        <div class="info-value">${dayJi
+                          .split(',')
+                          .slice(0, 3)
+                          .join('、')}</div>
+                    </div>
+                    <div class="info-item good">
+                        <div class="info-label">⏰ 时辰宜</div>
+                        <div class="info-value">${
+                          timeInfo.timeYi?.split(',').slice(0, 2).join('、') ||
+                          '无'
+                        }</div>
+                    </div>
+                    <div class="info-item bad">
+                        <div class="info-label">⏰ 时辰忌</div>
+                        <div class="info-value">${
+                          timeInfo.timeJi?.split(',').slice(0, 2).join('、') ||
+                          '无'
+                        }</div>
+                    </div>
+                </div>
+            `
+
+        document.getElementById('yiji-content').innerHTML = html
+      }
+
+      // 渲染节假日信息
+      function renderHolidayInfo(data) {
+        const holidays = data.nextHolidays || []
+        const weekend = data.closestWeekend || {}
+
+        let html = ''
+
+        // 最近的周末
+        if (weekend.date) {
+          html += `
+                    <div class="holiday-card">
+                        <div class="holiday-name">🌅 最近周末</div>
+                        <div class="holiday-info">
+                            <div>📅 日期：${weekend.date} (${weekend.day})</div>
+                            <div>⏳ 还有：${weekend.daysLeft}天</div>
+                        </div>
+                    </div>
+                `
+        }
+
+        // 即将到来的节假日
+        holidays.forEach((holiday) => {
+          html += `
+                    <div class="holiday-card">
+                        <div class="holiday-name">🎊 ${holiday.name}</div>
+                        <div class="holiday-info">
+                            <div>📅 开始：${holiday.startDate}</div>
+                            <div>📅 结束：${holiday.endDate}</div>
+                            <div>📊 总天数：${holiday.totalDays}天</div>
+                            <div>⏳ 倒计时：${holiday.daysLeft}天</div>
+                        </div>
+                    </div>
+                `
+        })
+
+        if (!html) {
+          html =
+            '<div class="holiday-card"><div class="holiday-name">暂无即将到来的节假日信息</div></div>'
+        }
+
+        document.getElementById('holiday-content').innerHTML = html
+      }
+
+      // 渲染完整数据
+      function renderFullData(data) {
+        const lunarInfo = data.upcomingSolarTerms || {}
+
+        let html = '<div class="data-grid">'
+
+        // 基本信息
+        const basicInfo = [
+          { label: '🗓️ 农历日期', value: lunarInfo.lunar || '未知' },
+          { label: '🐲 生肖', value: lunarInfo.shengXiao?.name || '未知' },
+          { label: '📅 生肖日期', value: lunarInfo.shengXiao?.date || '未知' },
+          {
+            label: '🌿 上个节气',
+            value: `${lunarInfo.lastJieQi?.name || '未知'} (${
+              lunarInfo.lastJieQi?.date || '未知'
+            })`,
+          },
+          {
+            label: '🌱 下个节气',
+            value: `${lunarInfo.NextJieQi?.name || '未知'} (${
+              lunarInfo.NextJieQi?.date || '未知'
+            })`,
+          },
+        ]
+
+        basicInfo.forEach((item) => {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">${item.label}</div>
+                        <div class="data-value">${item.value}</div>
+                    </div>
+                `
+        })
+
+        // 八字信息
+        if (lunarInfo.baZi) {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">🔮 八字</div>
+                        <div class="data-value">${
+                          lunarInfo.baZi.info || '未知'
+                        }</div>
+                    </div>
+                `
+        }
+
+        // 干支信息
+        if (lunarInfo.ganZhi) {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">📊 干支</div>
+                        <div class="data-value">${
+                          lunarInfo.ganZhi.info || '未知'
+                        } (天干: ${lunarInfo.ganZhi.tianGan || '未知'}, 地支: ${
+            lunarInfo.ganZhi.diZhi || '未知'
+          })</div>
+                    </div>
+                `
+        }
+
+        // 神位方向
+        if (lunarInfo.dayShenPosition) {
+          const positions = [
+            { name: '💰 财神方位', pos: lunarInfo.dayShenPosition.caiShen },
+            { name: '😊 喜神方位', pos: lunarInfo.dayShenPosition.xiShen },
+            { name: '🌟 阳贵神方位', pos: lunarInfo.dayShenPosition.yangShen },
+            { name: '🌙 阴贵神方位', pos: lunarInfo.dayShenPosition.yinShen },
+            { name: '🍀 福神方位', pos: lunarInfo.dayShenPosition.fuShen },
+          ]
+
+          positions.forEach((item) => {
+            if (item.pos) {
+              html += `
+                            <div class="data-item">
+                                <div class="data-label">${item.name}</div>
+                                <div class="data-value">${
+                                  item.pos.desc || '未知'
+                                } (${item.pos.address || '未知'})</div>
+                            </div>
+                        `
+            }
+          })
+        }
+
+        // 时辰神位方向
+        if (lunarInfo.timeShenPosition) {
+          const timePositions = [
+            { name: '⏰ 时辰财神', pos: lunarInfo.timeShenPosition.caiShen },
+            { name: '⏰ 时辰喜神', pos: lunarInfo.timeShenPosition.xiShen },
+            { name: '⏰ 时辰阳贵神', pos: lunarInfo.timeShenPosition.yangShen },
+            { name: '⏰ 时辰阴贵神', pos: lunarInfo.timeShenPosition.yinShen },
+            { name: '⏰ 时辰福神', pos: lunarInfo.timeShenPosition.fuShen },
+          ]
+
+          timePositions.forEach((item) => {
+            if (item.pos) {
+              html += `
+                            <div class="data-item">
+                                <div class="data-label">${item.name}</div>
+                                <div class="data-value">${
+                                  item.pos.desc || '未知'
+                                } (${item.pos.address || '未知'})</div>
+                            </div>
+                        `
+            }
+          })
+        }
+
+        // 冲煞信息
+        if (lunarInfo.chongAndSha) {
+          if (lunarInfo.chongAndSha.day) {
+            html += `
+                        <div class="data-item">
+                            <div class="data-label">🌅 日冲煞</div>
+                            <div class="data-value">冲: ${
+                              lunarInfo.chongAndSha.day.chong || '未知'
+                            }, 煞: ${
+              lunarInfo.chongAndSha.day.sha || '未知'
+            }</div>
+                        </div>
+                    `
+          }
+          if (lunarInfo.chongAndSha.time) {
+            html += `
+                        <div class="data-item">
+                            <div class="data-label">⏰ 时冲煞</div>
+                            <div class="data-value">冲: ${
+                              lunarInfo.chongAndSha.time.chong || '未知'
+                            }, 煞: ${
+              lunarInfo.chongAndSha.time.sha || '未知'
+            }</div>
+                        </div>
+                    `
+          }
+        }
+
+        // 神煞信息
+        if (lunarInfo.dayShen) {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">😇 吉神</div>
+                        <div class="data-value">${
+                          lunarInfo.dayShen.dayJiShen || '无'
+                        }</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">👹 凶神</div>
+                        <div class="data-value">${
+                          lunarInfo.dayShen.dayXiongShen || '无'
+                        }</div>
+                    </div>
+                `
+        }
+
+        // 完整宜忌
+        if (lunarInfo.day) {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">✅ 完整日宜</div>
+                        <div class="data-value">${
+                          lunarInfo.day.dayYi || '无'
+                        }</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">❌ 完整日忌</div>
+                        <div class="data-value">${
+                          lunarInfo.day.datJi || '无'
+                        }</div>
+                    </div>
+                `
+        }
+
+        if (lunarInfo.time) {
+          html += `
+                    <div class="data-item">
+                        <div class="data-label">⏰ 完整时宜</div>
+                        <div class="data-value">${
+                          lunarInfo.time.timeYi || '无'
+                        }</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">⏰ 完整时忌</div>
+                        <div class="data-value">${
+                          lunarInfo.time.timeJi || '无'
+                        }</div>
+                    </div>
+                `
+        }
+
+        html += '</div>'
+
+        document.getElementById('full-data-content').innerHTML = html
+      }
+
+      // 显示错误信息
+      function showError(message) {
+        const errorHtml = `<div class="error">❌ ${message}</div>`
+        document.getElementById('calendar-content').innerHTML = errorHtml
+        document.getElementById('yiji-content').innerHTML = errorHtml
+        document.getElementById('holiday-content').innerHTML = errorHtml
+        document.getElementById('full-data-content').innerHTML = errorHtml
+      }
+
+      // 页面加载完成后自动加载数据
+      document.addEventListener('DOMContentLoaded', loadAllData)
+    </script>
+  </body>
+</html>

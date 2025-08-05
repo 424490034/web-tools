@@ -171,6 +171,15 @@
       link: "https://www.996day.com/md.html",
       buttonText: "开始编辑",
       category: "text-tools"
+    },
+    {
+      icon: "fas fa-calendar-alt",
+      title: "在线黄历",
+      description: "传统农历查询工具，提供农历日期、节气、宜忌、节假日等传统文化信息，采用精美卡通设计。📅✨",
+      emoji: "📅✨",
+      link: "https://www.996day.com/calendar.html",
+      buttonText: "查看黄历",
+      category: "text-tools"
     }
   ];
 
